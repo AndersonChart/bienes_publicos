@@ -1,0 +1,101 @@
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    margin: 0;
+    background: linear-gradient(#fff, #f009 30%, #000), url(../img/entrada.jpg) center / cover no-repeat;
+}
+
+.form {
+    background: #fff9;
+    padding: 2.5rem 2rem;
+    border-radius: 1rem;
+    min-width: 340px;
+    max-width: 100%;
+    box-shadow: 0 0 40px #200;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+legend {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #555;
+    margin-bottom: 2rem;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.form__input {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-top: 1rem;
+    color: #34495e;
+    font-size: 1rem;
+}
+
+input {
+    padding: 0.65rem 0.9rem;
+    border: 0.2rem solid #800;
+    box-shadow: 0 0 6px #200;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background: #fff7;
+}
+
+input[type="submit"] {
+    background: #800;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 0;
+    border-radius: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 0.7rem;
+}
+
+input[type="submit"]:hover {
+    background: #a00;
+    color: #fff;
+}
+
+.form a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.96rem;
+}
+
+button {
+    border: none;
+    border-radius: 0.75em;
+    background: #666;
+    box-shadow: 0 2px 12px rgba(32, 0, 0, 0.12);
+    height: 40px;
+    padding: 0 1.5em;
+    font-weight: 300;
+    font-size: 1rem;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+button:hover, button:focus {
+    background-color: #222;
+    box-shadow: 0 0px 10px #000;
+    color: #f00;
+}

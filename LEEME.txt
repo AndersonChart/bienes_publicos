@@ -1,0 +1,4 @@
+Clave y Usuario por defecto:
+
+Usuario: admin
+Contraseña: admin
