@@ -8,13 +8,18 @@ require_once 'php/marca.php';
 $marca = new marca();
 $registros_marca = $marca->leer_todos();
 
+
+require_once 'php/modelo.php';
+$modelo = new modelo();
+$registros_modelo = $modelo->leer_todos();
+
 ?>
 
 <button><a href="index.php?vista=listar_bien">Volver</a></button>
 <h1>Registrar Nuevo Bien</h1>
 <fieldset>
     <legend>Rellene los campos</legend>
-    <form action="index.php?vista=registrar_bien" method="POST">
+    <form action="index.php?vista=registrar_bien" method="POST" class="FormularioAjax">
         <div>
             <label for="ser">Número de serie: </label>
             <input type="text" name="serie" id="ser">
@@ -52,7 +57,10 @@ $registros_marca = $marca->leer_todos();
         <div>
             <label for="mod">Modelo: </label>
             <select name="modelo" id="mod">
-                    
+                <?php foreach($registros_modelo as $row){ ?>
+                    <option value="<?= $row['modelo_id']; ?>"> <?= $row['modelo_nombre']; ?> </option>
+                <?php } ?>
+            <button><a href="index.php?vista=form_registrar_modelo">Añadir</a></button>
             </select>
         </div>
         <div>
@@ -75,5 +83,6 @@ $registros_marca = $marca->leer_todos();
         <div>
             <button type="submit">Registrar</button>
         </div>
+        <div class="form-resultado"></div>
     </form>
 </fieldset>

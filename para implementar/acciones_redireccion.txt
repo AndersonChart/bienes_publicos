@@ -1,10 +1,7 @@
-<?php
-
-require_once 'php/modelo.php';
+//Reemplazar las redirecciones con este codigo
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $modelo = new modelo();
-    $modelo->actualizar($_POST['nombre'], $_POST['marca'], $_POST['id']);
+    // ... lógica de actualización ...
     // Puedes comprobar si la actualización fue exitosa o no
     if($exito){
         echo "<div class='alert alert-success'>¡Bien actualizado correctamente!</div>";
@@ -13,4 +10,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     exit;
 }
-?>

@@ -8,10 +8,19 @@ $registro = $bien->leer_por_id($_GET['id']);
 require_once 'php/categoria.php';
 $categoria = new categoria();
 $registros_categoria = $categoria->leer_todos();
+
+require_once 'php/modelo.php';
+$modelo = new modelo();
+$registros_modelo = $modelo->leer_todos();
+
+require_once 'php/marca.php';
+$marca = new marca();
+$registros_marca = $marca->leer_todos();
+
 ?>
 <button><a href="index.php?vista=listar_bien">Volver</a></button>
 <h1>Actualizar Bien</h1>
-<form action="index.php?vista=actualizar_bien" method="POST">
+<form action="index.php?vista=actualizar_bien" method="POST" class="FormularioAjax">
 <!-- Este primer input es para saber el id del registro, pero no es visible ante el usuario -->
     <input type="hidden" name="id" value="<?= $registro['bien_id'] ?>">
         <div>
@@ -41,11 +50,25 @@ $registros_categoria = $categoria->leer_todos();
             <input type="date" name="add" id="dat" value="<?= $registro['fecha_add'] ?>">
         </div>
         <div>
-            <select name="marca">
+            <label for="mar">Marca:</label>
+            <select name="marca" id="mar">
+                <?php foreach($registros_marca as $row){ ?>
+                    <option value="<?= $row['marca_id']; ?>"
+                        <?php if($row['marca_id'] == $registro['marca_id']) echo 'selected'; ?>>
+                        <?= $row['marca_nombre']; ?>
+                    </option>
+                <?php } ?>
             </select>
         </div>
         <div>
-            <select name="modelo">
+            <label for="mod">Modelo:</label>
+            <select name="modelo" id="mod">
+                <?php foreach($registros_modelo as $row){ ?>
+                    <option value="<?= $row['modelo_id']; ?>"
+                        <?php if($row['modelo_id'] == $registro['modelo_id']) echo 'selected'; ?>>
+                        <?= $row['modelo_nombre']; ?>
+                    </option>
+                <?php } ?>
             </select>
         </div>
         <div>
@@ -65,4 +88,5 @@ $registros_categoria = $categoria->leer_todos();
         <div>
             <button type="submit">Registrar</button>
         </div>
+        <div class="form-resultado"></div>
 </form>

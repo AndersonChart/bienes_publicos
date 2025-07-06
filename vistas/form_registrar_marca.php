@@ -2,7 +2,7 @@
 <h1>Registrar Nueva Marca</h1>
 <fieldset>
     <legend>Rellene los campos</legend>
-    <form action="index.php?vista=registrar_marca" method="POST">
+    <form action="index.php?vista=registrar_marca" method="POST" class="FormularioAjax">
         <div>
             <label for="nom">Nombre: </label>
             <input type="text" name="nombre" id="nom">
@@ -13,5 +13,6 @@
         <div>
             <button type="submit">Registrar</button>
         </div>
+        <div class="form-resultado"></div>
     </form>
 </fieldset>

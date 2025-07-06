@@ -1,15 +1,3 @@
-
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-}
-
-.logo {
-    margin: 10px;
-    height: 50px;
-    width: 50px;
-}
-
 //Estilos CSS
 
 /* COLORES PRINCIPALES */
@@ -34,7 +22,7 @@ body {
 }
 
 /* FORMULARIO GENERAL */
-.FormularioAjax {
+.form {
     background: var(--color-secundario);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(128,0,50,0.05);
@@ -44,36 +32,36 @@ body {
     margin: 1rem auto;
 }
 
-.FormularioAjax fieldset {
+.form fieldset {
     border: 1px solid var(--color-principal);
     border-radius: 6px;
     padding: 1.5rem 1rem;
 }
 
-.FormularioAjax legend {
+.form legend {
     color: var(--color-principal);
     font-weight: bold;
     font-size: 1.2rem;
     padding: 0 .5rem;
 }
 
-.FormularioAjax__input {
+.form__input {
     margin-bottom: 1rem;
 }
 
-.FormularioAjax__input label {
+.form__input label {
     display: block;
     font-size: 1rem;
     color: var(--color-principal);
     margin-bottom: 0.3rem;
 }
 
-.FormularioAjax__input input[type="text"],
-.FormularioAjax__input input[type="password"],
-.FormularioAjax__input input[type="email"],
-.FormularioAjax__input input[type="date"],
-.FormularioAjax__input textarea,
-.FormularioAjax__input select {
+.form__input input[type="text"],
+.form__input input[type="password"],
+.form__input input[type="email"],
+.form__input input[type="date"],
+.form__input textarea,
+.form__input select {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid var(--color-gris-medio);
@@ -84,18 +72,18 @@ body {
     margin-bottom: 0.3rem;
 }
 
-.FormularioAjax__input input[type="text"]:focus,
-.FormularioAjax__input input[type="password"]:focus,
-.FormularioAjax__input textarea:focus,
-.FormularioAjax__input select:focus {
+.form__input input[type="text"]:focus,
+.form__input input[type="password"]:focus,
+.form__input textarea:focus,
+.form__input select:focus {
     border-color: var(--color-principal);
     outline: none;
     background: #fff8fa;
 }
 
 /* BOTONES */
-.FormularioAjax__input input[type="submit"],
-.FormularioAjax__input button,
+.form__input input[type="submit"],
+.form__input button,
 .boton {
     background: var(--color-principal);
     color: var(--color-texto-inv);
@@ -109,19 +97,19 @@ body {
     text-decoration: none;
 }
 
-.FormularioAjax__input input[type="submit"]:hover,
-.FormularioAjax__input button:hover,
+.form__input input[type="submit"]:hover,
+.form__input button:hover,
 .boton:hover {
     background: #a2003a;
 }
 
-.FormularioAjax__input a {
+.form__input a {
     color: var(--color-principal);
     text-decoration: underline;
     font-size: 0.95rem;
 }
 
-.FormularioAjax__input a:hover {
+.form__input a:hover {
     color: #d80044;
 }
 
@@ -266,13 +254,13 @@ body {
     .links-bienvenida {
         margin-left: 0;
     }
-    .FormularioAjax {
+    .form {
         min-width: unset;
         max-width: 100%;
         padding: 1rem 0.5rem;
     }
 }
-/*
+
 //Uso de las clases:
 
 <body class="fondo__login">
@@ -315,100 +303,3 @@ body {
     <a href="index.php?vista=cerrar_sesion">Cerrar Sesión</a>
     <a href="index.php?vista=perfil">Perfil</a>
 </div>
-*/
-/*
-.login {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: sans-serif;
-    margin: 0;
-    background: linear-gradient(#fff, #f009 30%, #000), url(../img/entrada.jpg) center / cover no-repeat;
-}
-
-.FormularioAjax {
-    background: #fff9;
-    padding: 2.5rem 2rem;
-    border-radius: 1rem;
-    min-width: 340px;
-    max-width: 100%;
-    box-shadow: 0 0 40px #200;
-}
-
-fieldset {
-    border: none;
-    padding: 0;
-    margin-bottom: 0;
-}
-
-legend {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #555;
-    margin-bottom: 2rem;
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-.FormularioAjax__input {
-    margin-bottom: 0.5rem;
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin-top: 1rem;
-    color: #34495e;
-    font-size: 1rem;
-}
-
-input {
-    padding: 0.65rem 0.9rem;
-    border: 0.2rem solid #800;
-    box-shadow: 0 0 6px #200;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    background: #fff7;
-}
-
-input[type="submit"] {
-    background: #800;
-    color: #fff;
-    border: none;
-    padding: 0.7rem 0;
-    border-radius: 0.5rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-top: 0.7rem;
-}
-
-input[type="submit"]:hover {
-    background: #a00;
-    color: #fff;
-}
-
-.FormularioAjax a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 0.96rem;
-}
-
-button {
-    border: none;
-    border-radius: 0.75em;
-    background: #666;
-    box-shadow: 0 2px 12px rgba(32, 0, 0, 0.12);
-    height: 40px;
-    padding: 0 1.5em;
-    font-weight: 300;
-    font-size: 1rem;
-    color: #fff;
-    letter-spacing: 0.5px;
-}
-
-button:hover, button:focus {
-    background-color: #222;
-    box-shadow: 0 0px 10px #000;
-    color: #f00;
-} */

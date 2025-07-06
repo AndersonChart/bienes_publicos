@@ -10,7 +10,7 @@ $registros_marca = $marca->leer_todos();
 ?>
 <button><a href="index.php?vista=listar_modelo">Volver</a></button>
 <h1>Actualizar modelo</h1>
-<form action="index.php?vista=actualizar_modelo" method="POST">
+<form action="index.php?vista=actualizar_modelo" method="POST" class="FormularioAjax">
 <!-- Este primer input es para saber el id del registro, pero no es visible ante el usuario -->
     <input type="hidden" name="id" value="<?= $registro['modelo_id'] ?>">
         <div>
@@ -31,4 +31,5 @@ $registros_marca = $marca->leer_todos();
         <div>
             <button type="submit">Actualizar</button>
         </div>
+        <div class="form-resultado"></div>
 </form>

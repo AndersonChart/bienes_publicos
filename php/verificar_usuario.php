@@ -3,8 +3,8 @@ $form=0;
 
 
 if (!empty($_POST["enviar"])) {
-    $correo = $_POST["correo_persona"] ?? '';
-    $clave  = $_POST["clave_admin"] ?? '';
+    $correo = isset($_POST["correo_persona"]) ? $_POST["correo_persona"] : '';
+    $clave  = isset($_POST["clave_admin"]) ? $_POST["clave_admin"] : '';
 
     if (!empty($correo)) {
         // Verificar si ya existe el usuario

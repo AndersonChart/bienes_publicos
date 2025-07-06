@@ -1,0 +1,3 @@
+//Colococar esto en cada formulario de registro o actualizar
+
+<div class="form-resultado"></div>

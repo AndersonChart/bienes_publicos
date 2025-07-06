@@ -3,7 +3,7 @@
 <h1>Registrar Nueva Categoria</h1>
 <fieldset>
     <legend>Rellene los campos</legend>
-    <form action="index.php?vista=registrar_categoria" method="POST">
+    <form action="index.php?vista=registrar_categoria" method="POST" class="FormularioAjax">
         <div>
             <label for="nom">Nombre: </label>
             <input type="text" name="nombre" id="nom">
@@ -15,5 +15,6 @@
         <div>
             <button type="submit">Registrar</button>
         </div>
+        <div class="form-resultado"></div>
     </form>
 </fieldset>

@@ -1,16 +1,16 @@
 <body class="fondo__login">
-<form action="" method="POST" class="form">
+<form action="" method="POST" autocomplete="off" class="FormularioAjax">
     <fieldset>
         <legend>Iniciar sesión</legend>
-        <div class="form__input">
+        <div class="FormularioAjax__input">
             <label for="nombre">Nombre de usuario/Correo electrónico:</label><br>
             <input type="text" id="nombre" name="usuario_usuario">
         </div>
-        <div class="form__input">
+        <div class="FormularioAjax__input">
             <label for="password">Contraseña:</label><br>
             <input type="password" id="password" name="usuario_clave">
         </div>
-        <div class="form__input">
+        <div class="FormularioAjax__input">
             <input type="submit" value="Iniciar" name="enviar">
         </div>
         <div>

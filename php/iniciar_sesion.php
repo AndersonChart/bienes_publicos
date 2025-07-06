@@ -4,8 +4,8 @@ if (!empty($_POST["enviar"])) {
     // Verificar si los campos obligatorios están llenos
     if (!empty($_POST["usuario_usuario"]) && !empty($_POST["usuario_clave"])) {
         // Se almacenan los datos en unas variables, sino llegan datos se dejan vacíos
-        $usuario = $_POST["usuario_usuario"] ?? '';
-        $clave = $_POST["usuario_clave"] ?? '';
+        $usuario = isset($_POST["usuario_usuario"]) ? $_POST["usuario_usuario"] : '';
+        $clave = isset($_POST["usuario_clave"]) ? $_POST["usuario_clave"] : '';
 
         // Usar consulta preparada para evitar inyección SQL
         $stmt = $pdo->prepare("SELECT * FROM usuario WHERE usuario_usuario = :usuario OR usuario_email = :usuario");

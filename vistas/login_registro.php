@@ -1,5 +1,5 @@
 <button><a href="index.php">Volver</a></button>
-<form action="" method="POST" class="form">
+<form action="" method="POST" class="FormularioAjax" class="form">
     <h1>Registro de Usuario</h1>
         <fieldset>
             <legend>Usuario Estándar</legend>
@@ -27,7 +27,7 @@ if($form==1){
 $_SESSION['correo'] = $correo;
 ?>
 <h2>Estás registrado como persona, pero no posees cuenta</h2>
-    <form action="" method="POST">
+    <form action="" method="POST" class="FormularioAjax" class="form">
         <fieldset>
             <legend>Nuevo Usuario:</legend>
             <div>
@@ -58,7 +58,7 @@ if($form==2){
 ?>
 
 <h2>No tienes datos en el sistema</h2>
-<form action="" id="form_new_user" method="POST">
+<form action="" id="form_new_user" method="POST" class="FormularioAjax" class="form">
     <fieldset>
         <legend>Información Personal:</legend>
         <div>
@@ -108,7 +108,7 @@ if($form==3){
 ?>
 
 <h2>Está autorizado correctamente</h2>
-<form action="" id="form_new_user" method="POST">
+<form action="" id="form_new_user" method="POST" class="FormularioAjax" class="form">
     <fieldset>
         <legend>Información Personal:</legend>
         <div>

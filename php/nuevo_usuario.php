@@ -61,13 +61,13 @@ if (!empty($_POST["user_new"])) {
     $rol = 3;
 
     if (!empty($_POST["usuario_nombre"]) && !empty($_POST["usuario_apellido"]) && !empty($_POST["usuario_email"]) && !empty($_POST["usuario_usuario"]) && !empty($_POST["usuario_clave_1"]) && !empty($_POST["usuario_clave_2"])) {
-        $nombre = $_POST["usuario_nombre"] ?? '';
-        $apellido = $_POST["usuario_apellido"] ?? '';
-        $correo = $_POST["usuario_email"] ?? '';
-        $telefono = $_POST["usuario_telefono"] ?? '';
-        $usuario = $_POST["usuario_usuario"] ?? '';
-        $clave_1 = $_POST["usuario_clave_1"] ?? '';
-        $clave_2 = $_POST["usuario_clave_2"] ?? '';
+        $nombre = isset($_POST["usuario_nombre"]) ? $_POST["usuario_nombre"] : '';
+        $apellido = isset($_POST["usuario_apellido"]) ? $_POST["usuario_apellido"] : '';
+        $correo = isset($_POST["usuario_email"]) ? $_POST["usuario_email"] : '';
+        $telefono = isset($_POST["usuario_telefono"]) ? $_POST["usuario_telefono"] : '';
+        $usuario = isset($_POST["usuario_usuario"]) ? $_POST["usuario_usuario"] : '';
+        $clave_1 = isset($_POST["usuario_clave_1"]) ? $_POST["usuario_clave_1"] : '';
+        $clave_2 = isset($_POST["usuario_clave_2"]) ? $_POST["usuario_clave_2"] : '';
 
         //Verificando usuario
         $stmt = $pdo->prepare("SELECT usuario_usuario FROM usuario WHERE usuario_usuario = :usuario");
@@ -110,14 +110,14 @@ if (!empty($_POST["admin_new"])) {
 
     if (!empty($_POST["usuario_nombre"]) && !empty($_POST["usuario_apellido"]) && !empty($_POST["usuario_email"]) && !empty($_POST["rol_id"]) && !empty($_POST["usuario_usuario"]) && !empty($_POST["usuario_clave_1"]) && !empty($_POST["usuario_clave_2"])) {
 
-        $nombre = $_POST["usuario_nombre"] ?? '';
-        $apellido = $_POST["usuario_apellido"] ?? '';
-        $correo = $_POST["usuario_email"] ?? '';
-        $rol = $_POST["rol_id"] ?? '';
-        $telefono = $_POST["usuario_telefono"] ?? '';
-        $usuario = $_POST["usuario_usuario"] ?? '';
-        $clave_1 = $_POST["usuario_clave_1"] ?? '';
-        $clave_2 = $_POST["usuario_clave_2"] ?? '';
+        $nombre = isset($_POST["usuario_nombre"]) ? $_POST["usuario_nombre"] : '';
+        $apellido = isset($_POST["usuario_apellido"]) ? $_POST["usuario_apellido"] : '';
+        $correo = isset($_POST["usuario_email"]) ? $_POST["usuario_email"] : '';
+        $rol = isset($_POST["rol_id"]) ? $_POST["rol_id"] : '';
+        $telefono = isset($_POST["usuario_telefono"]) ? $_POST["usuario_telefono"] : '';
+        $usuario = isset($_POST["usuario_usuario"]) ? $_POST["usuario_usuario"] : '';
+        $clave_1 = isset($_POST["usuario_clave_1"]) ? $_POST["usuario_clave_1"] : '';
+        $clave_2 = isset($_POST["usuario_clave_2"]) ? $_POST["usuario_clave_2"] : '';
 
         //Verificando usuario
         $stmt = $pdo->prepare("SELECT usuario_usuario FROM usuario WHERE usuario_usuario = :usuario");

@@ -1,3 +1,3 @@
 <div>
-    <img src="img/logo.png" alt="logito">
+    <img src="img/logo.png" alt="logito" class="logo">
 </div>
