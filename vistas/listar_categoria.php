@@ -43,3 +43,11 @@ $registros = $categoria->leer_todos();
 </table>
 <!-- Aqui el enlace para seguir creando registros -->
 <button><a href="index.php?vista=form_registrar_categoria">Nuevo Registro</a></button>
+<div class="form-resultado">
+        <?php
+            if (isset($_SESSION['mensaje'])) {
+                echo $_SESSION['mensaje'];
+                unset($_SESSION['mensaje']);
+            } 
+            ?>
+</div>

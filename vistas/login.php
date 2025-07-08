@@ -1,5 +1,5 @@
 <body class="fondo__login">
-<form action="" method="POST" autocomplete="off" class="FormularioAjax">
+<form action="index.php?action=login" method="POST" autocomplete="off">
     <fieldset>
         <legend>Iniciar sesión</legend>
         <div class="FormularioAjax__input">

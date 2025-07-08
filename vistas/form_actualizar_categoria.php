@@ -6,7 +6,7 @@ $registro = $categoria->leer_por_id($_GET['id']);
 ?>
 <button><a href="index.php?vista=listar_categoria">Volver</a></button>
 <h1>Actualizar Categoría</h1>
-<form action="index.php?vista=actualizar_categoria" method="POST" class="FormularioAjax">
+<form action="index.php?vista=actualizar_categoria" method="POST" class="form">
 <!-- Este primer input es para saber el id del registro, pero no es visible ante el usuario -->
     <input type="hidden" name="id" value="<?= $registro['categoria_id'] ?>">
         <div>
@@ -21,5 +21,12 @@ $registro = $categoria->leer_por_id($_GET['id']);
         <div>
             <button type="submit">Registrar</button>
         </div>
-        <div class="form-resultado"></div>
+        <div class="form-resultado">
+            <?php
+            if (isset($_SESSION['mensaje'])) {
+                echo $_SESSION['mensaje'];
+                unset($_SESSION['mensaje']);
+            } 
+            ?>
+        </div>
 </form>

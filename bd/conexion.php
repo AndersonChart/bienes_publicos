@@ -5,7 +5,7 @@ class Conexion {
         $host = 'localhost';
         $db = 'bienes_demo';
         $user = 'root';
-        $pass = 'usuario';
+        $pass = '';
         try {
             $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

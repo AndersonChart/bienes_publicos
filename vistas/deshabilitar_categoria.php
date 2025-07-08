@@ -3,13 +3,15 @@ require_once 'php/categoria.php';
 
 if (isset($_GET['id'])) {
     $categoria = new categoria();
-    $categoria->deshabilitar($_GET['id']);
+    $exito = $categoria->deshabilitar($_GET['id']);
     // Puedes comprobar si la actualización fue exitosa o no
     if($exito){
-        echo "<div class='alert alert-success'>¡Bien actualizado correctamente!</div>";
+        $_SESSION['mensaje'] = "<div class='alert alert-success'>¡Categoría eliminada correctamente!</div>";
     } else {
-        echo "<div class='alert alert-danger'>Hubo un error al actualizar el bien.</div>";
+        $_SESSION['mensaje'] = "<div class='alert alert-danger'>Hubo un error al eliminar la categoría.</div>";
     }
+    
+    header("Location: index.php?vista=listar_categoria");
     exit;
 }
 ?>
