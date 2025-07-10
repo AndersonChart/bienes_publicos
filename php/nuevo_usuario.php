@@ -32,7 +32,7 @@ if (!empty($_POST["persona_user"])) {
         $stmt->execute([':correo' => $correo]);
         if ($fila = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $id = $fila['persona_id'];
-            $nombre = $fila['persona_nombre'];
+            $nombre = $fila['persona_nombre'];  
             $apellido = $fila['persona_apellido'];
             $email = $fila['persona_email'];
             $telefono = $fila['persona_telefono'];

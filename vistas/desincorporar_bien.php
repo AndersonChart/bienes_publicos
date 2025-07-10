@@ -2,14 +2,16 @@
 require_once 'php/bien.php';
 
 if (isset($_GET['id'])) {
+    $id = isset($_POST["id"]) ? $_POST["id"] : '';
     $bien = new bien();
-    $bien->desincorporar($_GET['id']);
+    $exito = $bien->desincorporar($_GET['id']);
     // Puedes comprobar si la actualización fue exitosa o no
     if($exito){
-        echo "<div class='alert alert-success'>¡Bien actualizado correctamente!</div>";
+        $_SESSION['mensaje'] = "<div class='alert alert-success'>¡Bien desincorporado correctamente!</div>";
     } else {
-        echo "<div class='alert alert-danger'>Hubo un error al actualizar el bien.</div>";
+        $_SESSION['mensaje'] = "<div class='alert alert-danger'>Hubo un error al desincorporado el bien.</div>";
     }
+    header("Location: index.php?vista=listar_bien");
     exit;
 }
 ?>

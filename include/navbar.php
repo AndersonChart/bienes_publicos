@@ -1,68 +1,71 @@
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <h2>Panel</h2>
-    </div>
-    <nav class="sidebar-nav">
-        <?php
-        switch($_SESSION["rol"]){
-            case 1: ?>
-                <ul>
-                    <li>Bienes</li>
-                        <ul>
-                            <li><a href="index.php?vista=listar_bien"><i class=""></i> Bienes</a></li>
-                            <li><a href="index.php?vista=listar_categoria"><i class=""></i> Categorías</a></li>
-                            <li><a href="index.php?vista=listar_marca"><i class=""></i> Marcas</a></li>
-                            <li><a href="index.php?vista=listar_modelo"><i class=""></i> Modelos</a></li>
-                        </ul>
-                    <li>Asignaciones</li>
-                        <ul>
-                            <li><a href="index.php?vista=listar_asignacion"><i class=""></i> Asignaciones</a></li>
-                            <li><a href="index.php?vista=listar_persona"><i class=""></i> Personas</a></li>
-                            <li><a href="index.php?vista=listar_area"><i class=""></i> Áreas</a></li>
-                        </ul>
-                    <li><a href="index.php?vista=listar_usuario"><i class=""></i>Usuarios</a></li>
-                    <li>Auditoría</li>
-                        <ul>
-                            <li><a href="index.php?vista=reportes"><i class=""></i> Reportes</a></li>
-                            <li><a href="index.php?vista=listar_movimiento"><i class=""></i> Movimientos</a></li>
-                        </ul>
-                </ul>
-            <?php
-                $rol = "Administrador";
-                break;
-            case 2: //En este caso, el Director podrá leer registros pero no modificarlos?>
-                <ul>
-                    <li>Bienes</li>
-                        <ul>
-                            <li><a href="index.php?vista=listar_bien"><i class=""></i> Bienes</a></li>
-                            <li><a href="index.php?vista=listar_categoria"><i class=""></i> Categorías</a></li>
-                            <li><a href="index.php?vista=listar_bien"><i class=""></i> Marcas</a></li>
-                            <li><a href="index.php?vista=listar_bien"><i class=""></i> Modelos</a></li>
-                        </ul>
-                    <li>Asignaciones</li>
-                        <ul>
-                            <li><a href="index.php?vista=listar_asignacion"><i class=""></i> Asignaciones</a></li>
-                            <li><a href="index.php?vista=listar_persona"><i class=""></i> Personas</a></li>
-                            <li><a href="index.php?vista=listar_area"><i class=""></i> Áreas</a></li>
-                        </ul>
-                    <li>Auditoría</li>
-                        <ul>
-                            <li><a href="index.php?vista=reportes"><i class=""></i> Reportes</a></li>
-                            <li><a href="index.php?vista=listar_movimiento"><i class=""></i> Movimientos</a></li>
-                        </ul>
-                </ul>
-            <?php
-                $rol = "Director";
-                break;
-            case 3: ?>
-                <ul>
-                    <li><a href="index.php?vista=listar_bien"><i class=""></i> Bienes</a></li>
-                    <li><a href="index.php?vista=listar_mi_asignacion"><i class=""></i>Mis Asignaciones</a></li>
-                </ul>
-            <?php
-                $rol = "Usuario Estándar";
-                break;
-        }
-        ?>
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-danger text-white border-end" style="width: 280px; min-height: 100vh;">
+    <nav class="nav nav-pills flex-column">
+        <?php switch ($_SESSION["rol"]) {
+
+        // Administrador
+        case 1: ?>
+        <strong class="text-white mb-2">Bienes</strong>
+        <nav class="nav flex-column ms-2 mb-3">
+            <a href="index.php?vista=listar_bien" class="nav-link text-white">Bienes</a>
+            <a href="index.php?vista=listar_categoria" class="nav-link text-white">Categorías</a>
+            <a href="index.php?vista=listar_marca" class="nav-link text-white">Marcas</a>
+            <a href="index.php?vista=listar_modelo" class="nav-link text-white">Modelos</a>
+        </nav>
+
+        <strong class="text-white mb-2">Asignaciones</strong>
+        <nav class="nav flex-column ms-2 mb-3">
+            <a href="index.php?vista=listar_asignacion" class="nav-link text-white">Asignaciones</a>
+            <a href="index.php?vista=listar_persona" class="nav-link text-white">Personas</a>
+            <a href="index.php?vista=listar_area" class="nav-link text-white">Áreas</a>
+        </nav>
+
+        <a href="index.php?vista=listar_usuario" class="nav-link mb-3 text-white"><strong>Usuarios</strong></a>
+
+        <strong class="text-white mb-2">Auditoría</strong>
+        <nav class="nav flex-column ms-2">
+            <a href="index.php?vista=reportes" class="nav-link text-white">Reportes</a>
+            <a href="index.php?vista=listar_movimiento" class="nav-link text-white">Movimientos</a>
+        </nav>
+        <?php 
+        $rol = "Administrador";
+        break;
+
+        // Director
+        case 2: ?>
+        <strong class="text-white mb-2">Bienes</strong>
+        <nav class="nav flex-column ms-2 mb-3">
+            <a href="index.php?vista=listar_bien" class="nav-link text-white">Bienes</a>
+            <a href="index.php?vista=listar_categoria" class="nav-link text-white">Categorías</a>
+            <a href="index.php?vista=listar_marca" class="nav-link text-white">Marcas</a>
+            <a href="index.php?vista=listar_modelo" class="nav-link text-white">Modelos</a>
+        </nav>
+
+        <strong class="text-white mb-2">Asignaciones</strong>
+        <nav class="nav flex-column ms-2 mb-3">
+            <a href="index.php?vista=listar_asignacion" class="nav-link text-white">Asignaciones</a>
+            <a href="index.php?vista=listar_persona" class="nav-link text-white">Personas</a>
+            <a href="index.php?vista=listar_area" class="nav-link text-white">Áreas</a>
+        </nav>
+
+        <strong class="text-white mb-2">Auditoría</strong>
+        <nav class="nav flex-column ms-2">
+            <a href="index.php?vista=reportes" class="nav-link text-white">Reportes</a>
+            <a href="index.php?vista=listar_movimiento" class="nav-link text-white">Movimientos</a>
+        </nav>
+        <?php 
+        $rol = "Director";
+        break;
+
+        // Usuario Estándar
+        case 3: ?>
+        <nav class="nav flex-column ms-2">
+            <a href="index.php?vista=listar_bien" class="nav-link text-white">Bienes</a>
+            <a href="index.php?vista=listar_mi_asignacion" class="nav-link text-white">Mis Asignaciones</a>
+        </nav>
+        <?php 
+        $rol = "Usuario Estándar";
+        break;
+        } ?>
     </nav>
-</aside>
+</div>
+

@@ -88,5 +88,12 @@ $registros_marca = $marca->leer_todos();
         <div>
             <button type="submit">Registrar</button>
         </div>
-        <div class="form-resultado"></div>
+        <div class="form-resultado">
+            <?php
+            if (isset($_SESSION['mensaje'])) {
+                echo $_SESSION['mensaje'];
+                unset($_SESSION['mensaje']);
+            } 
+            ?>
+        </div>
 </form>

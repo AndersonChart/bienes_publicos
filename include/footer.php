@@ -1,4 +1,4 @@
-<script src="js/ajax.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
 
 <?php
 
