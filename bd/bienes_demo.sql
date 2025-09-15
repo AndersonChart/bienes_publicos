@@ -25,6 +25,7 @@ CREATE TABLE usuario (
     rol_id INT NOT NULL,
     usuario_foto VARCHAR(255),
     usuario_estado TINYINT(1) NOT NULL DEFAULT 1,
+    usuario_sexo TINYINT(1) NOT NULL,
     PRIMARY KEY (usuario_id),
     KEY idx_rol_id (rol_id)
 );
@@ -35,8 +36,6 @@ CREATE UNIQUE INDEX idx_usuario_usuario ON usuario(usuario_usuario);
 CREATE TABLE categoria (
     categoria_id INT NOT NULL AUTO_INCREMENT,
     categoria_nombre VARCHAR(100) NOT NULL,
-    categoria_descripcion VARCHAR(100),
-    categoria_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (categoria_id)
 );
 
