@@ -1,145 +1,59 @@
+/*GENERAL*/
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: sans-serif;
+}
 
-/*
-//Uso de las clases:
+/*LOGIN*/
 
-<body class="fondo__login">
-<form action="" method="POST" class="form">
-    <fieldset>
-        <legend>Iniciar sesión</legend>
-        <div class="form__input">
-            <label for="nombre">Nombre de usuario/Correo electrónico:</label>
-            <input type="text" id="nombre" name="usuario_usuario">
-        </div>
-        <div class="form__input">
-            <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="usuario_clave">
-        </div>
-        <div class="form__input">
-            <input type="submit" value="Iniciar" name="enviar">
-        </div>
-        <div class="form__input">
-            <button class="boton"><a href="index.php?vista=login_registro">No tengo cuenta</a></button>
-            <button class="boton"><a href="index.php?vista=login_datos">He olvidado mi usuario/contraseña</a></button>
-        </div>
-        <div class="form-resultado"></div>
-    </fieldset>
-</form>
+.login_background {
+    display: grid;
+    place-items: center;
+    height: 100vh;
+    background: linear-gradient(#000, #733), url() center / cover;
+    
+}
 
-//Ejemplo de inicio:
-
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <h2>Panel</h2>
-    </div>
-    <nav class="sidebar-nav">
-        <!-- ... tu menú ... -->
-    </nav>
-</aside>
-
-<h1 class="titulo-bienvenida">Hola [nombre] [apellido]!</h1>
-<h2 class="rol-bienvenida"><?php echo $rol; ?></h2>
-<div class="links-bienvenida">
-    <a href="index.php?vista=cerrar_sesion">Cerrar Sesión</a>
-    <a href="index.php?vista=perfil">Perfil</a>
-</div>
-*/
-/*
-.login {
-    min-height: 100vh;
+.login_container {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: sans-serif;
-    margin: 0;
-    background: linear-gradient(#fff, #f009 30%, #000), url(../img/entrada.jpg) center / cover no-repeat;
+    border-radius: 20px;
+    background-color: #822;
+    height: 30vh;
+    width: 50vw;
 }
 
-.FormularioAjax {
-    background: #fff9;
-    padding: 2.5rem 2rem;
-    border-radius: 1rem;
-    min-width: 340px;
-    max-width: 100%;
-    box-shadow: 0 0 40px #200;
-}
-
-fieldset {
-    border: none;
-    padding: 0;
-    margin-bottom: 0;
-}
-
-legend {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #555;
-    margin-bottom: 2rem;
+.login_title {
     text-align: center;
-    letter-spacing: 1px;
-}
-
-.FormularioAjax__input {
-    margin-bottom: 0.5rem;
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin-top: 1rem;
-    color: #34495e;
-    font-size: 1rem;
-}
-
-input {
-    padding: 0.65rem 0.9rem;
-    border: 0.2rem solid #800;
-    box-shadow: 0 0 6px #200;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    background: #fff7;
-}
-
-input[type="submit"] {
-    background: #800;
-    color: #fff;
-    border: none;
-    padding: 0.7rem 0;
-    border-radius: 0.5rem;
-    font-size: 1.1rem;
+    font-size: 4vw;
     font-weight: bold;
-    margin-top: 0.7rem;
+    color: #ddd;
 }
 
-input[type="submit"]:hover {
-    background: #a00;
-    color: #fff;
+.login_fieldset {
+    border-radius: 20px;
+    margin: 0 10px;
+    height: 80%;
 }
 
-.FormularioAjax a {
-    color: #fff;
+.login_block_content {
+
+}
+
+.login_label {
+
+}
+
+.login_input {
+
+}
+
+.login_submit {
+
+}
+
+.login_link {
     text-decoration: none;
-    font-size: 0.96rem;
 }
-
-button {
-    border: none;
-    border-radius: 0.75em;
-    background: #666;
-    box-shadow: 0 2px 12px rgba(32, 0, 0, 0.12);
-    height: 40px;
-    padding: 0 1.5em;
-    font-weight: 300;
-    font-size: 1rem;
-    color: #fff;
-    letter-spacing: 0.5px;
-}
-
-button:hover, button:focus {
-    background-color: #222;
-    box-shadow: 0 0px 10px #000;
-    color: #f00;
-} */
