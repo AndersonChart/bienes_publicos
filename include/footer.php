@@ -1,8 +1,12 @@
-<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/interfaz.js"></script>
 
 <?php
 
 $vista = isset($_GET['vista']) ? $_GET['vista'] : '';
+
+if ($vista == 'login') {
+    echo '<script src="js/validacion_usuario.js"></script>';
+}
 
 if ($vista == 'form_registrar_bien' || $vista == 'form_actualizar_bien') {
     echo '<script src="js/validacion_bien.js"></script>';

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const formulario = document.querySelector('form[action*="registrar_bien"]');
+    const formulario = document.querySelector('form[action*="login"]');
     if(!formulario) return;
     formulario.addEventListener('submit', function(e) {
         let errores = [];
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         contenedor.innerHTML = "";
 
-        // Número de serie: obligatorio, mínimo 2 caracteres, solo letras y números
+        // Nombre: obligatorio, mínimo 2 caracteres, solo letras y números
         let serie = this.serie.value.trim();
         if (serie === "") {
             errores.push("El número de serie es obligatorio.");
@@ -20,19 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errores.push("El número de serie debe tener al menos 2 caracteres.");
         }
         if (serie.length > 0 && !/^[a-zA-Z0-9\-]+$/.test(serie)) {
-            errores.push("El número de serie solo puede tener letras, números y guiones.");
-        }
-
-        // Nombre: obligatorio, mínimo 3 caracteres, sin caracteres especiales
-        let nombre = this.nombre.value.trim();
-        if (nombre === "") {
-            errores.push("El nombre del bien es obligatorio.");
-        }
-        if (nombre.length > 0 && nombre.length < 3) {
-            errores.push("El nombre debe tener al menos 3 caracteres.");
-        }
-        if (nombre.length > 0 && !/^[a-zA-Z0-9\s]+$/.test(nombre)) {
-            errores.push("El nombre solo puede tener letras, números y espacios.");
+            errores.push("El nombre de usuario solo puede tener letras, números y guiones.");
         }
 
         // Descripción: obligatorio, mínimo 5 caracteres
@@ -86,15 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let file = imagen.files[0];
             if (!file.type.match(/^image\//)) {
                 errores.push("La imagen debe ser un archivo de imagen válido.");
-            }
-        }
-
-        // Acta: opcional, si hay debe ser PDF
-        let acta = this.querySelector('input[type="file"][name="acta"]');
-        if (acta && acta.files.length > 0) {
-            let file = acta.files[0];
-            if (file.type !== "application/pdf") {
-                errores.push("El acta debe ser un archivo PDF.");
             }
         }
 

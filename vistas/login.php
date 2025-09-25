@@ -5,13 +5,17 @@
 
         <div class="login_block_content">
             <label for="nombre" class="login_label">Nombre de usuario/Correo electrónico</label>
-            <input type="text" id="nombre" name="usuario_usuario" class="login_input">
+            <input type="text" id="nombre" name="usuario_usuario" class="login_input" autofocus>
         </div>
 
         <div class="login_block_content">
             <label for="password" class="login_label">Contraseña</label>
-            <input type="password" id="password" name="usuario_clave" class="login_input">
+            <div class="login_input">
+                <input type="password" id="password" name="usuario_clave" class="login_password">
+                <div  class="eye-icon" onclick="togglePassword()"></div>
+            </div>
         </div>
+        
 
             <input type="submit" value="Iniciar" name="enviar" class="login_submit">
 
@@ -19,6 +23,7 @@
 
         </fieldset>
     </form>
+
 
 
 <?php include "php/iniciar_sesion.php"; ?>
