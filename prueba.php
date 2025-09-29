@@ -5,6 +5,70 @@ echo password_hash("admin123", PASSWORD_DEFAULT);
 
 
 
+/*VISTAS (.CONTENT)*/
+
+/*.CONTENT BANNER*/
+
+.banner_list {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: end;
+    align-items: center;
+    flex: 1 1 100%;
+    max-height: 10%;
+    background: transparent;
+}
+
+.grid {
+    border-radius: 10px;
+    flex: 1 1 100px;
+    background: transparent;
+    min-height: 80%;
+    box-sizing: border-box;
+    display: grid;
+    grid-auto-rows: 60px;
+}
+
+.title, .header, .text-empty {
+    display: flex;
+    box-sizing: border-box;
+}
+
+.grid-usuario {
+    grid-template-columns: 1fr repeat(6, 2fr) repeat(2, 1fr);
+}
+
+.title-usuario, .text-empty {
+    grid-column: 1 / 10;
+}
+
+.title-usuario {
+    background: #004;
+    color: #fff;
+    font-weight: 900;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
+.header {
+    background: #2af;
+    color: #fff;
+    text-shadow: 0 0 5px #000;
+    font-size: 18px;
+}
+
+.text-empty {
+    background-color: #aaa;
+}
+
+.row {
+    border-top: 2px solid #049;
+    background-color: #aaa;
+    box-sizing: border-box;
+}
+
+.paginador {
+}
 
 
 

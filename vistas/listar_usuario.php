@@ -7,17 +7,16 @@ $registros = $usuario->leer_todos();
 
 <div class="banner_list">
     <div class="new">+ Nuevo</div>
-    <div class="order">Ordenar
+    <div class="order">Ordenar asc. 
         <div class="order-icon" data-menu="order">
-            <img src="img/icons/descendente.png" alt="descendente" draggable="false">
         </div>
     </div>
-    <div class="buscador">
-        <form action="index.php?action=buscador" method="POST" autocomplete="off">
-            <input type="text" name="buscador" class="input_buscar">
-            <input type="submit" name="buscar" class="buscar">
-        </form>
-    </div>
+    <form action="#" method="POST" autocomplete="off" class="buscador">
+        <input type="text" name="buscador" class="input_buscar" placeholder="buscar...">
+        <button type="submit" class="buscar">
+            <img src="img/icons/buscar.png" alt="Buscar">
+        </button>
+    </form>
 </div>
 
 <div class="grid grid-usuario">
@@ -43,19 +42,19 @@ $registros = $usuario->leer_todos();
         <div class="row"><?= $row['usuario_telefono'] ?></div>
         <div class="row"><?= $row['usuario_foto'] ?></div>
         <!-- Aqui se coloca los botones para 'actualizar' y 'eliminar' por el id -->
-        <div class="row row_action">
+        <div class="row">
             <!-- Botón Actualizar -->
-            <div class="icon-action" data-url="form_actualizar_usuario.php" data-id="<?= $row['usuario_id'] ?>" data-action="actualizar" title="Actualizar">
+            <div class="icon-action actualizar" data-url="form_actualizar_usuario.php" data-id="<?= $row['usuario_id'] ?>" data-action="actualizar" title="Actualizar">
                 <img src="img/icons/actualizar.png" alt="Actualizar">
             </div>
 
             <!-- Botón Info -->
-            <div class="icon-action" data-url="info_usuario.php" data-id="<?= $row['usuario_id'] ?>" data-action="info" title="Info">
+            <div class="icon-action info" data-url="info_usuario.php" data-id="<?= $row['usuario_id'] ?>" data-action="info" title="Info">
                 <img src="img/icons/info.png" alt="Info">
             </div>
 
             <!-- Botón Eliminar -->
-            <div class="icon-action" data-id="<?= $row['usuario_id'] ?>" data-action="eliminar" title="Eliminar">
+            <div class="icon-action eliminar" data-id="<?= $row['usuario_id'] ?>" data-action="eliminar" title="Eliminar">
                 <img src="img/icons/eliminar.png" alt="Eliminar">
             </div>
         </div>

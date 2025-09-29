@@ -509,6 +509,7 @@ body {
     flex: 1 1 100%;
     min-height: 10%;
     background: transparent;
+    gap: 4px;
 }
 
 .grid {
@@ -545,6 +546,30 @@ body {
 .row:nth-child(even) { background: #bbb; }
 .row:nth-child(odd)  { background: #aaa; }
 
+.icon-action {
+    display: flex;
+    justify-content: space-between;
+    margin: 2px;
+}
+
+.icon-action img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain; /* evita distorsión */
+    cursor: pointer;
+}
+
+.actualizar {
+    background: url("../img/icons/actualizar.png") center / contain no-repeat;
+}
+
+.info {
+    background: url("../img/icons/info.png") center / contain no-repeat;
+}
+
+.eliminar {
+    background: url("../img/icons/eliminar.png") center / contain no-repeat;
+}
 
 .title {
     position: sticky;
@@ -596,6 +621,51 @@ body {
     background-color: #aaa;
 }
 
+.new {
+    background: #090;
+    font-weight: bold;
+    text-align: center;
+    padding: 6px 10px;
+    color: #fff;
+    border-radius: 5px;
+}
+
+.order {
+    background: #049;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+
+.buscador {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input_buscar {
+    padding: 6px 10px;
+    border: 2px solid #029;
+    border-radius: 5px;
+}
+
+.buscar {
+    background: #029;
+    border-radius: 5px;
+    padding: 2px 2px 0 0;
+    cursor: pointer;
+    border: none;
+    margin-right: 20px;
+}
+
+.buscar img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+    padding: 0 10px;
+}
 
 
 /*INICIO (BIENVENIDA)*/
