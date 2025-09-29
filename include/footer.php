@@ -1,8 +1,9 @@
-<script src="js/interfaz.js"></script>
-
 <?php
+if ($vista !== 'login') {
+  echo '</div>'; // cierre de .content
+  echo '</div>'; // cierre de .inicio-background
+}
 
-$vista = isset($_GET['vista']) ? $_GET['vista'] : '';
 
 if ($vista == 'login') {
     echo '<script src="js/validacion_usuario.js"></script>';
@@ -25,5 +26,7 @@ if ($vista == 'form_registrar_modelo' || $vista == 'form_actualizar_modelo') {
 }
 
 ?>
+
+<script src="js/interfaz.js"></script>
 </body>
 </html>

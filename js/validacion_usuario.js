@@ -3,50 +3,85 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!formulario) return;
 
     formulario.addEventListener('submit', function(e) {
-        let errores = [];
-        let contenedor = this.querySelector('.form-resultado');
+        // Usamos el contenedor de errores compartido con PHP
+        let contenedor = document.getElementById('error-container');
         if (!contenedor) {
             contenedor = document.createElement("div");
-            contenedor.className = "form-resultado";
-            this.appendChild(contenedor);
+            contenedor.id = "error-container";
+            contenedor.className = "error-container";
+            contenedor.style.display = "none"; // Oculto por defecto
+            this.insertBefore(contenedor, this.querySelector('.login_submit'));
         }
+
         contenedor.innerHTML = "";
+        contenedor.style.display = "none";
+
+        // 🔍 Captura de campos
+        let usuario = this.usuario_usuario.value.trim();
+        let clave = this.usuario_clave.value;
+
+        // 🛑 Validación de campos vacíos primero
+        if (usuario === "" && clave === "") {
+            e.preventDefault();
+            contenedor.textContent = "Debe completar todos los campos.";
+            contenedor.style.display = "block";
+            return;
+        }
+
+        if (usuario === "") {
+            e.preventDefault();
+            contenedor.textContent = "El campo de usuario o correo electrónico es obligatorio.";
+            contenedor.style.display = "block";
+            return;
+        }
+
+        if (clave === "") {
+            e.preventDefault();
+            contenedor.textContent = "La contraseña es obligatoria.";
+            contenedor.style.display = "block";
+            return;
+        }
 
         // 🔐 Validación de usuario o correo
-        let usuario = this.usuario.value.trim();
-        if (usuario === "") {
-            errores.push("El campo de usuario o correo electrónico es obligatorio.");
-        } else {
-            if (/\s/.test(usuario)) {
-                errores.push("El usuario o correo no puede contener espacios.");
-            } else if (usuario.includes("@")) {
-                if (usuario.length > 200) {
-                    errores.push("El correo electrónico no puede tener más de 200 caracteres.");
-                }
-            } else {
-                if (usuario.length < 2) {
-                    errores.push("El nombre de usuario debe tener al menos 2 caracteres.");
-                }
-            }
+        if (/\s/.test(usuario)) {
+            e.preventDefault();
+            contenedor.textContent = "El usuario o correo no puede contener espacios.";
+            contenedor.style.display = "block";
+            return;
+        }
+
+        if (usuario.includes("@") && usuario.length > 200) {
+            e.preventDefault();
+            contenedor.textContent = "El correo electrónico no puede tener más de 200 caracteres.";
+            contenedor.style.display = "block";
+            return;
+        }
+
+        if (!usuario.includes("@") && usuario.length < 8) {
+            e.preventDefault();
+            contenedor.textContent = "El nombre de usuario debe tener al menos 8 caracteres.";
+            contenedor.style.display = "block";
+            return;
         }
 
         // 🔐 Validación de contraseña
-        let clave = this.clave.value;
-        if (clave === "") {
-            errores.push("La contraseña es obligatoria.");
-        } else {
-            if (clave.length < 5) {
-                errores.push("La contraseña debe tener al menos 5 caracteres.");
-            }
-            if (/^\s+$/.test(clave)) {
-                errores.push("La contraseña no puede estar compuesta solo por espacios.");
-            }
+        if (clave.length < 8) {
+            e.preventDefault();
+            contenedor.textContent = "La contraseña debe tener al menos 8 caracteres.";
+            contenedor.style.display = "block";
+            return;
         }
 
-        // 🚫 Mostrar errores si existen
-        if (errores.length > 0) {
+        if (/^\s+$/.test(clave)) {
             e.preventDefault();
-            contenedor.innerHTML = `<div class="alert alert-danger">${errores.join('<br>')}</div>`;
+            contenedor.textContent = "La contraseña no puede estar compuesta solo por espacios.";
+            contenedor.style.display = "block";
+            return;
         }
+
+        // ✅ Si todo está bien, el formulario se envía y el backend valida usuario y clave
     });
 });
+
+
+

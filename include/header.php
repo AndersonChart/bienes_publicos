@@ -7,3 +7,12 @@
     <link rel="icon" type="image/png" href="img/logo.png">
     <title>UNES - Bienes Públicos</title>
 </head>
+<body>
+<?php
+if ($vista !== 'login') {
+    echo '<div class="inicio-background">';
+    include("include/banner.php");
+    include("include/navbar.php");
+    echo '<div class="content">';
+}
+?>

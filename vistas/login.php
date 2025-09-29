@@ -1,5 +1,6 @@
-<body class="login_background">
+<div class="login_background">
     <form action="index.php?action=login" method="POST" autocomplete="off" class="login_container">
+
         <fieldset class="login_fieldset">
         <legend class="login_title">Iniciar sesión</legend>
 
@@ -15,7 +16,9 @@
                 <div  class="eye-icon" onclick="togglePassword()"></div>
             </div>
         </div>
-        
+
+            <?php include "php/iniciar_sesion.php"; ?>
+            <div id="error-container" class="error-container"><?php if (!empty($error)) echo $error; ?></div>
 
             <input type="submit" value="Iniciar" name="enviar" class="login_submit">
 
@@ -24,7 +27,4 @@
         </fieldset>
     </form>
 
-
-
-<?php include "php/iniciar_sesion.php"; ?>
-
+</div>
