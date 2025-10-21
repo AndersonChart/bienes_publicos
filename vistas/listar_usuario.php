@@ -6,11 +6,20 @@ $registros = $usuario->leer_todos();
 ?>
 
 <div class="banner_list">
-    <div class="new">+ Nuevo</div>
+    <div class="new_user" data-modal-target="new_user">+ Nuevo</div>
+    <!--Ventanas Modales-->
+    <dialog data-modal="new_user" class="modal modal_new-user">
+        <!--Contenido-->
+        <h2 class="modal_title">¿De verdad quieres guardar?</h2>
+        <!--Con este form se cierra la ventana modal-->
+        <form method="dialog">
+            <button class="modal__close">X</button>
+        </form>
+    </dialog>
     <div class="order">Ordenar asc. 
         <div class="order-icon" data-menu="order">
+            </div>
         </div>
-    </div>
     <form action="#" method="POST" autocomplete="off" class="buscador">
         <input type="text" name="buscador" class="input_buscar" placeholder="buscar...">
         <button type="submit" class="buscar">

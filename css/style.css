@@ -626,7 +626,7 @@ body {
     background-color: #aaa;
 }
 
-.new {
+.new_user {
     flex: 0 1 70px;
     background: #090;
     font-weight: bold;
@@ -639,7 +639,7 @@ body {
     transition: background 0.2s ease-in-out; /* Transición suave de fondo */
 }
 
-.new:hover {
+.new_user_user:hover {
     background: #070;
 }
 
@@ -655,10 +655,11 @@ body {
     user-select: none;
     cursor: pointer;
     transition: background 0.2s ease-in-out;
+    overflow: visible;
 }
 
 .order:hover {
-    background: #04f;
+    background: #02a;
 }
 
 .buscador {
@@ -698,4 +699,53 @@ body {
     color: #2c3e50;           
     margin: 10px 20px;         
     font-weight: bold;
+}
+
+
+
+/*VENTANAS MODALES*/
+.modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 30vh;
+    width: 50vw;
+    border-radius: 30px;
+    background: #ddd;
+    color: #200;
+    transform: translateY(-50px);
+    opacity: 0;
+    animation: slideDown 0.4s ease forwards;
+}
+
+/* Fondo oscuro de superposición */
+.modal::backdrop {
+    background: linear-gradient(#000c, #000 99%);
+    transition: background-color 1s ease;
+}
+
+.modal:not([open]) {
+    display: none;
+}
+
+.modal__close {
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+    height: 40px;
+    width: 80px;
+    background: #900;
+    border: transparent;
+    border-radius: 10px;
+}
+
+
+/* Animación de entrada desde arriba */
+@keyframes slideDown {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
