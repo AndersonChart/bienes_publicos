@@ -35,21 +35,3 @@ botones.forEach(boton => {
     });
 });
 
-const modales = document.querySelectorAll('.modal');
-
-modales.forEach(modal => {
-  const cerrar = modal.querySelector('.modal__close');
-
-  cerrar.addEventListener('click', (e) => {
-    e.preventDefault();
-
-    // Añade clase para activar animación de salida
-    modal.classList.add('closing');
-
-    // Espera a que termine la animación antes de cerrar
-    setTimeout(() => {
-      modal.close();           // Cierra el modal
-      modal.classList.remove('closing'); // Limpia la clase
-    }, 300); // Duración debe coincidir con la animación CSS
-  });
-});
