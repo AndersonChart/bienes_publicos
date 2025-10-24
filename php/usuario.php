@@ -1,5 +1,6 @@
 <?php
-require_once 'bd/conexion.php';
+require_once '../bd/conexion.php';
+session_start();
 
 class usuario {
 

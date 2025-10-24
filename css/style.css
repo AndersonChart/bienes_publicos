@@ -517,6 +517,12 @@ body {
     gap: 4px;
 }
 
+.paginador {
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    min-height: 10%;
+}
 .grid {
     margin: 10px 20px;
     border: 5px solid #049;
@@ -531,12 +537,6 @@ body {
     overflow: auto;
 }
 
-.paginador {
-    display: flex;
-    justify-content: end;
-    align-items: center;
-    min-height: 10%;
-}
 
 .row {
     display: flex;
@@ -547,6 +547,7 @@ body {
     padding: 0 15px;
     font-size: 16px;
 }
+
 
 .row:nth-child(even) { background: #bbb; }
 
@@ -739,7 +740,7 @@ body {
     }
 }
 
-.modal_title {
+.modal_title, .modal_subtitle {
     margin: 0;
     flex: 1 1 100%;
     text-align: center;
@@ -747,6 +748,10 @@ body {
     font-weight: 800;
     text-transform: uppercase;
     color: #039;
+}
+
+.modal_subtitle {
+    font-size: 18px;
 }
 
 
@@ -790,14 +795,14 @@ body {
 }
 
 .user_container {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 40px; /* Espacio entre columnas */
-  row-gap: 20px;    /* Espacio entre filas */
-  justify-content: space-between;
-  width: 500px;
-  margin: 45px auto 0;
-  margin-bottom: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 40px; /* Espacio entre columnas */
+    row-gap: 20px;    /* Espacio entre filas */
+    justify-content: space-between;
+    width: 500px;
+    margin: 45px auto 0;
+    margin-bottom: 50px;
 }
 
 
@@ -853,5 +858,38 @@ body {
     transition-duration: 0.3s;
     transition-timing-function: ease;
     cursor: pointer;
-    border-radius: 1px;
 }
+
+.input_password {
+    margin: 2px 0 0 0;
+    border: transparent;
+    height: 80%;
+    color: #049;
+    width: 80%;
+    font-weight: bold;
+    font-size: 16px;
+    background: transparent;
+}
+
+    .input_file {
+        display: none; /* Oculta el input original */
+    }
+
+    .custom-file-button {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #bbb;
+        border: none;
+        font-size: 32px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .custom-file-button:hover {
+        background-color: #999;
+    }
