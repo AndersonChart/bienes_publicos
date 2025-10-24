@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 🔥 Elimina solo las filas anteriores, sin borrar encabezados ni título
         const filasAnteriores = contenedor.querySelectorAll('.row');
         filasAnteriores.forEach(fila => fila.remove());
 
@@ -87,8 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
 
-
-    // ✅ Llamada a la función para que se ejecute
+    //Llamada a la función para que se ejecute
     cargarUsuarios();
 });
 
