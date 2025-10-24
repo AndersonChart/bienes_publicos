@@ -853,4 +853,5 @@ body {
     transition-duration: 0.3s;
     transition-timing-function: ease;
     cursor: pointer;
+    border-radius: 1px;
 }
