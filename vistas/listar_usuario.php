@@ -39,9 +39,11 @@
             <div class="input_block_content">
                 <label for="sexo" class="input_label">Sexo</label>
                 <select name="usuario_sexo" id="sexo" class="input_select">
+                    <option value="" selected disabled></option>
                     <option value="0">M</option>
                     <option value="1">F</option>
                 </select>
+
             </div>
 
             <h2 class="modal_subtitle">Credenciales</h2>
@@ -62,7 +64,7 @@
             <div class="input_block_content">
                 <label for="foto" class="input_label input-condition">Foto de Perfil</label>
                 <input type="file" id="foto" name="usuario_foto" class="input_file">
-                <button class="custom-file-button" onclick="document.getElementById('foto').click()">+</button>
+                <button type="button" class="custom-file-button" onclick="document.getElementById('foto').click()">+</button>
             </div>
 
             <div class="input_block_content">
