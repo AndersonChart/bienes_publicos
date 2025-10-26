@@ -69,9 +69,16 @@
             </div>
             <div class="input_block_content">
                 <label for="foto" class="input_label input-condition">Foto de Perfil</label>
-                <input type="file" id="foto" name="usuario_foto" class="input_file">
-                <button type="button" class="custom-file-button" onclick="document.getElementById('foto').click()">+</button>
+                <div class="foto_perfil_container">
+                    <input type="file" id="foto" name="usuario_foto" class="input_file" accept="image/*">
+                    <div class="foto_perfil_wrapper" onclick="document.getElementById('foto').click()">
+                        <img id="preview_foto" class="foto_perfil_imagen" alt="Foto de perfil">
+                        <span class="foto_perfil_icon">+</span>
+                    </div>
+                </div>
             </div>
+
+
 
             <div class="input_block_content">
                 <label for="password" class="input_label">Contraseña</label>
@@ -93,6 +100,16 @@
             <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar">
         </form>
     </dialog>
+    <dialog data-modal="success" class="modal modal_success">
+        <form method="dialog">
+            </form>
+            <div class="modal_icon"></div>
+            <h2 class="modal_title">¡Proceso éxitoso!</h2>
+            <p class="modal_success-message" id="success-message"></p>
+            <button class="modal__close-success" id="close-success">Aceptar</button>
+    </dialog>
+
+
 
     <div class="order">Ordenar
         <div class="order-icon" data-menu="order"></div>

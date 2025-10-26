@@ -1,3 +1,17 @@
+//Función global: operación exitosa
+function mostrarModalExito(mensaje) {
+    const successModal = document.querySelector('dialog[data-modal="success"]');
+    const successMessage = document.getElementById('success-message');
+    const closeSuccess = document.getElementById('close-success');
+
+    if (successModal && typeof successModal.showModal === 'function') {
+        successMessage.textContent = mensaje;
+        successModal.showModal();
+        closeSuccess.onclick = () => successModal.close();
+    }
+}
+
+
 //Función global: lista de usuario
 function cargarUsuarios() {
     fetch('php/usuario_ajax.php', {
@@ -134,8 +148,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+//Crear usuario
 document.addEventListener('DOMContentLoaded', function () {
-    //Nuevo usuario
+
+    //Función del input_file de usuario
+    const inputFoto = document.getElementById('foto');
+    const previewFoto = document.getElementById('preview_foto');
+    const icono = document.querySelector('.foto_perfil_icon');
+
+    inputFoto.addEventListener('change', function () {
+        const archivo = this.files[0];
+        if (archivo) {
+            const lector = new FileReader();
+            lector.onload = function (e) {
+                previewFoto.src = e.target.result;
+                previewFoto.style.display = 'block';
+                icono.style.opacity = '0';
+            };
+            lector.readAsDataURL(archivo);
+        }
+    });
+
     const form = document.getElementById('form_nuevo_usuario');
     const errorContainer = document.getElementById('error-container');
 
@@ -179,21 +212,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 errorContainer.innerHTML = mensaje;
                 errorContainer.style.display = 'block';
             } else if (data.exito) {
-                alert(data.mensaje);
+                mostrarModalExito("Usuario registrado con éxito");
                 form.reset();
+
+                previewFoto.removeAttribute('src'); //Evita mostrar el alt
+                previewFoto.style.display = 'none'; //Oculta la imagen
+                icono.style.opacity = '1'; //Muestra el ícono +
+
                 errorContainer.innerHTML = '';
                 errorContainer.style.display = 'none';
 
-                const modal = document.querySelector('dialog[data-modal="new_user"]');
-                if (modal && typeof modal.close === 'function') {
-                    modal.close();
-                }
-
                 cargarUsuarios();
             }
+
         })
         .catch(() => {
-            errorContainer.innerHTML = 'Error de conexión con el servidor.';
+            errorContainer.innerHTML = 'Hubo un error con el servidor';
             errorContainer.style.display = 'block';
         });
     });

@@ -721,6 +721,7 @@ body {
     transform: translateY(-50px);
     opacity: 0;
     animation: slideDown 0.7s ease forwards;
+    z-index: 1;
 }
 
 /* Fondo oscuro de superposición */
@@ -755,7 +756,6 @@ body {
     font-size: 18px;
 }
 
-
 .modal__close {
     position: absolute;
     top: 20px;
@@ -769,6 +769,80 @@ body {
     border: none;
     border-radius: 10px;
 }
+
+.modal__close-success {
+    background-color: #28a745;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    transition: background-color, color, border 0.3s ease;
+}
+
+.modal__close-success:hover {
+    color: #28a745;
+    background-color: #fff;
+    border: 2px solid #28a745;
+}
+
+.modal_icon {
+    background: url("../img/icons/success.png") center / contain no-repeat;
+    text-align: center;
+    margin: 10px;
+    width: 100px;
+    height: 100px;
+    object-fit: contain; /* evita distorsión */
+}
+
+/* Hereda de .modal */
+.modal_success {
+    z-index: 2;
+    background: #ddd;
+    border-radius: 30px;
+    min-width: 20%;
+    max-width: 350px;
+    padding: 20px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    transform: translateY(-50px);
+    opacity: 0;
+    animation: slideDown 0.7s ease forwards;
+    position: relative;
+    display: visible;
+}
+
+/* Fondo oscuro */
+.modal_success::backdrop {
+    background: linear-gradient(#111c, #111 99%);
+    transition: background-color 1s ease;
+}
+
+/* Ocultar si no está abierta */
+.modal_success:not([open]) {
+    display: visible;
+}
+
+/* Mensaje dentro del modal */
+.modal_success-message {
+    flex: 1 1 100%;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #28a745;
+}
+
+
 
 .condition {
     position: absolute;
@@ -913,31 +987,55 @@ body {
 }
 
 .input_file {
-        display: none; /* Oculta el input original */
-    }
-    
-.custom-file-button {
-    width: 60px;
-    height: 60px;
+    display: none;
+}
+
+.foto_perfil_container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.foto_perfil_wrapper {
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    background-color: #bbb;
-    border: none;
-    font-size: 32px;
-    color: #333;
+    background-color: #eee;
+    border: 2px solid #999;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: background-color, transform 0.3s ease;
+    transition: all 0.3s ease; /* ✅ Transición completa para hover */
 }
-    
-    .custom-file-button:hover {
-        background-color: #999;
-        border: 3px solid #04a;
-        box-shadow: 0 5px 10px #003;
-        outline: none;
-        transform: scale(1.05);
-    }
+
+.foto_perfil_wrapper:hover {
+    border: 2px solid #04a;
+    background-color: #999;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
+}
+
+.foto_perfil_icon {
+    font-size: 32px;
+    color: #039;
+    font-weight: bold;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    position: absolute;
+}
+
+.foto_perfil_imagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+    display: none;
+}
     
 
     .input_text:focus-within{
@@ -946,3 +1044,4 @@ body {
         outline: none;
         transform: scale(1.05);
     }
+
