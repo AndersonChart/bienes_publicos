@@ -105,10 +105,11 @@ body {
     background: transparent;
 }
 
-.login_password:focus {
+.login_password:focus, .input_password:focus {
     border: transparent;
     outline: none;
 }
+
 .eye-icon {
     position: absolute;
     top: 20%;
@@ -714,9 +715,9 @@ body {
     min-width: 40%;
     max-width: 600px;
     padding: 20px;
+    border: transparent;
     border-radius: 30px;
     background: #ddd;
-    color: #200;
     transform: translateY(-50px);
     opacity: 0;
     animation: slideDown 0.7s ease forwards;
@@ -724,7 +725,7 @@ body {
 
 /* Fondo oscuro de superposición */
 .modal::backdrop {
-    background: linear-gradient(#000c, #000 99%);
+    background: linear-gradient(#111c, #111 99%);
     transition: background-color 1s ease;
 }
 
@@ -792,6 +793,7 @@ body {
     background: #3a3;
     border: none;
     border-radius: 10px;
+    margin-top: 235px;
 }
 
 .user_container {
@@ -802,15 +804,13 @@ body {
     justify-content: space-between;
     width: 500px;
     margin: 45px auto 0;
-    margin-bottom: 50px;
+    margin-bottom: 100px;
 }
-
 
 .input_block_content {
     flex: 0 0 calc(50% - 20px); /* 50% menos la mitad del gap */
     max-width: calc(50% - 20px);
 }
-
 
 .input_label {
     display: block;
@@ -821,10 +821,14 @@ body {
     font-size: 18px;
 }
 
-
 .input-condition {
     color: #333;
 }
+
+.input-description {
+    
+}
+
 .input_text {
     position: relative;
     background: transparent;
@@ -840,6 +844,33 @@ body {
     transition-duration: 0.3s;
     transition-timing-function: ease;
 }
+
+.input_date {
+    width: auto;
+}
+
+/* Estilo base para el input tipo date */
+.input_date::-webkit-calendar-picker-indicator {
+    background-color: transparent;
+    color: #049;
+    cursor: pointer;
+    border: none;
+    filter: invert(30%) sepia(100%) saturate(500%) hue-rotate(160deg);
+    scale: 1.2;
+    margin-right: 5px;
+}
+
+/* Firefox */
+.input_date::-moz-focus-inner {
+    border: 0;
+}
+
+/* Oculta el icono si quieres reemplazarlo manualmente */
+.input_date::-webkit-inner-spin-button,
+.input_date::-webkit-clear-button {
+    display: none;
+}
+
 
 .input_select {
     background: transparent;
@@ -860,6 +891,16 @@ body {
     cursor: pointer;
 }
 
+.input_select-cedula {
+    height: 100%;
+    border: transparent;
+    font-weight: 900;
+}
+
+.input_select-cedula:hover {
+    background-color: #bbb;
+}
+
 .input_password {
     margin: 2px 0 0 0;
     border: transparent;
@@ -871,25 +912,37 @@ body {
     background: transparent;
 }
 
-    .input_file {
+.input_file {
         display: none; /* Oculta el input original */
     }
-
-    .custom-file-button {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background-color: #bbb;
-        border: none;
-        font-size: 32px;
-        color: #333;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
+    
+.custom-file-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #bbb;
+    border: none;
+    font-size: 32px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color, transform 0.3s ease;
+}
+    
     .custom-file-button:hover {
         background-color: #999;
+        border: 3px solid #04a;
+        box-shadow: 0 5px 10px #003;
+        outline: none;
+        transform: scale(1.05);
+    }
+    
+
+    .input_text:focus-within{
+        border: 3px solid #04a;
+        box-shadow: 0 5px 10px #003;
+        outline: none;
+        transform: scale(1.05);
     }

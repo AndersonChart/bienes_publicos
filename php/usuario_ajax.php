@@ -30,6 +30,8 @@ switch ($accion) {
             'usuario_correo'   => isset($_POST['usuario_correo']) ? $_POST['usuario_correo'] : '',
             'usuario_telefono' => isset($_POST['usuario_telefono']) ? $_POST['usuario_telefono'] : '',
             'usuario_cedula'   => isset($_POST['usuario_cedula']) ? $_POST['usuario_cedula'] : '',
+            'usuario_nac'   => isset($_POST['usuario_nac']) ? $_POST['usuario_nac'] : '',
+            'usuario_direccion'   => isset($_POST['usuario_direccion']) ? $_POST['usuario_direccion'] : '',
             'usuario_sexo' => (isset($_POST['usuario_sexo']) && $_POST['usuario_sexo'] !== '') ? $_POST['usuario_sexo'] : '',
             'usuario_usuario'  => isset($_POST['usuario_usuario']) ? $_POST['usuario_usuario'] : '',
             'usuario_clave'    => isset($_POST['usuario_clave']) ? $_POST['usuario_clave'] : '',
@@ -42,6 +44,7 @@ switch ($accion) {
             'usuario_correo',
             'usuario_cedula',
             'usuario_sexo',
+            'usuario_nac',
             'usuario_usuario',
             'usuario_clave'
         ];
@@ -52,7 +55,6 @@ switch ($accion) {
                 $camposFaltantes[] = $campo;
             }
         }
-
 
         if (!empty($camposFaltantes)) {
             echo json_encode([
@@ -96,6 +98,8 @@ switch ($accion) {
             $datos['usuario_telefono'],
             $datos['usuario_cedula'],
             $datos['usuario_sexo'],
+            $datos['usuario_nac'],
+            $datos['usuario_direccion'],
             $datos['usuario_clave'],
             $datos['usuario_usuario'],
             $rol,

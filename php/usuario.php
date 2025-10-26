@@ -12,9 +12,9 @@ class usuario {
     }
 
     // Para crear nuevo registro
-    public function crear($nombre,$apellido,$correo,$telefono,$cedula,$sexo,$clave,$usuario,$rol,$foto,$estado) {
-        $stmt = $this->pdo->prepare("INSERT INTO usuario (usuario_nombre, usuario_apellido, usuario_correo, usuario_telefono, usuario_cedula, usuario_sexo, usuario_clave, usuario_usuario, rol_id, usuario_foto, usuario_estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        return $stmt->execute([$nombre,$apellido,$correo,$telefono,$cedula,$sexo,$clave,$usuario,$rol,$foto,$estado]);
+    public function crear($nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado) {
+        $stmt = $this->pdo->prepare("INSERT INTO usuario (usuario_nombre, usuario_apellido, usuario_correo, usuario_telefono, usuario_cedula, usuario_sexo, usuario_nac, usuario_direccion, usuario_clave, usuario_usuario, rol_id, usuario_foto, usuario_estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        return $stmt->execute([$nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado]);
     }
 
 public function leer_todos() {
@@ -22,8 +22,6 @@ public function leer_todos() {
     $stmt->execute([$_SESSION["id"]]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-
 
     // Leer un registro por ID (para actualizar un registro)
     public function leer_por_id($id) {

@@ -22,8 +22,10 @@ CREATE TABLE usuario (
     usuario_apellido VARCHAR(100) NOT NULL,
     usuario_correo VARCHAR(254) NOT NULL,
     usuario_telefono VARCHAR(20),
-    usuario_cedula VARCHAR(8) NOT NULL,
+    usuario_cedula VARCHAR(10) NOT NULL,
     usuario_sexo TINYINT(1) NOT NULL,
+    usuario_nac DATE NOT NULL,
+    usuario_direccion VARCHAR(100),
     usuario_clave VARCHAR(255) NOT NULL,
     usuario_usuario VARCHAR(100) NOT NULL,
     rol_id INT NOT NULL,
@@ -110,8 +112,10 @@ CREATE TABLE persona (
     persona_cargo VARCHAR(100) NOT NULL,
     persona_correo VARCHAR(254) NOT NULL,
     persona_telefono VARCHAR(20),
-    persona_cedula VARCHAR(8) NOT NULL,
+    persona_cedula VARCHAR(10) NOT NULL,
     persona_sexo TINYINT(1) NOT NULL,
+    persona_nac DATE NOT NULL,
+    persona_direccion VARCHAR(100) NOT NULL,
     persona_foto VARCHAR(255),
     persona_estado TINYINT(1) NOT NULL DEFAULT 1,
     -- CLAVES PRIMARIAS Y FORANEAS
@@ -180,10 +184,17 @@ INSERT INTO categoria (categoria_nombre) VALUES ('Tecnologico'), ('Mobiliario'),
 INSERT INTO rol (rol_nombre) VALUES ('Administrador'), ('Director'), ('Vicereptor');
 INSERT INTO estado (estado_nombre) VALUES ('Disponible'), ('Asignado'), ('Mantenimiento'), ('Desincorporado');
 INSERT INTO usuario (
-    usuario_nombre, usuario_apellido, usuario_correo, usuario_sexo,
-    usuario_cedula, usuario_clave, usuario_usuario, rol_id
-) VALUES (
-    'Administrador', 'Principal', 'admin@gmail.com', 0, '11111111',
-    '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'admin123', 1
-);
-
+    usuario_nombre, usuario_apellido, usuario_correo, usuario_telefono,
+    usuario_sexo, usuario_cedula, usuario_nac, usuario_direccion,
+    usuario_clave, usuario_usuario, rol_id, usuario_foto
+) VALUES
+('Administrador', 'Principal', 'admin@gmail.com', '', 0, 'V-11111111', '2005-11-14', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'admin123', 1, 'img/icons/perfil.png'),
+('Carlos', 'Ramírez', 'carlos.ramirez@gmail.com', '04141234568', 0, 'V-22222222', '1990-06-22', 'Calle 10, Maracay', '$2y$10$abc2', 'carlos90', 1, 'img/icons/perfil.png'),
+('María', 'González', 'maria.gonzalez@gmail.com', '04141234569', 1, 'V-33333333', '1985-03-15', 'Sector El Centro, Valencia', '$2y$10$abc3', 'mariagonz', 1, 'img/icons/perfil.png'),
+('Luis', 'Fernández', 'luis.fernandez@gmail.com', '04141234570', 0, 'V-44444444', '1992-09-10', 'Av. Universidad, Mérida', '$2y$10$abc4', 'luisf92', 1, 'img/icons/perfil.png'),
+('Ana', 'Torres', 'ana.torres@gmail.com', '04141234571', 1, 'V-55555555', '1998-12-01', 'Calle Sucre, Barquisimeto', '$2y$10$abc5', 'anatorres', 1, 'img/icons/perfil.png'),
+('José', 'Martínez', 'jose.martinez@gmail.com', '04141234572', 0, 'V-66666666', '1980-07-07', 'Av. Principal, San Cristóbal', '$2y$10$abc6', 'josem80', 1, 'img/icons/perfil.png'),
+('Laura', 'Pérez', 'laura.perez@gmail.com', '04141234573', 1, 'V-77777777', '1995-05-20', 'Urbanización La Floresta, Caracas', '$2y$10$abc7', 'laurap95', 1, 'img/icons/perfil.png'),
+('Miguel', 'Rodríguez', 'miguel.rodriguez@gmail.com', '04141234574', 0, 'V-88888888', '1988-11-30', 'Calle 5, Puerto Ordaz', '$2y$10$abc8', 'miguelr88', 1, 'img/icons/perfil.png'),
+('Sofía', 'Morales', 'sofia.morales@gmail.com', '04141234575', 1, 'V-99999999', '1993-04-18', 'Av. Las Delicias, Maracay', '$2y$10$abc9', 'sofia93', 1, 'img/icons/perfil.png'),
+('Andrés', 'López', 'andres.lopez@gmail.com', '04141234576', 0, 'V-10101010', '1991-01-25', 'Calle Miranda, Cumaná', '$2y$10$abc10', 'andresl91', 1, 'img/icons/perfil.png');

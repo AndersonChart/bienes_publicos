@@ -32,18 +32,33 @@
             </div>
 
             <div class="input_block_content">
-                <label for="cedula" class="input_label">No. Identidad</label>
-                <input type="text" id="cedula" name="usuario_cedula" class="input_text">
+                <label for="cedula" class="input_label">Cédula</label>
+                <div class="input_text">
+                    <select name="tipo_cedula" id="tipo_cedula" class="input_select input_select-cedula">
+                    <option value="V-">V</option>
+                    <option value="E-">E</option>
+                    </select>
+                    <input type="text" name="usuario_cedula" class="input_password" id="numero_cedula">
+                </div>
             </div>
 
             <div class="input_block_content">
                 <label for="sexo" class="input_label">Sexo</label>
-                <select name="usuario_sexo" id="sexo" class="input_select">
+                <select name="usuario_sexo" id="sexo" class="input_text input_select">
                     <option value="" selected disabled></option>
                     <option value="0">M</option>
                     <option value="1">F</option>
                 </select>
+            </div>
 
+            <div class="input_block_content">
+                <label for="direccion" class="input_label input-condition">Dirección</label>
+                <input type="text" name="usuario_direccion" id="direccion" class="input_text">
+            </div>
+
+            <div class="input_block_content">
+                <label for="nac" class="input_label">Fecha de nacimiento</label>
+                <input type="date" name="usuario_nac" id="nac" class="input_text input_date">
             </div>
 
             <h2 class="modal_subtitle">Credenciales</h2>
@@ -52,15 +67,6 @@
                 <label for="nombre_usuario" class="input_label">Nombre de Usuario</label>
                 <input type="text" id="nombre_usuario" name="usuario_usuario" class="input_text">
             </div>
-
-            <div class="input_block_content">
-                <label for="password" class="input_label">Contraseña</label>
-                <div class="input_text">
-                    <input type="password" id="password" name="usuario_clave" class="input_password">
-                    <div class="eye-icon" onclick="togglePassword()"></div>
-                </div>
-            </div>
-
             <div class="input_block_content">
                 <label for="foto" class="input_label input-condition">Foto de Perfil</label>
                 <input type="file" id="foto" name="usuario_foto" class="input_file">
@@ -68,9 +74,17 @@
             </div>
 
             <div class="input_block_content">
+                <label for="password" class="input_label">Contraseña</label>
+                <div class="input_text">
+                    <input type="password" name="usuario_clave" class="input_password" >
+                    <div class="eye-icon" onclick="togglePassword()"></div>
+                </div>
+            </div>
+
+            <div class="input_block_content">
                 <label for="password_repeat" class="input_label">Repetir Contraseña</label>
                 <div class="input_text">
-                    <input type="password" id="password_repeat" name="repetir_clave" class="input_password">
+                    <input type="password" name="repetir_clave" class="input_password">
                     <div class="eye-icon" onclick="togglePassword()"></div>
                 </div>
             </div>
@@ -80,7 +94,7 @@
         </form>
     </dialog>
 
-    <div class="order">Ordenar asc.
+    <div class="order">Ordenar
         <div class="order-icon" data-menu="order"></div>
     </div>
 
