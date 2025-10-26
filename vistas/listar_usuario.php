@@ -23,7 +23,7 @@
 
             <div class="input_block_content">
                 <label for="correo" class="input_label">Correo electrónico</label>
-                <input type="email" id="correo" name="usuario_correo" class="input_text">
+                <input type="text" id="correo" name="usuario_correo" class="input_text">
             </div>
 
             <div class="input_block_content">
@@ -35,8 +35,8 @@
                 <label for="cedula" class="input_label">Cédula</label>
                 <div class="input_text">
                     <select name="tipo_cedula" id="tipo_cedula" class="input_select input_select-cedula">
-                    <option value="V-">V</option>
-                    <option value="E-">E</option>
+                    <option value="V">V</option>
+                    <option value="E">E</option>
                     </select>
                     <input type="text" name="usuario_cedula" class="input_password" id="numero_cedula">
                 </div>
@@ -70,15 +70,13 @@
             <div class="input_block_content">
                 <label for="foto" class="input_label input-condition">Foto de Perfil</label>
                 <div class="foto_perfil_container">
-                    <input type="file" id="foto" name="usuario_foto" class="input_file" accept="image/*">
+                    <input type="file" id="foto" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
                     <div class="foto_perfil_wrapper" onclick="document.getElementById('foto').click()">
                         <img id="preview_foto" class="foto_perfil_imagen" alt="Foto de perfil">
                         <span class="foto_perfil_icon">+</span>
                     </div>
                 </div>
             </div>
-
-
 
             <div class="input_block_content">
                 <label for="password" class="input_label">Contraseña</label>

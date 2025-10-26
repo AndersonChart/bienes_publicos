@@ -11,6 +11,26 @@ class usuario {
         $this->pdo = Conexion::conectar();
     }
 
+    public function existeCorreo($correo) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_correo = ?");
+        $stmt->execute([$correo]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function existeCedula($cedula) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ?");
+        $stmt->execute([$cedula]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function existeUsuario($usuario) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ?");
+        $stmt->execute([$usuario]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+
+
     // Para crear nuevo registro
     public function crear($nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado) {
         $stmt = $this->pdo->prepare("INSERT INTO usuario (usuario_nombre, usuario_apellido, usuario_correo, usuario_telefono, usuario_cedula, usuario_sexo, usuario_nac, usuario_direccion, usuario_clave, usuario_usuario, rol_id, usuario_foto, usuario_estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

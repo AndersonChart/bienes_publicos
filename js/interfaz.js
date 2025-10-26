@@ -11,6 +11,23 @@ function mostrarModalExito(mensaje) {
     }
 }
 
+//Función global: validaciones y campos de error
+
+function validarCampo(form, errorContainer, selector, condicion, mensaje) {
+    const input = form.querySelector(selector);
+    const contenedor = input.closest('.input_text');
+    const campo = contenedor ? contenedor.querySelector('input') : input;
+
+    if (!condicion) {
+        campo.classList.add('input-error');
+        campo.focus();
+        errorContainer.innerHTML = `<h3 style="font-weight: bold; font-size: 1.4rem;">Error de validación</h3><p>${mensaje}</p>`;
+        errorContainer.style.display = 'block';
+        return false;
+    }
+
+    return true;
+}
 
 //Función global: lista de usuario
 function cargarUsuarios() {
@@ -100,6 +117,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    //Limpiar formularios al cerrarlos con modal__close
+    document.querySelectorAll('.modal__close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const modal = btn.closest('dialog');
+        if (!modal) return;
+
+        // Buscar el formulario real (con id) dentro del modal
+        const form = modal.querySelector('form[id]');
+        if (form) {
+            form.reset();
+
+            // Limpiar errores visuales
+            form.querySelectorAll('.input-error').forEach(el => {
+                el.classList.remove('input-error');
+            });
+
+            // Limpiar mensaje de error
+            const errorContainer = form.querySelector('.error-container');
+            if (errorContainer) {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+            }
+
+            // Limpiar imágenes de previsualización
+            form.querySelectorAll('img[id^="preview_"]').forEach(img => {
+                img.removeAttribute('src');
+                img.style.display = 'none';
+            });
+
+            // Restaurar íconos "+" si existen
+            form.querySelectorAll('.foto_perfil_icon').forEach(icono => {
+                icono.style.opacity = '1';
+            });
+        }
+
+        // Cerrar el modal (por si no se cierra automáticamente)
+        modal.close();
+    });
+});
+
+
 
     // Función para mostrar/ocultar contraseña
     function togglePassword() {
@@ -150,12 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //Crear usuario
 document.addEventListener('DOMContentLoaded', function () {
-
-    //Función del input_file de usuario
     const inputFoto = document.getElementById('foto');
     const previewFoto = document.getElementById('preview_foto');
     const icono = document.querySelector('.foto_perfil_icon');
+    const form = document.getElementById('form_nuevo_usuario');
+    const errorContainer = document.getElementById('error-container');
 
+    // Previsualizar imagen
     inputFoto.addEventListener('change', function () {
         const archivo = this.files[0];
         if (archivo) {
@@ -169,66 +228,68 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    const form = document.getElementById('form_nuevo_usuario');
-    const errorContainer = document.getElementById('error-container');
-
     form.addEventListener('submit', function (e) {
-        e.preventDefault();
+    e.preventDefault();
 
-            // Combinar tipo + número de cédula
-        const tipo = document.getElementById('tipo_cedula').value;
-        const numero = document.getElementById('numero_cedula').value.trim();
-        const cedulaCompleta = tipo + numero;
+    const tipo = document.getElementById('tipo_cedula').value;
+    const numeroInput = document.getElementById('numero_cedula');
+    const numero = numeroInput.value.trim();
 
-        // Insertar manualmente en el formulario
-        const campoCedula = document.createElement('input');
-        campoCedula.type = 'hidden';
-        campoCedula.name = 'usuario_cedula';
-        campoCedula.value = cedulaCompleta;
-        form.appendChild(campoCedula);
+    // Limpiar errores visuales previos
+    form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+    errorContainer.innerHTML = '';
+    errorContainer.style.display = 'none';
 
-        const formData = new FormData(form);
-        formData.append('rol_id', '1');
-        formData.append('accion', 'crear');
+    // Enviar datos al backend
+    const cedulaCompleta = tipo + '-' + numero;
+    const formData = new FormData(form);
+    formData.set('usuario_cedula', cedulaCompleta); // solo en el envío
+    formData.append('rol_id', '1');
+    formData.append('accion', 'crear');
 
-        fetch('php/usuario_ajax.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        errorContainer.innerHTML = '';
+        errorContainer.style.display = 'none';
+
+        if (data.error) {
+            errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+            errorContainer.style.display = 'block';
+
+            if (data.campos && Array.isArray(data.campos)) {
+                data.campos.forEach((campo, index) => {
+                    let input = form.querySelector(`[name="${campo}"]`);
+                    if (campo === 'usuario_cedula') input = document.getElementById('numero_cedula');
+                    if (campo === 'usuario_foto') input = inputFoto;
+                    if (input) {
+                        const contenedor = input.closest('.input_text');
+                        if (contenedor) {
+                            contenedor.classList.add('input-error');
+                        } else {
+                            input.classList.add('input-error');
+                        }
+                        if (index === 0) input.focus();
+                    }
+                });
+            }
+        } else if (data.exito) {
+            mostrarModalExito("Usuario registrado con éxito");
+            form.reset();
+            previewFoto.removeAttribute('src');
+            previewFoto.style.display = 'none';
+            icono.style.opacity = '1';
             errorContainer.innerHTML = '';
             errorContainer.style.display = 'none';
-
-            if (data.error) {
-                let mensaje = `<p>${data.mensaje}</p>`;
-                if (data.campos && Array.isArray(data.campos)) {
-                    mensaje += '<ul>';
-                    data.campos.forEach(campo => {
-                        mensaje += `<li>${campo.replace('usuario_', '').replace('_', ' ')} está vacío</li>`;
-                    });
-                    mensaje += '</ul>';
-                }
-                errorContainer.innerHTML = mensaje;
-                errorContainer.style.display = 'block';
-            } else if (data.exito) {
-                mostrarModalExito("Usuario registrado con éxito");
-                form.reset();
-
-                previewFoto.removeAttribute('src'); //Evita mostrar el alt
-                previewFoto.style.display = 'none'; //Oculta la imagen
-                icono.style.opacity = '1'; //Muestra el ícono +
-
-                errorContainer.innerHTML = '';
-                errorContainer.style.display = 'none';
-
-                cargarUsuarios();
-            }
-
-        })
-        .catch(() => {
-            errorContainer.innerHTML = 'Hubo un error con el servidor';
-            errorContainer.style.display = 'block';
-        });
+            cargarUsuarios();
+        }
+    })
+    .catch(() => {
+        errorContainer.innerHTML = 'Hubo un error con el servidor';
+        errorContainer.style.display = 'block';
     });
+});
 });
