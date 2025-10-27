@@ -181,14 +181,14 @@ ALTER TABLE desincorporacion ADD CONSTRAINT fk_desin_bien FOREIGN KEY (bien_id) 
 
 -- Datos de ejemplo
 INSERT INTO categoria (categoria_nombre) VALUES ('Tecnologico'), ('Mobiliario'), ('Otros');
-INSERT INTO rol (rol_nombre) VALUES ('Administrador'), ('Director'), ('Vicereptor');
+INSERT INTO rol (rol_nombre) VALUES ('Administrador'), ('Administrador Principal'), ('Director'), ('Vicereptor');
 INSERT INTO estado (estado_nombre) VALUES ('Disponible'), ('Asignado'), ('Mantenimiento'), ('Desincorporado');
 INSERT INTO usuario (
     usuario_nombre, usuario_apellido, usuario_correo, usuario_telefono,
     usuario_sexo, usuario_cedula, usuario_nac, usuario_direccion,
     usuario_clave, usuario_usuario, rol_id, usuario_foto
 ) VALUES
-('Administrador', 'Principal', 'admin@gmail.com', '', 0, 'V-11111111', '2005-11-14', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'admin123', 1, 'img/icons/perfil.png'),
+('Administrador', 'Principal', 'admin@gmail.com', '', 0, 'V-11111111', '2005-11-14', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'admin123', 2, 'img/icons/perfil.png'),
 ('Carlos', 'Ramírez', 'carlos.ramirez@gmail.com', '04141234568', 0, 'V-22222222', '1990-06-22', 'Calle 10, Maracay', '$2y$10$abc2', 'carlos90', 1, 'img/icons/perfil.png'),
 ('María', 'González', 'maria.gonzalez@gmail.com', '04141234569', 1, 'V-33333333', '1985-03-15', 'Sector El Centro, Valencia', '$2y$10$abc3', 'mariagonz', 1, 'img/icons/perfil.png'),
 ('Luis', 'Fernández', 'luis.fernandez@gmail.com', '04141234570', 0, 'V-44444444', '1992-09-10', 'Av. Universidad, Mérida', '$2y$10$abc4', 'luisf92', 1, 'img/icons/perfil.png'),

@@ -643,6 +643,7 @@ body {
 
 .text-empty {
     background-color: #aaa;
+    user-select: none;
 }
 
 .new_user {

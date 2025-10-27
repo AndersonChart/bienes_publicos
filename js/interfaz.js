@@ -31,19 +31,22 @@ function cargarUsuarios() {
         filasAnteriores.forEach(fila => fila.remove());
 
         if (Array.isArray(data) && data.length > 0) {
-            data.forEach(usuario => {
-                const telefono = usuario.usuario_telefono || '';
-                const foto = usuario.usuario_foto || 'img/icons/perfil.png';
+    data.forEach(usuario => {
+        const telefono = usuario.usuario_telefono || '';
+        const foto = usuario.usuario_foto || 'img/icons/perfil.png';
 
-                contenedor.innerHTML += `
-                    <div class="row">${usuario.usuario_id}</div>
-                    <div class="row">${usuario.usuario_nombre}</div>
-                    <div class="row">${usuario.usuario_apellido}</div>
-                    <div class="row">${usuario.usuario_cedula}</div>
-                    <div class="row">${usuario.usuario_correo}</div>
-                    <div class="row">${telefono}</div>
-                    <div class="row"><img src="${foto}" alt="Foto" width="40"></div>
-                    <div class="row">
+        contenedor.innerHTML += `
+            <div class="row">${usuario.usuario_id}</div>
+            <div class="row">${usuario.usuario_nombre}</div>
+            <div class="row">${usuario.usuario_apellido}</div>
+            <div class="row">${usuario.usuario_cedula}</div>
+            <div class="row">${usuario.usuario_correo}</div>
+            <div class="row">${telefono}</div>
+            <div class="row"><img src="${foto}" alt="Foto" width="40"></div>
+            <div class="row">
+                ${
+                    usuario.rol_id === 2
+                    ? `
                         <div class="icon-action actualizar" data-url="form_actualizar_usuario.php" data-id="${usuario.usuario_id}" data-action="actualizar" title="Actualizar">
                             <img src="img/icons/actualizar.png" alt="Actualizar">
                         </div>
@@ -53,10 +56,13 @@ function cargarUsuarios() {
                         <div class="icon-action eliminar" data-id="${usuario.usuario_id}" data-action="eliminar" title="Eliminar">
                             <img src="img/icons/eliminar.png" alt="Eliminar">
                         </div>
-                    </div>
-                `;
-            });
-        } else {
+                    `
+                    : `<span class="text-empty">Ninguno</span>`
+                }
+            </div>
+        `;
+    });
+} else {
             contenedor.innerHTML += `<div class="text-empty">No hay ningún registro</div>`;
         }
     }) 
