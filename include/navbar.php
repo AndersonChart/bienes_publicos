@@ -15,18 +15,18 @@
         </div>
         <div class="sub-main">
             <div class="menu-content" id="bienes">
-                <a href="">Bienes</a>
-                <a href="#">Marcas</a>
-                <a href="#">Clasificaciones</a>
+                <a href="index.php?vista=listar_etc">Bienes</a>
+                <a href="index.php?vista=listar_etc">Marcas</a>
+                <a href="index.php?vista=listar_etc">Clasificaciones</a>
             </div>
             <div class="menu-content" id="asignaciones">
-                <a href="#">Asignaciones</a>
-                <a href="#">Areas</a>
-                <a href="#">Personal</a>    
+                <a href="index.php?vista=listar_etc">Asignaciones</a>
+                <a href="index.php?vista=listar_etc">Areas</a>
+                <a href="index.php?vista=listar_etc">Personal</a>    
             </div>
             <div class="menu-content" id="ajustes">                
-                <a href="#">Recepción</a>
-                <a href="#">Desincorporación</a>
+                <a href="index.php?vista=listar_etc">Recepción</a>
+                <a href="index.php?vista=listar_etc">Desincorporación</a>
             </div>
             <div class="menu-content" id="usuarios">
                 <a href="index.php?vista=listar_usuario">Usuarios</a>

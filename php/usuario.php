@@ -37,11 +37,12 @@ class usuario {
         return $stmt->execute([$nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado]);
     }
 
-public function leer_todos() {
-    $stmt = $this->pdo->prepare("SELECT u.*, r.rol_nombre FROM usuario u JOIN rol r ON u.rol_id = r.rol_id WHERE u.usuario_id != ? AND u.usuario_estado = 1 AND u.rol_id = 1");
-    $stmt->execute([$_SESSION["id"]]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+    // Para generar las listas
+    public function leer_todos() {
+        $stmt = $this->pdo->prepare("SELECT u.*, r.rol_nombre FROM usuario u JOIN rol r ON u.rol_id = r.rol_id WHERE u.usuario_id != ? AND u.usuario_estado = 1 AND u.rol_id = 1");
+        $stmt->execute([$_SESSION["id"]]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // Leer un registro por ID (para actualizar un registro)
     public function leer_por_id($id) {

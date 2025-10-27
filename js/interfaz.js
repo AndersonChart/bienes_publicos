@@ -11,24 +11,6 @@ function mostrarModalExito(mensaje) {
     }
 }
 
-//Función global: validaciones y campos de error
-
-function validarCampo(form, errorContainer, selector, condicion, mensaje) {
-    const input = form.querySelector(selector);
-    const contenedor = input.closest('.input_text');
-    const campo = contenedor ? contenedor.querySelector('input') : input;
-
-    if (!condicion) {
-        campo.classList.add('input-error');
-        campo.focus();
-        errorContainer.innerHTML = `<h3 style="font-weight: bold; font-size: 1.4rem;">Error de validación</h3><p>${mensaje}</p>`;
-        errorContainer.style.display = 'block';
-        return false;
-    }
-
-    return true;
-}
-
 //Función global: lista de usuario
 function cargarUsuarios() {
     fetch('php/usuario_ajax.php', {
