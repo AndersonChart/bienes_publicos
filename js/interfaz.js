@@ -1,94 +1,8 @@
-//Función global: operación exitosa
-function mostrarModalExito(mensaje) {
-    const successModal = document.querySelector('dialog[data-modal="success"]');
-    const successMessage = document.getElementById('success-message');
-    const closeSuccess = document.getElementById('close-success');
-
-    if (successModal && typeof successModal.showModal === 'function') {
-        successMessage.textContent = mensaje;
-        successModal.showModal();
-        closeSuccess.onclick = () => successModal.close();
-    }
-}
-
-//Función global: lista de usuario
-function cargarUsuarios() {
-    fetch('php/usuario_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'leer_todos' })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log(data);
-
-        const contenedor = document.querySelector('.grid.grid-usuario');
-        if (!contenedor) {
-            console.error('No se encontró el contenedor .grid.grid-usuario');
-            return;
-        }
-
-        const filasAnteriores = contenedor.querySelectorAll('.row');
-        filasAnteriores.forEach(fila => fila.remove());
-
-        if (Array.isArray(data) && data.length > 0) {
-    data.forEach(usuario => {
-        const telefono = usuario.usuario_telefono || '';
-        const foto = usuario.usuario_foto || 'img/icons/perfil.png';
-
-        contenedor.innerHTML += `
-            <div class="row">${usuario.usuario_id}</div>
-            <div class="row">${usuario.usuario_nombre}</div>
-            <div class="row">${usuario.usuario_apellido}</div>
-            <div class="row">${usuario.usuario_cedula}</div>
-            <div class="row">${usuario.usuario_correo}</div>
-            <div class="row">${telefono}</div>
-            <div class="row"><img src="${foto}" alt="Foto" width="40"></div>
-            <div class="row">
-                ${
-                    usuario.rol_id === 2
-                    ? `
-                        <div class="icon-action actualizar" data-url="form_actualizar_usuario.php" data-id="${usuario.usuario_id}" data-action="actualizar" title="Actualizar">
-                            <img src="img/icons/actualizar.png" alt="Actualizar">
-                        </div>
-                        <div class="icon-action info" data-url="info_usuario.php" data-id="${usuario.usuario_id}" data-action="info" title="Info">
-                            <img src="img/icons/info.png" alt="Info">
-                        </div>
-                        <div class="icon-action eliminar" data-id="${usuario.usuario_id}" data-action="eliminar" title="Eliminar">
-                            <img src="img/icons/eliminar.png" alt="Eliminar">
-                        </div>
-                    `
-                    : `<span class="text-empty">Ninguno</span>`
-                }
-            </div>
-        `;
-    });
-} else {
-            contenedor.innerHTML += `<div class="text-empty">No hay ningún registro</div>`;
-        }
-    }) 
-    .catch(err => {
-        console.error('Error AJAX:', err);
-    });
-}
-
-//Mostrar contraseña al presionar el ojo
-document.addEventListener("click", function (e) {
-    if (e.target.classList.contains("eye-icon")) {
-        const container = e.target.closest(".input_text");
-        const input = container.querySelector(".input_password");
-
-        if (!input) {
-            console.error("No se encontró el input asociado al eye-icon");
-            return;
-        }
-
-        const isHidden = input.type === "password";
-        input.type = isHidden ? "text" : "password";
-        e.target.classList.toggle("visible", isHidden);
-    }
-});
-
+//Cargar el DOM del sistema
 document.addEventListener('DOMContentLoaded', () => {
+    //Obtener el rol del usuario para permisos
+    const usuarioID = document.getElementById('usuario').dataset.id;
+    //Seleccionar todos los iconos y submenus del nabvar
     const icons = document.querySelectorAll('.icon');
     const menus = document.querySelectorAll('.menu-content');
 
@@ -107,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //Limpiar formularios al cerrarlos con modal__close
     document.querySelectorAll('.modal__close').forEach(btn => {
+    
+    //Evento: Al presionar el botón de salir
     btn.addEventListener('click', () => {
         const modal = btn.closest('dialog');
         if (!modal) return;
@@ -143,11 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cerrar el modal (por si no se cierra automáticamente)
         modal.close();
     });
-});
+    });
 
-
-
-    // Función para mostrar/ocultar contraseña
+    // Función: para mostrar/ocultar contraseña
     function togglePassword() {
         const passwordInput = document.getElementById("password");
         const eyeIcon = document.querySelector(".eye-icon");
@@ -162,13 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
         eyeIcon.classList.toggle("visible", isHidden);
     }
 
-    // Delegación global para cualquier .eye-icon
+    //Evento: Delegación global para cualquier .eye-icon
     document.addEventListener("click", function (e) {
         if (e.target.classList.contains("eye-icon")) {
             togglePassword();
         }
     });
 
+    //Evento: Mostrar ventana modal
     const botones = document.querySelectorAll('[data-modal-target]');
     botones.forEach(boton => {
         boton.addEventListener('click', () => {
@@ -178,10 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    //Evitar que se reenvie varias veces con botones submit
     const btncrear = document.getElementById('btn_crear');
     if (btncrear) btncrear.disabled = false;
 
-        const vistaActual = new URL(window.location.href).searchParams.get('vista');
+    //Verificar las vistas para las listas
+    const vistaActual = new URL(window.location.href).searchParams.get('vista');
 
     if (vistaActual === 'listar_usuario') {
         cargarUsuarios();
@@ -192,10 +109,103 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Puede seguirse agregando más vistas aquí
 
+
+    //Función: lista de usuario
+function cargarUsuarios() {
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todos' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data);
+
+        const contenedor = document.querySelector('.grid.grid-usuario');
+        if (!contenedor) {
+            console.error('No se encontró el contenedor .grid.grid-usuario');
+            return;
+        }
+
+        const filasAnteriores = contenedor.querySelectorAll('.row');
+        filasAnteriores.forEach(fila => fila.remove());
+
+        if (Array.isArray(data) && data.length > 0) {
+    data.forEach(usuario => {
+        const telefono = usuario.usuario_telefono || '';
+        const foto = usuario.usuario_foto || 'img/icons/perfil.png';
+
+        contenedor.innerHTML += `
+            <div class="row">${usuario.usuario_id}</div>
+            <div class="row">${usuario.usuario_nombre}</div>
+            <div class="row">${usuario.usuario_apellido}</div>
+            <div class="row">${usuario.usuario_cedula}</div>
+            <div class="row">${usuario.usuario_correo}</div>
+            <div class="row">${telefono}</div>
+            <div class="row"><img src="${foto}" alt="Foto" width="40"></div>
+            <div class="row">
+                ${
+                    usuarioID === "2"
+                    ? `
+                        <div class="icon-action actualizar" data-url="form_actualizar_usuario.php" data-id="${usuario.usuario_id}" data-action="actualizar" title="Actualizar">
+                            <img src="img/icons/actualizar.png" alt="Actualizar">
+                        </div>
+                        <div class="icon-action info" data-url="info_usuario.php" data-id="${usuario.usuario_id}" data-action="info" title="Info">
+                            <img src="img/icons/info.png" alt="Info">
+                        </div>
+                        <div class="icon-action eliminar" data-id="${usuario.usuario_id}" data-action="eliminar" title="Eliminar">
+                            <img src="img/icons/eliminar.png" alt="Eliminar">
+                        </div>
+                    `
+                    : `<span class="text-empty">Ninguno</span>`
+                }
+            </div>
+        `;
+    });
+} else {
+            contenedor.innerHTML += `<div class="text-empty">No hay ningún registro</div>`;
+        }
+    }) 
+    .catch(err => {
+        console.error('Error AJAX:', err);
+    });
+}
+
 });
 
+
+//Función: operación exitosa
+function mostrarModalExito(mensaje) {
+    const successModal = document.querySelector('dialog[data-modal="success"]');
+    const successMessage = document.getElementById('success-message');
+    const closeSuccess = document.getElementById('close-success');
+
+    if (successModal && typeof successModal.showModal === 'function') {
+        successMessage.textContent = mensaje;
+        successModal.showModal();
+        closeSuccess.onclick = () => successModal.close();
+    }
+}
+
+
+//Evento: Mostrar contraseña al presionar el ojo
+document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("eye-icon")) {
+        const container = e.target.closest(".input_text");
+        const input = container.querySelector(".input_password");
+
+        if (!input) {
+            console.error("No se encontró el input asociado al eye-icon");
+            return;
+        }
+
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        e.target.classList.toggle("visible", isHidden);
+    }
+});
+
+
 //Crear usuario
-document.addEventListener('DOMContentLoaded', function () {
     const inputFoto = document.getElementById('foto');
     const previewFoto = document.getElementById('preview_foto');
     const icono = document.querySelector('.foto_perfil_icon');
@@ -279,5 +289,4 @@ document.addEventListener('DOMContentLoaded', function () {
         errorContainer.innerHTML = 'Hubo un error con el servidor';
         errorContainer.style.display = 'block';
     });
-});
 });

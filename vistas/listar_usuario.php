@@ -1,3 +1,4 @@
+<div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="new_user" data-modal-target="new_user">+ Nuevo</div>
 
