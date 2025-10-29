@@ -556,7 +556,7 @@ body {
     align-items: center;
     border-top: 2px solid #049;
     box-sizing: border-box;
-    padding: 0 15px;    
+    padding: 0px 15px;    
     font-size: 16px;
 }
 
@@ -583,17 +583,14 @@ body {
     cursor: pointer;
 }
 
-.actualizar {
-    background: url("../img/icons/actualizar.png") center / contain no-repeat;
+.acciones-container {
+    display: flex;
+    gap: 10px;
+    justify-content: start;
+    align-items: center;
 }
 
-.info {
-    background: url("../img/icons/info.png") center / contain no-repeat;
-}
 
-.eliminar {
-    background: url("../img/icons/eliminar.png") center / contain no-repeat;
-}
 
 .title {
     position: sticky;

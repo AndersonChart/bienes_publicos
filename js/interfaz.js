@@ -12,68 +12,38 @@ function mostrarModalExito(mensaje) {
 }
 
 //Función global: lista de usuario
-function cargarUsuarios() {
+
+
+//Función: formulario de actualizar usuario
+function abrirFormularioEdicion(id) {
     fetch('php/usuario_ajax.php', {
         method: 'POST',
-        body: new URLSearchParams({ accion: 'leer_todos' })
+        body: new URLSearchParams({
+        accion: 'obtener_usuario',
+        id: id
+        })
     })
     .then(res => res.json())
     .then(data => {
-        console.log(data);
+        if (!data.exito || !data.usuario) return;
 
-        const contenedor = document.querySelector('.grid.grid-usuario');
-        if (!contenedor) {
-            console.error('No se encontró el contenedor .grid.grid-usuario');
-            return;
-        }
+        const u = data.usuario;
+        const form = document.getElementById('form_nuevo_usuario');
+        if (!form) return;
 
-        
-        //Obtener el rol de usuario para los permisos
-        const usuarioRol = document.getElementById('usuario')?.dataset.id;
+        form.usuario_id.value = u.usuario_id; // ✅ aquí se asigna el ID oculto
 
-        const filasAnteriores = contenedor.querySelectorAll('.row');
-        filasAnteriores.forEach(fila => fila.remove());
+        // Rellenar otros campos...
+        form.nombre.value = u.usuario_nombre;
+        form.apellido.value = u.usuario_apellido;
+        // ...
 
-        if (Array.isArray(data) && data.length > 0) {
-    data.forEach(usuario => {
-        const telefono = usuario.usuario_telefono || '';
-        const foto = usuario.usuario_foto || 'img/icons/perfil.png';
-
-        contenedor.innerHTML += `
-            <div class="row">${usuario.usuario_id}</div>
-            <div class="row">${usuario.usuario_nombre}</div>
-            <div class="row">${usuario.usuario_apellido}</div>
-            <div class="row">${usuario.usuario_cedula}</div>
-            <div class="row">${usuario.usuario_correo}</div>
-            <div class="row">${telefono}</div>
-            <div class="row"><img src="${foto}" alt="Foto" width="40"></div>
-            <div class="row">
-                ${
-                    usuarioRol === "2"
-                    ? `
-                        <div class="icon-action actualizar" data-url="form_actualizar_usuario.php" data-id="${usuario.usuario_id}" data-action="actualizar" title="Actualizar">
-                            <img src="img/icons/actualizar.png" alt="Actualizar">
-                        </div>
-                        <div class="icon-action info" data-url="info_usuario.php" data-id="${usuario.usuario_id}" data-action="info" title="Info">
-                            <img src="img/icons/info.png" alt="Info">
-                        </div>
-                        <div class="icon-action eliminar" data-id="${usuario.usuario_id}" data-action="eliminar" title="Eliminar">
-                            <img src="img/icons/eliminar.png" alt="Eliminar">
-                        </div>
-                    `
-                    : `<span class="text-empty">Ninguno</span>`
-                }
-            </div>
-        `;
-    });
-} else {
-            contenedor.innerHTML += `<div class="text-empty">No hay ningún registro</div>`;
-        }
-    }) 
-    .catch(err => {
-        console.error('Error AJAX:', err);
+        // Mostrar el modal
+        const modal = document.querySelector('[data-modal="new_user"]');
+        if (modal) modal.showModal();
     });
 }
+
 
 //Mostrar contraseña al presionar el ojo
 document.addEventListener("click", function (e) {
@@ -149,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     });
 
-
+    
 
     // Función para mostrar/ocultar contraseña
     function togglePassword() {
@@ -173,28 +143,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const botones = document.querySelectorAll('[data-modal-target]');
-    botones.forEach(boton => {
-        boton.addEventListener('click', () => {
-            const modalID = boton.getAttribute('data-modal-target');
-            const modal = document.querySelector(`[data-modal="${modalID}"]`);
-            if (modal) modal.showModal();
-        });
+    //Para abrir ventanas modales que tengan el mismo data-modal-target
+    document.addEventListener('click', function (e) {
+    const boton = e.target.closest('[data-modal-target]');
+    if (boton) {
+        const modalID = boton.getAttribute('data-modal-target');
+        const modal = document.querySelector(`[data-modal="${modalID}"]`);
+        if (modal) modal.showModal();
+    }
     });
+
 
     const btncrear = document.getElementById('btn_crear');
     if (btncrear) btncrear.disabled = false;
 
     //Colocar la vista correspondiente
-    const vistaActual = new URL(window.location.href).searchParams.get('vista');
-
-    if (vistaActual === 'listar_usuario') {
-        cargarUsuarios();
-    } else if (vistaActual === 'listar_bien') {
-        cargarBienes();
-    } else if (vistaActual === 'listar_marca') {
-        cargar();
-    }
+    
     // Puede seguirse agregando más vistas aquí
 
 });
