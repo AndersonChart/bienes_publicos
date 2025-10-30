@@ -29,7 +29,7 @@
 
             <div class="input_block_content">
                 <label for="telefono" class="input_label input-condition">Teléfono</label>
-                <input type="text" id="telefono" name="usuario_telefono" class="input_text">
+                <input type="text" maxlength="11" id="telefono" name="usuario_telefono" class="input_text">
             </div>
 
             <div class="input_block_content">
@@ -39,7 +39,7 @@
                     <option value="V">V</option>
                     <option value="E">E</option>
                     </select>
-                    <input type="text" name="usuario_cedula" class="input_password" id="numero_cedula">
+                    <input type="text" maxlength="8" name="usuario_cedula" class="input_password" id="numero_cedula">
                 </div>
             </div>
 
@@ -54,7 +54,7 @@
 
             <div class="input_block_content">
                 <label for="direccion" class="input_label input-condition">Dirección</label>
-                <input type="text" name="usuario_direccion" id="direccion" class="input_text">
+                <input type="text" maxlength="100" name="usuario_direccion" id="direccion" class="input_text">
             </div>
 
             <div class="input_block_content">
@@ -115,7 +115,7 @@
     </div>
 
     <form id="buscador" method="POST" autocomplete="off" class="buscador">
-        <input type="text" name="buscador" class="input_buscar" placeholder="buscar...">
+        <input type="text" maxlength="10" name="buscador" class="input_buscar" placeholder="buscar...">
         <button type="submit" class="buscar">
             <img src="img/icons/buscar.png" alt="Buscar">
         </button>
