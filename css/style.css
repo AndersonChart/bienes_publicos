@@ -608,7 +608,7 @@ th.sorting_desc::after {
 
 
 .title {
-    position: sticky;
+    position: static;
     top: 0;
     box-shadow: 0px 2px 10px #000c;
     z-index: 2;
@@ -621,7 +621,7 @@ th.sorting_desc::after {
 }
 
 .header {
-    position: sticky;
+    position: static;
     top: 40px; /* igual a la altura de .title */
     z-index: 1;
 }
