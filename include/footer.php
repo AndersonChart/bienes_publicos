@@ -1,3 +1,13 @@
+<script src="js/jquery.min.js"></script>
+<script src="js/datatables.min.js"></script> 
+<script src="js/dataTables.buttons.min.js"></script>
+<script src="js/dataTables.select.min.js"></script>
+<script src="js/dataTables.scroller.min.js"></script>
+<script src="js/jszip.min.js"></script>
+<script src="js/pdfmake.min.js"></script>
+<script src="js/vfs_fonts.js"></script>
+<script src="js/interfaz.js"></script>
+
 <?php
 if ($vista !== 'login') {
   echo '</div>'; // cierre de .content
@@ -5,28 +15,6 @@ if ($vista !== 'login') {
 }
 
 
-if ($vista == 'login') {
-    echo '<script src="js/validacion_usuario.js"></script>';
-}
-
-if ($vista == 'form_registrar_bien' || $vista == 'form_actualizar_bien') {
-    echo '<script src="js/validacion_bien.js"></script>';
-}
-
-if ($vista == 'form_registrar_marca' || $vista == 'form_actualizar_marca') {
-    echo '<script src="js/validacion_marca.js"></script>';
-}
-
-if ($vista == 'form_registrar_categoria' || $vista == 'form_actualizar_categoria') {
-    echo '<script src="js/validacion_categoria.js"></script>';
-}
-
-if ($vista == 'form_registrar_modelo' || $vista == 'form_actualizar_modelo') {
-    echo '<script src="js/validacion_modelo.js"></script>';
-}
-
 ?>
-
-<script src="js/interfaz.js"></script>
 </body>
 </html>

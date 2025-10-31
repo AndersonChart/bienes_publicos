@@ -519,77 +519,92 @@ body {
 /*.CONTENT BANNER*/
 
 .banner_list {
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: end;
-    align-items: center;
-    flex: 1 1 100%;
-    min-height: 10%;
-    background: transparent;
-    gap: 4px;
-}
-
-.paginador {
-    display: flex;
-    justify-content: end;
-    align-items: center;
-    min-height: 10%;
-}
-.grid {
-    margin: 10px 20px;
-    border: 5px solid #049;
-    border-radius: 10px;
-    flex: 1 1 100px;
-    background: #fff;
-    min-height: 80%;
-    box-sizing: border-box;
-    display: grid;
-    grid-template-rows: 40px 50px;
-    grid-auto-rows: 60px;
-    overflow: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  height: 50px; /* o lo que necesites */
+  background: transparent;
 }
 
 
-.row {
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    border-top: 2px solid #049;
-    box-sizing: border-box;
-    padding: 0px 15px;    
-    font-size: 16px;
+
+.container_table {
+  margin: 40px auto;
+  padding: 10px;
+  max-width: 95%;
+  border: 5px solid #049;
+  border-radius: 50px;
+  background: #fff;
+  box-sizing: border-box;
+  overflow: hidden; /* importante: no pongas overflow-y aquí */
 }
 
-.row img {
+
+
+
+#miTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#miTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+#miTabla td, #miTabla th {
+    padding: 10px 15px;
+    font-size: 17px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+th.sorting::after {
+  content: "⇅";
+  margin-left: 5px;
+  font-size: 12px;
+  color: #fff;
+}
+th.sorting_asc::after {
+  content: "↑";
+}
+th.sorting_desc::after {
+  content: "↓";
+}
+
+
+.header {
+  cursor: pointer;
+  background-color: #345;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+}
+
+#miTabla td img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    object-fit: cover;
 }
 
-.row:nth-child(even) { background: #ddd; }
 
-.row:nth-child(odd)  { background: #ccc; }
-
-.icon-action {
+.acciones {
     display: flex;
-    justify-content: space-between;
-    margin: 2px;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
 }
-
 .icon-action img {
     width: 24px;
     height: 24px;
-    object-fit: contain; /* evita distorsión */
+    object-fit: contain;
     cursor: pointer;
 }
 
-.acciones-container {
-    display: flex;
-    gap: 10px;
-    justify-content: start;
-    align-items: center;
+.top, .bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 20px;
 }
-
 
 
 .title {
@@ -597,6 +612,12 @@ body {
     top: 0;
     box-shadow: 0px 2px 10px #000c;
     z-index: 2;
+    background: #004;
+    color: #fff;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 10px;
+    text-align: center;
 }
 
 .header {
@@ -604,43 +625,28 @@ body {
     top: 40px; /* igual a la altura de .title */
     z-index: 1;
 }
+.text-empty {
+    background-color: #aaa;
+    color: #333;
+    font-style: italic;
+    padding: 10px;
+    text-align: center;
+}
 
 
 .title, .header, .text-empty {
-    display: flex;
     box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
     font-size: 16px;
     border-left: 1px solid #004;
     border-right: 1px solid #004
 }
 
-.grid-usuario {
-    grid-template-columns: auto repeat(5, 3fr) repeat(2, auto);
-}
-
-.title-usuario, .text-empty {
-    grid-column: 1 / 9;
-}
-
-.title-usuario {
-    background: #004;
-    color: #fff;
-    font-weight: 900;
-    text-transform: uppercase;
-}
 
 .header {
     background: #25a;
     color: #fff;
     text-shadow: 0 0 5px #000;
     font-weight: bold;
-}
-
-.text-empty {
-    background-color: #aaa;
-    user-select: none;
 }
 
 .new_user {
@@ -664,7 +670,6 @@ body {
     transform: scale(1.05);
     outline: none;
 }
-
 
 .order {
     flex: 0 1 auto;

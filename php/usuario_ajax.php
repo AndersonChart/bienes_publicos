@@ -10,15 +10,18 @@ switch ($accion) {
     case 'leer_todos':
         try {
             $registros = $usuario->leer_todos();
-            echo json_encode($registros);
+            echo json_encode(['data' => $registros]);
         } catch (Exception $e) {
+            http_response_code(500); // opcional: marca error HTTP
             echo json_encode([
+                'data' => [],
                 'error' => true,
                 'mensaje' => 'Error al leer usuarios',
                 'detalle' => $e->getMessage()
             ]);
         }
-        break;
+    break;
+
     
     case 'crear':
         try {

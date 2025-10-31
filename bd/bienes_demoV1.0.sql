@@ -189,12 +189,21 @@ INSERT INTO usuario (
     usuario_clave, usuario_usuario, rol_id, usuario_foto
 ) VALUES
 ('Administrador', 'Principal', 'admin@gmail.com', '', 0, 'V-11111111', '2005-11-14', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'admin123', 2, 'img/icons/perfil.png'),
-('Carlos', 'Ramírez', 'carlos.ramirez@gmail.com', '04141234568', 0, 'V-22222222', '1990-06-22', 'Calle 10, Maracay', '$2y$10$abc2', 'carlos90', 1, 'img/icons/perfil.png'),
-('María', 'González', 'maria.gonzalez@gmail.com', '04141234569', 1, 'V-33333333', '1985-03-15', 'Sector El Centro, Valencia', '$2y$10$abc3', 'mariagonz', 1, 'img/icons/perfil.png'),
-('Luis', 'Fernández', 'luis.fernandez@gmail.com', '04141234570', 0, 'V-44444444', '1992-09-10', 'Av. Universidad, Mérida', '$2y$10$abc4', 'luisf92', 1, 'img/icons/perfil.png'),
-('Ana', 'Torres', 'ana.torres@gmail.com', '04141234571', 1, 'V-55555555', '1998-12-01', 'Calle Sucre, Barquisimeto', '$2y$10$abc5', 'anatorres', 1, 'img/icons/perfil.png'),
-('José', 'Martínez', 'jose.martinez@gmail.com', '04141234572', 0, 'V-66666666', '1980-07-07', 'Av. Principal, San Cristóbal', '$2y$10$abc6', 'josem80', 1, 'img/icons/perfil.png'),
-('Laura', 'Pérez', 'laura.perez@gmail.com', '04141234573', 1, 'V-77777777', '1995-05-20', 'Urbanización La Floresta, Caracas', '$2y$10$abc7', 'laurap95', 1, 'img/icons/perfil.png'),
-('Miguel', 'Rodríguez', 'miguel.rodriguez@gmail.com', '04141234574', 0, 'V-88888888', '1988-11-30', 'Calle 5, Puerto Ordaz', '$2y$10$abc8', 'miguelr88', 1, 'img/icons/perfil.png'),
-('Sofía', 'Morales', 'sofia.morales@gmail.com', '04141234575', 1, 'V-99999999', '1993-04-18', 'Av. Las Delicias, Maracay', '$2y$10$abc9', 'sofia93', 1, 'img/icons/perfil.png'),
-('Andrés', 'López', 'andres.lopez@gmail.com', '04141234576', 0, 'V-10101010', '1991-01-25', 'Calle Miranda, Cumaná', '$2y$10$abc10', 'andresl91', 1, 'img/icons/perfil.png');
+('Carlos', 'Ramírez', 'carlos.ramirez@gmail.com', '04141230001', 0, 'V-11111101', '2000-01-01', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'carlos01', 1, 'img/icons/perfil.png'),
+('María', 'González', 'maria.gonzalez@gmail.com', '04141230002', 1, 'V-11111102', '2000-02-02', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'maria02', 1, 'img/icons/perfil.png'),
+('Luis', 'Fernández', 'luis.fernandez@gmail.com', '04141230003', 0, 'V-11111103', '2000-03-03', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'luis03', 1, 'img/icons/perfil.png'),
+('Ana', 'Torres', 'ana.torres@gmail.com', '04141230004', 1, 'V-11111104', '2000-04-04', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'ana04', 1, 'img/icons/perfil.png'),
+('José', 'Martínez', 'jose.martinez@gmail.com', '04141230005', 0, 'V-11111105', '2000-05-05', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'jose05', 1, 'img/icons/perfil.png'),
+('Laura', 'Pérez', 'laura.perez@gmail.com', '04141230006', 1, 'V-11111106', '2000-06-06', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'laura06', 1, 'img/icons/perfil.png'),
+('Miguel', 'Rodríguez', 'miguel.rodriguez@gmail.com', '04141230007', 0, 'V-11111107', '2000-07-07', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'miguel07', 1, 'img/icons/perfil.png'),
+('Sofía', 'Morales', 'sofia.morales@gmail.com', '04141230008', 1, 'V-11111108', '2000-08-08', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'sofia08', 1, 'img/icons/perfil.png'),
+('Andrés', 'López', 'andres.lopez@gmail.com', '04141230009', 0, 'V-11111109', '2000-09-09', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'andres09', 1, 'img/icons/perfil.png'),
+('Valentina', 'Suárez', 'valentina.suarez@gmail.com', '04141230010', 1, 'V-11111110', '2000-10-10', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'valentina10', 1, 'img/icons/perfil.png'),
+-- (20 usuarios más con patrón similar)
+('Diego', 'Mendoza', 'diego.mendoza@gmail.com', '04141230011', 0, 'V-11114111', '2000-11-11', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'diego11', 1, 'img/icons/perfil.png'),
+('Camila', 'Herrera', 'camila.herrera@gmail.com', '04141230012', 1, 'V-11111112', '2000-12-12', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'camila12', 1, 'img/icons/perfil.png'),
+('Javier', 'Castro', 'javier.castro@gmail.com', '04141230013', 0, 'V-11111113', '2001-01-13', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'javier13', 1, 'img/icons/perfil.png'),
+('Isabela', 'Rivas', 'isabela.rivas@gmail.com', '04141230014', 1, 'V-11111114', '2001-02-14', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'isabela14', 1, 'img/icons/perfil.png'),
+('Tomás', 'Silva', 'tomas.silva@gmail.com', '04141230015', 0, 'V-11111115', '2001-03-15', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'tomas15', 1, 'img/icons/perfil.png'),
+-- ...
+('Lucía', 'Navarro', 'lucia.navarro@gmail.com', '04141230030', 1, 'V-11111130', '2001-10-30', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'lucia30', 1, 'img/icons/perfil.png');
