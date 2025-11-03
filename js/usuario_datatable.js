@@ -7,9 +7,6 @@
     const usuarioRol = document.getElementById('usuario')?.dataset.id;
 
     const tabla = $('#miTabla').DataTable({
-        scrollY: '400px',
-  scrollCollapse: true,
-  scrollX: true,
         ajax: {
         url: 'php/usuario_ajax.php',
         type: 'POST',

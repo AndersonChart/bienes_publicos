@@ -533,15 +533,13 @@ body {
   margin: 40px auto;
   padding: 10px;
   max-width: 95%;
+  min-height: 70vh;
   border: 5px solid #049;
   border-radius: 50px;
   background: #fff;
   box-sizing: border-box;
-  overflow: hidden; /* importante: no pongas overflow-y aquí */
+  overflow-y: auto; /* importante: no pongas overflow-y aquí */
 }
-
-
-
 
 #miTabla tr:nth-child(even) {
     background-color: #ddd;
@@ -551,6 +549,7 @@ body {
 }
 #miTabla td, #miTabla th {
     padding: 10px 15px;
+    height: 10px;
     font-size: 17px;
     text-align: center;
     vertical-align: middle;
