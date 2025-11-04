@@ -519,21 +519,50 @@ body {
 /*.CONTENT BANNER*/
 
 .banner_list {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 4px;
-  height: 50px; /* o lo que necesites */
-  background: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    height: 10%; /* o lo que necesites */
+    background: transparent;
+    margin: 0px 20px;
+}
+
+.new_user {
+    flex: 0 1 70px;
+    background: #090;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 16px;
+    color: #fff;
+    border-radius: 5px;
+    user-select: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.new_user-usuario {
+    margin-left: auto;
+}
+
+.new_user:hover {
+    color: #090;
+    border: 2px solid #090;
+    background-color: #fff;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
 }
 
 .container_table_box {
-  margin: 20px auto;
-  width: 100%;
-  max-width: 1500px; /* límite superior, pero no obligatorio */
-  padding: 0;
-  border-radius: 20px;
-  box-sizing: border-box;
+    margin: 0px auto;
+    width: 95%;
+    max-width: auto; /* límite superior, pero no obligatorio */
+    padding: 0;
+    height: 90%;
+    border-radius: 20px;
+    box-sizing: border-box;
+    overflow: auto;   
 }
 
 
@@ -545,14 +574,12 @@ body {
     background-color: #ccc;
 }
 
-
-
 .header {
-  cursor: pointer;
-  background-color: #345;
-  color: #fff;
-  font-weight: bold;
-  text-align: center;
+    cursor: pointer;
+    background-color: #345;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
 }
 
 #miTabla td img {
@@ -577,10 +604,10 @@ body {
 }
 
 .top, .bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 20px;
 }
 
 
@@ -597,20 +624,20 @@ body {
 }
 
 #miTabla th {
-  text-align: center;
-  vertical-align: middle;
-  font-weight: bold;
-  background-color: #345;
-  color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    background-color: #345;
+    color: #fff;
 }
 
 /* Contenido alineado a la izquierda */
 #miTabla td {
-  text-align: left;
-  vertical-align: middle;
-  padding: 10px 15px;
-  font-size: 16px;
-  color: #222;
+    text-align: left;
+    vertical-align: middle;
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #222;
 }
 
 .header {
@@ -640,79 +667,6 @@ body {
     color: #fff;
     text-shadow: 0 0 5px #000;
     font-weight: bold;
-}
-
-.new_user {
-    flex: 0 1 70px;
-    background: #090;
-    font-weight: bold;
-    text-align: center;
-    padding: 6px 10px;
-    color: #fff;
-    border-radius: 5px;
-    user-select: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.new_user:hover {
-    color: #090;
-    border: 2px solid #090;
-    background-color: #fff;
-    box-shadow: 0 5px 10px #003;
-    transform: scale(1.05);
-    outline: none;
-}
-
-.order {
-    flex: 0 1 auto;
-    background: #049;
-    font-weight: bold;
-    text-align: center;
-    color: #fff;
-    padding: 6px 15px;
-    border-radius: 5px;
-    user-select: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    overflow: visible;
-}
-
-.order:hover {
-    color: #049;
-    border: 2px solid #049;
-    background-color: #fff;
-    box-shadow: 0 5px 10px #003;
-    transform: scale(1.05);
-    outline: none;
-}
-
-.buscador {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.input_buscar {
-    padding: 6px 10px;
-    border: 2px solid #029;
-    border-radius: 5px;
-}
-
-.buscar {
-    background: #029;
-    border-radius: 5px;
-    padding: 2px 2px 0 0;
-    cursor: pointer;
-    border: none;
-    margin-right: 20px;
-}
-
-.buscar img {
-    width: 25px;
-    height: 25px;
-    object-fit: contain;
-    padding: 0 10px;
 }
 
 

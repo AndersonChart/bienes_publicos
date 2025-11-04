@@ -1,6 +1,8 @@
 <div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
-    <div class="new_user" data-modal-target="new_user">+ Nuevo</div>
+    <div class="new_user new_user-usuario" data-modal-target="new_user">+ Nuevo</div>
+</div>
+
 
 <!-- Ventana Modal -->
     <dialog data-modal="new_user" class="modal modal_new-user">
@@ -107,7 +109,6 @@
             <p class="modal_success-message" id="success-message"></p>
             <button class="modal__close-success" id="close-success">Aceptar</button>
     </dialog>
-</div>
 
 <div class="container_table_box">
     <div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->
