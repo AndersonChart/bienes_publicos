@@ -7,6 +7,9 @@
     const usuarioRol = document.getElementById('usuario')?.dataset.id;
 
     const tabla = $('#miTabla').DataTable({
+        scrollY: '500px',
+        scrollCollapse: true,
+        responsive: true,
         ajax: {
         url: 'php/usuario_ajax.php',
         type: 'POST',
@@ -63,12 +66,16 @@
         language: {
         search: "Buscar:",
         lengthMenu: "Mostrar _MENU_ registros",
+        zeroRecords: "No se encontraron registros coincidentes",
+        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+        infoEmpty: "Mostrando 0 a 0 de 0 registros",
+        infoFiltered: "(filtrado de _MAX_ registros totales)",
         paginate: {
             previous: "◀",
-            next: "▶",
-        },
-        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-    },
+            next: "▶"
+        }
+        }
+    ,
     lengthMenu: [ [5, 10, 15, 20, 30], [5, 10, 15, 20, 30] ],
     });
 

@@ -109,42 +109,30 @@
     </dialog>
 </div>
 
-<div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->
+<div class="container_table_box">
+    <div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->
 
-  <table id="miTabla" class="container_table">
+    <table id="miTabla" class="display" style="width:100%">
     <thead>
-    <tr>
-        <th colspan="8" class="title">Usuarios</th>
-    </tr>
-    <tr>
-        <th class="header">ID</th>
-        <th class="header">Nombre</th>
-        <th class="header">Apellido</th>
-        <th class="header">Cédula</th>
-        <th class="header">Correo</th>
-        <th class="header">Teléfono</th>
-        <th class="header">Foto</th>
-        <th class="header">Acciones</th>
-      </tr>
+        <tr>
+            <th colspan="8" class="title">Usuarios</th>
+        </tr>
+        <tr>
+            <th class="header">ID</th>
+            <th class="header">Nombre</th>
+            <th class="header">Apellido</th>
+            <th class="header">Cédula</th>
+            <th class="header">Correo</th>
+            <th class="header">Teléfono</th>
+            <th class="header">Foto</th>
+            <th class="header">Acciones</th>
+        </tr>
     </thead>
-  </table>
-
-
-
-
-<!--<div class="grid grid-usuario" id="grid-usuario">
-    <div class="title title-usuario">Usuarios</div>
-    <div class="header">ID</div>
-    <div class="header">Nombre</div>
-    <div class="header">Apellido</div>
-    <div class="header">Cédula</div>
-    <div class="header">Correo</div>
-    <div class="header">Teléfono</div>
-    <div class="header">Foto</div>
-    <div class="header">Acciones</div>
-Aquí se insertarán dinámicamente los usuarios vía JS -->
-
-<div class="bottom paginador"></div>
+    </table>
+    
+    
+    <div class="bottom paginador"></div>
+</div>
     
     
     <script src="js/usuario_datatable.js"></script>

@@ -527,19 +527,16 @@ body {
   background: transparent;
 }
 
-
-
-.container_table {
-  margin: 40px auto;
-  padding: 10px;
-  max-width: 95%;
-  min-height: 70vh;
-  border: 5px solid #049;
-  border-radius: 50px;
-  background: #fff;
+.container_table_box {
+  margin: 20px auto;
+  width: 100%;
+  max-width: 1500px; /* límite superior, pero no obligatorio */
+  padding: 0;
+  border-radius: 20px;
   box-sizing: border-box;
-  overflow-y: auto; /* importante: no pongas overflow-y aquí */
 }
+
+
 
 #miTabla tr:nth-child(even) {
     background-color: #ddd;
@@ -547,26 +544,7 @@ body {
 #miTabla tr:nth-child(odd) {
     background-color: #ccc;
 }
-#miTabla td, #miTabla th {
-    padding: 10px 15px;
-    height: 10px;
-    font-size: 17px;
-    text-align: center;
-    vertical-align: middle;
-}
 
-th.sorting::after {
-  content: "⇅";
-  margin-left: 5px;
-  font-size: 12px;
-  color: #fff;
-}
-th.sorting_asc::after {
-  content: "↑";
-}
-th.sorting_desc::after {
-  content: "↓";
-}
 
 
 .header {
@@ -616,7 +594,23 @@ th.sorting_desc::after {
     font-weight: 900;
     text-transform: uppercase;
     padding: 10px;
-    text-align: center;
+}
+
+#miTabla th {
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  background-color: #345;
+  color: #fff;
+}
+
+/* Contenido alineado a la izquierda */
+#miTabla td {
+  text-align: left;
+  vertical-align: middle;
+  padding: 10px 15px;
+  font-size: 16px;
+  color: #222;
 }
 
 .header {
