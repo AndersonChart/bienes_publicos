@@ -6,7 +6,7 @@
 
     const usuarioRol = document.getElementById('usuario')?.dataset.id;
 
-    const tabla = $('#miTabla').DataTable({
+    const tabla = $('#usuarioTabla').DataTable({
         scrollY: '500px',
         scrollCollapse: true,
         responsive: true,
@@ -37,25 +37,25 @@
         },
         {
             data: null,
-            render: function (_, __, ___) {
+        render: function (data, type, row) {
             if (usuarioRol === "2") {
                 return `
                 <div class="acciones">
                     <div class="icon-action" data-modal-target="new_user" title="Actualizar">
-                    <img src="img/icons/actualizar.png" alt="Actualizar">
+                        <img src="img/icons/actualizar.png" alt="Actualizar">
                     </div>
-                    <div class="icon-action" data-modal-target="info_usuario" title="Info">
-                    <img src="img/icons/info.png" alt="Info">
+                    <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
+                        <img src="img/icons/info.png" alt="Info">
                     </div>
                     <div class="icon-action" data-modal-target="eliminar_usuario" title="Eliminar">
-                    <img src="img/icons/eliminar.png" alt="Eliminar">
+                        <img src="img/icons/eliminar.png" alt="Eliminar">
                     </div>
                 </div>
                 `;
             } else {
                 return `<span class="text-empty">Ninguno</span>`;
             }
-            },
+        },
             orderable: false
         }
         ],
@@ -77,6 +77,30 @@
         }
     ,
     lengthMenu: [ [5, 10, 15, 20, 30], [5, 10, 15, 20, 30] ],
+    });
+    // Activar botón "Actualizar" en cada fila
+    $('#usuarioTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
+        const fila = tabla.row($(this).closest('tr')).data();
+        if (fila && fila.usuario_id) {
+            abrirFormularioEdicion(fila.usuario_id);
+        }
+    });
+    // Activar botón "Info" en cada fila
+    $('#usuarioTabla tbody').on('click', '.btn_ver_info', function () {
+        const id = $(this).data('id');
+        if (!id) return;
+
+        fetch('php/usuario_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_usuario', id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Datos recibidos:', data); // ← para depurar
+            if (data.exito && data.usuario) {
+                mostrarInfoUsuario(data.usuario);
+            }
+        });
     });
 
     });

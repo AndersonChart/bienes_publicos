@@ -7,41 +7,60 @@ function mostrarModalExito(mensaje) {
     if (successModal && typeof successModal.showModal === 'function') {
         successMessage.textContent = mensaje;
         successModal.showModal();
-        closeSuccess.onclick = () => successModal.close();
+
+        closeSuccess.onclick = () => {
+            successModal.close();
+        };
     }
 }
 
-//Función global: lista de usuario
+//Función global: Limpiar formularios
+function limpiarFormulario(form) {
+    if (!form) return;
 
+    // Resetear campos del formulario
+    form.reset();
 
-//Función: formulario de actualizar usuario
-function abrirFormularioEdicion(id) {
-    fetch('php/usuario_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({
-        accion: 'obtener_usuario',
-        id: id
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.exito || !data.usuario) return;
-
-        const u = data.usuario;
-        const form = document.getElementById('form_nuevo_usuario');
-        if (!form) return;
-
-        form.usuario_id.value = u.usuario_id; // ✅ aquí se asigna el ID oculto
-
-        // Rellenar otros campos...
-        form.nombre.value = u.usuario_nombre;
-        form.apellido.value = u.usuario_apellido;
-        // ...
-
-        // Mostrar el modal
-        const modal = document.querySelector('[data-modal="new_user"]');
-        if (modal) modal.showModal();
+    // Quitar clases de error visual
+    form.querySelectorAll('.input-error').forEach(el => {
+        el.classList.remove('input-error');
     });
+
+    // Limpiar contenedores de error si existen
+    form.querySelectorAll('.error-container').forEach(container => {
+        container.innerHTML = '';
+        container.style.display = 'none';
+    });
+
+    // Limpiar imágenes de previsualización
+    form.querySelectorAll('img[id^="preview_"]').forEach(img => {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+    });
+
+    // Restaurar íconos visuales si existen
+    form.querySelectorAll('.foto_perfil_icon').forEach(icono => {
+        icono.style.opacity = '1';
+    });
+
+    // Limpiar campos ocultos tipo ID
+    form.querySelectorAll('input[type="hidden"]').forEach(input => {
+        input.value = '';
+    });
+}
+
+//Limpiar info de usuario
+function limpiarInfoUsuario() {
+    // Limpiar todos los campos de texto
+    document.querySelectorAll('.info_data').forEach(el => {
+        el.textContent = '';
+    });
+
+    // Restaurar imagen de perfil por defecto
+    const foto = document.getElementById('foto_usuario_info');
+    if (foto) {
+        foto.src = 'img/icons/perfil.png';
+    }
 }
 
 
@@ -79,47 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    //Limpiar formularios al cerrarlos con modal__close
     document.querySelectorAll('.modal__close').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const modal = btn.closest('dialog');
-        if (!modal) return;
+        btn.addEventListener('click', () => {
+            const modal = btn.closest('dialog');
+            if (!modal) return;
 
-        // Buscar el formulario real (con id) dentro del modal
-        const form = modal.querySelector('form[id]');
-        if (form) {
-            form.reset();
+            const form = modal.querySelector('form[id]');
+            if (form) limpiarFormulario(form);
 
-            // Limpiar errores visuales
-            form.querySelectorAll('.input-error').forEach(el => {
-                el.classList.remove('input-error');
-            });
-
-            // Limpiar mensaje de error
-            const errorContainer = form.querySelector('.error-container');
-            if (errorContainer) {
-                errorContainer.innerHTML = '';
-                errorContainer.style.display = 'none';
-            }
-
-            // Limpiar imágenes de previsualización
-            form.querySelectorAll('img[id^="preview_"]').forEach(img => {
-                img.removeAttribute('src');
-                img.style.display = 'none';
-            });
-
-            // Restaurar íconos "+" si existen
-            form.querySelectorAll('.foto_perfil_icon').forEach(icono => {
-                icono.style.opacity = '1';
-            });
-        }
-
-        // Cerrar el modal (por si no se cierra automáticamente)
-        modal.close();
+            modal.close();
+        });
     });
-    });
-
-    
 
     // Función para mostrar/ocultar contraseña
     function togglePassword() {
@@ -145,13 +134,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //Para abrir ventanas modales que tengan el mismo data-modal-target
     document.addEventListener('click', function (e) {
-    const boton = e.target.closest('[data-modal-target]');
-    if (boton) {
-        const modalID = boton.getAttribute('data-modal-target');
-        const modal = document.querySelector(`[data-modal="${modalID}"]`);
-        if (modal) modal.showModal();
-    }
+        const boton = e.target.closest('[data-modal-target]');
+        if (boton) {
+            const modalID = boton.getAttribute('data-modal-target');
+            const modal = document.querySelector(`[data-modal="${modalID}"]`);
+            if (modal) {
+                modal.showModal();
+
+                const form = modal.querySelector('form[id]');
+                if (form) limpiarFormulario(form);
+            }
+        }
     });
+
 
 
     const btncrear = document.getElementById('btn_crear');
@@ -162,6 +157,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Puede seguirse agregando más vistas aquí
 
 });
+
+//Función: formulario de actualizar usuario
+function abrirFormularioEdicion(id) {
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_usuario', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.exito || !data.usuario) return;
+
+        const u = data.usuario;
+        const form = document.getElementById('form_nuevo_usuario');
+        if (!form) return;
+
+        form.usuario_id.value = u.usuario_id;
+        form.nombre.value = u.usuario_nombre;
+        form.apellido.value = u.usuario_apellido;
+        form.correo.value = u.usuario_correo;
+        form.telefono.value = u.usuario_telefono;
+        form.usuario_usuario.value = u.usuario_usuario;
+        form.direccion.value = u.usuario_direccion;
+        form.nac.value = u.usuario_nac;
+        form.sexo.value = u.usuario_sexo;
+        form.tipo_cedula.value = u.usuario_cedula.split('-')[0];
+        document.getElementById('numero_cedula').value = u.usuario_cedula.split('-')[1];
+
+        // Previsualizar foto
+        const previewFoto = document.getElementById('preview_foto');
+        const icono = document.querySelector('.foto_perfil_icon');
+        previewFoto.src = u.usuario_foto || 'img/icons/perfil.png';
+        previewFoto.style.display = 'block';
+        icono.style.opacity = '0';
+
+        const modal = document.querySelector('[data-modal="new_user"]');
+        if (modal) modal.showModal();
+    });
+}
+
 
 //Crear usuario
 document.addEventListener('DOMContentLoaded', function () {
@@ -186,32 +220,32 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     form.addEventListener('submit', function (e) {
-    e.preventDefault();
+        e.preventDefault();
 
-    const tipo = document.getElementById('tipo_cedula').value;
-    const numeroInput = document.getElementById('numero_cedula');
-    const numero = numeroInput.value.trim();
+        const tipo = document.getElementById('tipo_cedula').value;
+        const numeroInput = document.getElementById('numero_cedula');
+        const numero = numeroInput.value.trim();
+        const usuarioId = document.getElementById('usuario_id').value;
 
-    // Limpiar errores visuales previos
-    form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-    errorContainer.innerHTML = '';
-    errorContainer.style.display = 'none';
+        const cedulaCompleta = tipo + '-' + numero;
+        const formData = new FormData(form);
+        formData.set('usuario_cedula', cedulaCompleta);
+        formData.append('rol_id', '1');
 
-    // Enviar datos al backend
-    const cedulaCompleta = tipo + '-' + numero;
-    const formData = new FormData(form);
-    formData.set('usuario_cedula', cedulaCompleta); // solo en el envío
-    formData.append('rol_id', '1');
-    formData.append('accion', 'crear');
+        // Acción condicional
+        const accion = usuarioId ? 'actualizar' : 'crear';
+        formData.append('accion', accion);
 
-    fetch('php/usuario_ajax.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        errorContainer.innerHTML = '';
-        errorContainer.style.display = 'none';
+        if (usuarioId) formData.append('usuario_id', usuarioId);
+
+        fetch('php/usuario_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
 
         if (data.error) {
             errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
@@ -234,14 +268,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         } else if (data.exito) {
-            mostrarModalExito("Usuario registrado con éxito");
-            form.reset();
-            previewFoto.removeAttribute('src');
-            previewFoto.style.display = 'none';
-            icono.style.opacity = '1';
-            errorContainer.innerHTML = '';
-            errorContainer.style.display = 'none';
-            cargarUsuarios();
+            const esActualizacion = !!document.getElementById('usuario_id').value;
+            const mensaje = esActualizacion ? "Usuario actualizado con éxito" : "Usuario registrado con éxito";
+            
+
+            // Solo cerrar el modal si fue una actualización
+            if (esActualizacion) {
+                const modalFormulario = document.querySelector('dialog[data-modal="new_user"]');
+                if (modalFormulario && modalFormulario.open) {
+                    modalFormulario.close();
+                }
+            }
+
+            mostrarModalExito(mensaje);
+
+            // Limpiar formulario para siguiente registro
+            limpiarFormulario(form);
+            // Recarga la tabla
+            $('#usuarioTabla').DataTable().ajax.reload(null, false);
         }
     })
     .catch(() => {
@@ -250,3 +294,56 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 });
+
+function mostrarInfoUsuario(data) {
+    // Foto de perfil
+    const foto = data.usuario_foto && data.usuario_foto.trim() !== ''
+        ? data.usuario_foto
+        : 'img/icons/perfil.png';
+    document.getElementById('foto_usuario_info').src = foto;
+
+    // Datos personales
+    document.getElementById('info_nombre').textContent = data.usuario_nombre || '';
+    document.getElementById('info_apellido').textContent = data.usuario_apellido || '';
+    document.getElementById('info_correo').textContent = data.usuario_correo || '';
+    document.getElementById('info_telefono').textContent = data.usuario_telefono || '';
+    document.getElementById('info_cedula').textContent = data.usuario_cedula || '';
+    document.getElementById('info_nac').textContent = data.usuario_nac || '';
+    document.getElementById('info_direccion').textContent = data.usuario_direccion || '';
+    document.getElementById('info_sexo').textContent = data.usuario_sexo || '';
+    document.getElementById('info_usuario').textContent = data.usuario_usuario || '';
+
+    // Mostrar el modal
+    const modal = document.querySelector('dialog[data-modal="info_usuario"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+
+// Activar botón "Info" en cada fila usuario
+$('#usuarioTabla tbody').on('click', '.btn_ver_info', function () {
+    const id = $(this).data('id');
+    if (!id) return;
+
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_usuario', id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito && data.usuario) {
+            mostrarInfoUsuario(data.usuario);
+        }
+    });
+});
+
+//Limpiar modal info usuario
+document.querySelector('.modal__close')?.addEventListener('click', function () {
+    const modal = document.querySelector('dialog[data-modal="info_usuario"]');
+    if (modal && modal.open) {
+        modal.close();
+        limpiarInfoUsuario();
+    }
+});
+

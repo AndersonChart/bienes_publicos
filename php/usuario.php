@@ -12,23 +12,22 @@ class usuario {
     }
 
     public function existeCorreo($correo) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_correo = ?");
-        $stmt->execute([$correo]);
-        return $stmt->fetchColumn() > 0;
+    $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_correo = ? AND usuario_estado = 1");
+    $stmt->execute([$correo]);
+    return $stmt->fetchColumn() > 0;
     }
 
     public function existeCedula($cedula) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ?");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ? AND usuario_estado = 1");
         $stmt->execute([$cedula]);
         return $stmt->fetchColumn() > 0;
     }
 
     public function existeUsuario($usuario) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ?");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ? AND usuario_estado = 1");
         $stmt->execute([$usuario]);
         return $stmt->fetchColumn() > 0;
     }
-
 
 
     // Para crear nuevo registro
@@ -52,14 +51,15 @@ class usuario {
     }
 
     // Actualizar registro
-    public function actualizar($nombre,$apellido,$correo,$telefono,$cedula,$sexo,$clave,$usuario,$rol,$foto,$estado,$id) {
-        $stmt = $this->pdo->prepare("UPDATE usuario SET usuario_nombre = ?, usuario_apellido = ?, usuario_correo = ?, usuario_telefono = ?, usuario_cedula = ?, usuario_sexo = ?, usuario_clave = ?, usuario_usuario = ?, rol_id = ?, usuario_foto = ?, usuario_estado = ? WHERE usuario_id = ?");
-        return $stmt->execute([$nombre,$apellido,$correo,$telefono,$cedula,$sexo,$clave,$usuario,$rol,$foto,$estado,$id]);
+    public function actualizar($nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado,$id) {
+        error_log("Actualizando usuario ID $id con datos: " . json_encode(func_get_args()));
+        $stmt = $this->pdo->prepare("UPDATE usuario SET usuario_nombre = ?, usuario_apellido = ?, usuario_correo = ?, usuario_telefono = ?, usuario_cedula = ?, usuario_nac = ?, usuario_direccion = ?, usuario_sexo = ?, usuario_clave = ?, usuario_usuario = ?, rol_id = ?, usuario_foto = ?, usuario_estado = ? WHERE usuario_id = ?");
+        return $stmt->execute([$nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado,$id]);
     }
 
     // Desincorporar registro
     public function desincorporar($id) {
-        $stmt = $this->pdo->prepare("UPDATE bien SET estado_id = 4 WHERE bien_id = ?");
+        $stmt = $this->pdo->prepare("UPDATE usuario SET usuario_estado = 0 WHERE usuario_id = ?");
         return $stmt->execute([$id]);
     }
 }

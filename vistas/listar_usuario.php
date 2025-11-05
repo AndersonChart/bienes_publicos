@@ -12,8 +12,10 @@
 
         <h2 class="modal_title">Registro de Usuario</h2>
         <p class="condition">Opcional</p>
-
         <form id="form_nuevo_usuario" method="POST" autocomplete="off" class="user_container">
+            
+        <input type="hidden" name="usuario_id" id="usuario_id">
+        
             <div class="input_block_content">
                 <label for="nombre" class="input_label">Nombre</label>
                 <input type="text" id="nombre" name="usuario_nombre" class="input_text" autofocus>
@@ -76,7 +78,7 @@
                     <input type="file" id="foto" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
                     <div class="foto_perfil_wrapper" onclick="document.getElementById('foto').click()">
                         <img id="preview_foto" class="foto_perfil_imagen" alt="Foto de perfil">
-                        <span class="foto_perfil_icon">+</span>
+                        <span  class="foto_perfil_icon">+</span>
                     </div>
                 </div>
             </div>
@@ -109,11 +111,39 @@
             <p class="modal_success-message" id="success-message"></p>
             <button class="modal__close-success" id="close-success">Aceptar</button>
     </dialog>
+    <dialog data-modal="info_usuario" class="modal modal_info">
+        <form method="dialog">
+            <button class="modal__close">X</button>
+        </form>
+
+        <h2 class="modal_title">Información del Usuario</h2>
+
+        <!-- Foto de perfil -->
+        <div class="img_info">
+            <img id="foto_usuario_info" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+        </div>
+
+        <!-- Contenedor de datos con scroll si excede -->
+        <div class="info_container">
+            <ul class="info_lista">
+                <li><strong>Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
+                <li><strong>Apellido:</strong> <span class="info_data" id="info_apellido"></span></li>
+                <li><strong>Correo:</strong> <span class="info_data" id="info_correo"></span></li>
+                <li><strong>Teléfono:</strong> <span class="info_data" id="info_telefono"></span></li>
+                <li><strong>Cédula:</strong> <span class="info_data" id="info_cedula"></span></li>
+                <li><strong>Fecha de nacimiento:</strong> <span class="info_data" id="info_nac"></span></li>
+                <li><strong>Dirección:</strong> <span class="info_data" id="info_direccion"></span></li>
+                <li><strong>Sexo:</strong> <span class="info_data" id="info_sexo"></span></li>
+                <li><strong>Nombre de Usuario:</strong> <span class="info_data" id="info_usuario"></span></li>
+            </ul>
+        </div>
+    </dialog>
+
 
 <div class="container_table_box">
     <div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->
 
-    <table id="miTabla" class="display" style="width:100%">
+    <table id="usuarioTabla" class="display" style="width:100%">
     <thead>
         <tr>
             <th colspan="8" class="title">Usuarios</th>

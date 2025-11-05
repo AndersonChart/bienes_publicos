@@ -2,7 +2,7 @@
 /*
     CAMBIOS:
 - No se usan valores por defecto con CURRENT_TIMESTAMP en campos DATE. Se debe asignar la fecha desde la aplicación
-- Las restricciones UNIQUE se agregan como índices después de la creación de la tabla.
+- Las restricciones UNIQUE se eliminaron por falta de flexibilidad de datos duplicados entre estado "inactivo" y "activo"
 - Las claves foráneas se agregan al final para evitar errores de orden de creación.
 - Uso consistente de comillas simples en valores en lugar de comillas dobles.
 - Se agrego los estados para verificar si está activo o deshabilitado.
@@ -31,10 +31,7 @@ CREATE TABLE usuario (
     rol_id INT NOT NULL,
     usuario_foto VARCHAR(255),
     usuario_estado TINYINT(1) NOT NULL DEFAULT 1,
-    PRIMARY KEY (usuario_id),
-    UNIQUE KEY idx_usuario_email (usuario_correo),
-    UNIQUE KEY idx_usuario_cedula (usuario_cedula),
-    UNIQUE KEY idx_usuario_usuario (usuario_usuario)
+    PRIMARY KEY (usuario_id)
 );
 
 -- Tabla de categorías
@@ -100,8 +97,7 @@ CREATE TABLE bien (
     bien_tipo_codigo VARCHAR(20) NOT NULL, -- FK a bien_tipo.bien_codigo
     bien_serie VARCHAR(100),
     estado_id INT DEFAULT 1, -- FK a estado.estado_id
-    PRIMARY KEY (bien_id),
-    UNIQUE KEY idx_bien_serie (bien_serie)
+    PRIMARY KEY (bien_id)
 );
 
 -- Tabla de personas
@@ -119,9 +115,7 @@ CREATE TABLE persona (
     persona_foto VARCHAR(255),
     persona_estado TINYINT(1) NOT NULL DEFAULT 1,
     -- CLAVES PRIMARIAS Y FORANEAS
-    PRIMARY KEY (persona_id),
-    UNIQUE KEY idx_persona_email (persona_correo),
-    UNIQUE KEY idx_persona_cedula (persona_cedula)
+    PRIMARY KEY (persona_id)
 );
 
 
