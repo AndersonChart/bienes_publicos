@@ -63,7 +63,7 @@ function validarUsuario($datos, $modo = 'crear', $id = null) {
         if ($fechaNac) {
             $edad = $hoy->diff($fechaNac)->y;
             if ($edad < 10 || $edad > 100) {
-                $erroresFormato['usuario_nac'] = 'Edad rechazada, mayores de 10 años';
+                $erroresFormato['usuario_nac'] = 'Edad no permitida';
             }
         } else {
             $erroresFormato['usuario_nac'] = 'Formato de fecha inválido';
@@ -123,7 +123,8 @@ $accion = isset($_POST['accion']) ? $_POST['accion'] : '';
 switch ($accion) {
     case 'leer_todos':
         try {
-            $registros = $usuario->leer_todos();
+            $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
+            $registros = $usuario->leer_por_estado($estado);
             echo json_encode(['data' => $registros]);
         } catch (Exception $e) {
             http_response_code(500); // opcional: marca error HTTP
@@ -361,11 +362,29 @@ switch ($accion) {
 
         $resultado = $usuario->desincorporar($id);
         if ($resultado) {
-            echo json_encode(['exito' => true, 'mensaje' => 'Usuario deshabilitado correctamente.']);
+            echo json_encode(['exito' => true, 'mensaje' => 'Usuario deshabilitado correctamente']);
         } else {
-            echo json_encode(['error' => true, 'mensaje' => 'No se pudo deshabilitar el usuario.']);
+            echo json_encode(['error' => true, 'mensaje' => 'No se pudo deshabilitar el usuario']);
         }
     break;
+
+    case 'recuperar_usuario':
+        try {
+            $exito = $usuario->recuperar($_POST['id']);
+            echo json_encode([
+                'exito' => $exito,
+                'mensaje' => $exito ? 'Usuario recuperado correctamente' : 'Error al recuperar'
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'Error al recuperar usuario',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+    break;
+
 
     default:
         echo json_encode([

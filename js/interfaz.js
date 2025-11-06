@@ -14,6 +14,34 @@ function mostrarModalExito(mensaje) {
     }
 }
 
+document.getElementById('btn_editar_perfil')?.addEventListener('click', () => {
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_usuario', id: idUsuarioSesion })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito && data.usuario) {
+            const u = data.usuario;
+            document.getElementById('usuario_id').value = u.usuario_id;
+            document.getElementById('nombre').value = u.usuario_nombre;
+            document.getElementById('apellido').value = u.usuario_apellido;
+            document.getElementById('correo').value = u.usuario_correo;
+            document.getElementById('telefono').value = u.usuario_telefono;
+            document.getElementById('tipo_cedula').value = u.usuario_cedula.charAt(0);
+            document.getElementById('numero_cedula').value = u.usuario_cedula.slice(2);
+            document.getElementById('sexo').value = u.usuario_sexo;
+            document.getElementById('direccion').value = u.usuario_direccion;
+            document.getElementById('nac').value = u.usuario_nac;
+            document.getElementById('nombre_usuario').value = u.usuario_usuario;
+            document.getElementById('preview_foto').src = u.usuario_foto || 'img/icons/perfil.png';
+
+            document.querySelector('dialog[data-modal="new_user"]')?.showModal();
+        }
+    });
+});
+
+
 //Función global: Limpiar formularios
 function limpiarFormulario(form) {
     if (!form) return;
@@ -313,8 +341,8 @@ function mostrarInfoUsuario(data) {
     }
 
     // Traducir sexo binario
-    const sexoTraducido =   data.usuario_sexo === '0' ? 'M' :
-                            data.usuario_sexo === '1' ? 'F' : '';
+    const sexoTraducido =   data.usuario_sexo === 0 ? 'M' :
+                            data.usuario_sexo === 1 ? 'F' : '';
 
     // Datos personales
     document.getElementById('info_nombre').textContent = data.usuario_nombre || '';
@@ -360,6 +388,7 @@ document.querySelector('.modal__close')?.addEventListener('click', function () {
     }
 });
 
+//Deshabilitar registro
 function mostrarEliminarUsuario(data) {
     // Validar y asignar foto
     const foto = data.usuario_foto && data.usuario_foto.trim() !== ''
@@ -408,14 +437,14 @@ document.getElementById('form_delete_usuario')?.addEventListener('submit', funct
         if (modalEliminar?.open) modalEliminar.close();
 
         // Mostrar modal de éxito
-        document.getElementById('success-message').textContent = data.mensaje || 'Operación completada.';
+        document.getElementById('success-message').textContent = data.mensaje || 'Operación completada';
         const modalSuccess = document.querySelector('dialog[data-modal="success"]');
         if (modalSuccess && typeof modalSuccess.showModal === 'function') {
             modalSuccess.showModal();
         }
 
         // Recargar tabla
-        tabla.ajax.reload(null, false);
+        $('#usuarioTabla').DataTable().ajax.reload(null, false);
         } else {
         errorContainer.textContent = data.mensaje || 'Error inesperado';
         errorContainer.style.display = 'block';

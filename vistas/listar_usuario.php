@@ -1,6 +1,7 @@
 <div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="new_user new_user-usuario" data-modal-target="new_user">+ Nuevo</div>
+    <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
 </div>
 
 
@@ -107,12 +108,13 @@
     <!-- Mensaje de exito -->
     <dialog data-modal="success" class="modal modal_success">
         <form method="dialog">
-            </form>
             <div class="modal_icon"></div>
             <h2 class="modal_title">¡Proceso éxitoso!</h2>
             <p class="modal_success-message" id="success-message"></p>
             <button class="modal__close-success" id="close-success">Aceptar</button>
+        </form>
     </dialog>
+
 
     <dialog data-modal="info_usuario" class="modal modal_info">
         <div class="modal_header-info">

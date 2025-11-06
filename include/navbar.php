@@ -1,5 +1,10 @@
 <div class="main-container">
         <div class="main">
+            <a href="index.php?vista=inicio">
+            <div class="icon ">
+                <img src="img/icons/inicio.png" alt="Inicio" draggable="false">
+            </div>
+            </a>
             <div class="icon " data-menu="bienes">
                 <img src="img/icons/bienes.png" alt="Bienes" draggable="false">
             </div>

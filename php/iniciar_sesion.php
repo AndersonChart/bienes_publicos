@@ -17,6 +17,7 @@ if (!empty($_POST["enviar"])) {
                 $_SESSION["apellido"] = $datos->usuario_apellido;
                 $_SESSION["rol"] = $datos->rol_id;
                 $_SESSION["nombre_rol"] = $datos->rol_nombre;
+                $_SESSION["usuario_foto"] = $datos->usuario_foto;
                 header("Location: index.php?vista=inicio");
                 exit();
             } else {

@@ -37,9 +37,9 @@ class usuario {
     }
 
     // Para generar las listas
-    public function leer_todos() {
-        $stmt = $this->pdo->prepare("SELECT u.*, r.rol_nombre FROM usuario u JOIN rol r ON u.rol_id = r.rol_id WHERE u.usuario_id != ? AND u.usuario_estado = 1 AND (u.rol_id = 1 OR u.rol_id = 2)");
-        $stmt->execute([$_SESSION["id"]]);
+    public function leer_por_estado($estado = 1) {
+        $stmt = $this->pdo->prepare("SELECT u.*, r.rol_nombre FROM usuario u JOIN rol r ON u.rol_id = r.rol_id WHERE u.usuario_id != ? AND u.usuario_estado = ? AND (u.rol_id = 1 OR u.rol_id = 2)");
+        $stmt->execute([$_SESSION["id"], $estado]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -60,6 +60,12 @@ class usuario {
     // Desincorporar registro
     public function desincorporar($id) {
         $stmt = $this->pdo->prepare("UPDATE usuario SET usuario_estado = 0 WHERE usuario_id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    // Recuperar registro
+    public function recuperar($id) {
+        $stmt = $this->pdo->prepare("UPDATE usuario SET usuario_estado = 1 WHERE usuario_id = ?");
         return $stmt->execute([$id]);
     }
 }

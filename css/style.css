@@ -375,17 +375,37 @@ body {
     margin: 0;
 }
 
+
+
 .inicio-avatar {
-    flex: 0 0 50px;
-    background: url("../img/icons/perfil.png") center / contain no-repeat;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50px;
-    border-radius: 50%;
-    border: 3px solid #444;
+    height: 60px;
+    width: 60px;
     margin: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    object-fit: cover;
+    overflow: hidden;
 }
+
+.inicio-avatar img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.inicio-avatar:hover {
+    background-color: #ddd;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
+}
+
+
 
 .inicio-link {
     flex: 1 1 70px;
@@ -546,6 +566,49 @@ body {
 }
 
 .new_user:hover {
+    color: #090;
+    border: 2px solid #090;
+    background-color: #fff;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
+}
+
+.estado-rojo, .estado-verde {
+    flex: 0 1 auto;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 16px;
+    color: #fff;
+    border-radius: 5px;
+    user-select: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.estado-rojo {
+    background-color: #600;
+}
+
+.estado-verde {
+    background-color: #090;
+}
+
+.estado-rojo:hover {
+    color: #600;
+    border: 2px solid #600;
+    background-color: #fff;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
+}
+
+.estado-verde:hover {
     color: #090;
     border: 2px solid #090;
     background-color: #fff;
@@ -783,7 +846,7 @@ body {
 .modal_icon {
     background: url("../img/icons/success.png") center / contain no-repeat;
     text-align: center;
-    margin: 10px;
+    margin: 10px auto;
     width: 100px;
     height: 100px;
     object-fit: contain; /* evita distorsión */
