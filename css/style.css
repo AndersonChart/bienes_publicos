@@ -829,9 +829,59 @@ body {
     color: #28a745;
 }
 
+/*Ventana modal de informacion de registro*/
 .modal_info {
-    overflow: hidden;
-    height: 807px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden; /* evita desbordes externos */
+}
+
+/* Encabezado con título y botón */
+.modal_header-info {
+    margin-bottom: 20px;
+    margin-top: 50px;
+}
+
+.modal_title-info {
+    font-size: 1.5rem;
+    margin: 0;
+    flex: 1;
+}
+
+/* Imagen centrada */
+.img_info {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.img_info img {
+    height: 100px;
+    width: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Contenedor de datos */
+.info_container {
+    flex: 1;
+    max-height: 400px;
+    width: 100%;
+    overflow-y: auto;
+    background-color: #bbb;
+    border-radius: 20px;
+}
+
+.info_subtitle {
+    display: block;
+    font-weight: 900;
+    margin: 10px 0px;
+    color: #229;
 }
 
 .condition {

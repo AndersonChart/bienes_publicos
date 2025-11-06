@@ -5,6 +5,7 @@
 
 
 <!-- Ventana Modal -->
+    <!-- Formulario registro/actualización -->
     <dialog data-modal="new_user" class="modal modal_new-user">
         <form method="dialog">
             <button class="modal__close">X</button>
@@ -103,6 +104,7 @@
             <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar">
         </form>
     </dialog>
+    <!-- Mensaje de exito -->
     <dialog data-modal="success" class="modal modal_success">
         <form method="dialog">
             </form>
@@ -111,13 +113,14 @@
             <p class="modal_success-message" id="success-message"></p>
             <button class="modal__close-success" id="close-success">Aceptar</button>
     </dialog>
+
     <dialog data-modal="info_usuario" class="modal modal_info">
-        <form method="dialog">
-            <button class="modal__close">X</button>
-        </form>
-
-        <h2 class="modal_title">Información del Usuario</h2>
-
+        <div class="modal_header-info">
+            <form method="dialog">
+                <button class="modal__close">X</button>
+            </form>
+            <h2 class="modal_title modal_title-info">Información del Usuario</h2>
+        </div>
         <!-- Foto de perfil -->
         <div class="img_info">
             <img id="foto_usuario_info" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
@@ -126,19 +129,41 @@
         <!-- Contenedor de datos con scroll si excede -->
         <div class="info_container">
             <ul class="info_lista">
-                <li><strong>Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
-                <li><strong>Apellido:</strong> <span class="info_data" id="info_apellido"></span></li>
-                <li><strong>Correo:</strong> <span class="info_data" id="info_correo"></span></li>
-                <li><strong>Teléfono:</strong> <span class="info_data" id="info_telefono"></span></li>
-                <li><strong>Cédula:</strong> <span class="info_data" id="info_cedula"></span></li>
-                <li><strong>Fecha de nacimiento:</strong> <span class="info_data" id="info_nac"></span></li>
-                <li><strong>Dirección:</strong> <span class="info_data" id="info_direccion"></span></li>
-                <li><strong>Sexo:</strong> <span class="info_data" id="info_sexo"></span></li>
-                <li><strong>Nombre de Usuario:</strong> <span class="info_data" id="info_usuario"></span></li>
+                <li><strong class="info_subtitle">Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
+                <li><strong class="info_subtitle">Apellido:</strong> <span class="info_data" id="info_apellido"></span></li>
+                <li><strong class="info_subtitle">Correo:</strong> <span class="info_data" id="info_correo"></span></li>
+                <li><strong class="info_subtitle">Teléfono:</strong> <span class="info_data" id="info_telefono"></span></li>
+                <li><strong class="info_subtitle">Cédula:</strong> <span class="info_data" id="info_cedula"></span></li>
+                <li><strong class="info_subtitle">Fecha de nacimiento:</strong> <span class="info_data" id="info_nac"></span></li>
+                <li><strong class="info_subtitle">Dirección:</strong> <span class="info_data" id="info_direccion"></span></li>
+                <li><strong class="info_subtitle">Sexo:</strong> <span class="info_data" id="info_sexo"></span></li>
+                <li><strong class="info_subtitle">Nombre de Usuario:</strong> <span class="info_data" id="info_usuario"></span></li>
             </ul>
         </div>
     </dialog>
 
+    <dialog data-modal="eliminar_usuario" class="modal modal_delete">
+        <div class="modal_header-delete">
+            <h2 class="modal_title modal_title-delete">¿Estás seguro de deshabilitar <br> este usuario?</h2>
+        </div>
+        <!-- Foto de perfil -->
+        <div class="img_info">
+            <img id="delete_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+        </div>
+        <!-- Contenedor de usuario relevante -->
+        <div class="delete_container">
+            <span class="delete_data-title" id="delete_usuario"></span>
+            <span class="delete_data" id="delete_nombre"></span>
+            <span class="delete_data" id="delete_apellido"></span>
+        </div>
+        <form method="dialog">
+                <button class="modal__close modal__close-delete">Cancelar</button>
+        </form>
+        <form id="form_delete_usuario" method="POST">
+            <input type="submit" value="Aceptar" name="delete" class="register_submit" id="btn_borrar">
+        </form>    
+        <div id="error-container" class="error-container"></div>
+    </dialog>
 
 <div class="container_table_box">
     <div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->

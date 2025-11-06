@@ -53,7 +53,13 @@
                 </div>
                 `;
             } else {
-                return `<span class="text-empty">Ninguno</span>`;
+                return `
+                <div class="acciones">
+                    <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
+                        <img src="img/icons/info.png" alt="Info">
+                    </div>
+                </div>
+                `;
             }
         },
             orderable: false
@@ -102,5 +108,22 @@
             }
         });
     });
+
+    $('#usuarioTabla tbody').on('click', '.icon-action[title="Eliminar"]', function () {
+    const fila = tabla.row($(this).closest('tr')).data();
+    if (fila && fila.usuario_id) {
+        fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_usuario', id: fila.usuario_id })
+        })
+        .then(res => res.json())
+        .then(data => {
+        if (data.exito && data.usuario) {
+            mostrarEliminarUsuario(data.usuario);
+        }
+        });
+    }
+    });
+
 
     });

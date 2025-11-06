@@ -38,7 +38,7 @@ class usuario {
 
     // Para generar las listas
     public function leer_todos() {
-        $stmt = $this->pdo->prepare("SELECT u.*, r.rol_nombre FROM usuario u JOIN rol r ON u.rol_id = r.rol_id WHERE u.usuario_id != ? AND u.usuario_estado = 1 AND u.rol_id = 1");
+        $stmt = $this->pdo->prepare("SELECT u.*, r.rol_nombre FROM usuario u JOIN rol r ON u.rol_id = r.rol_id WHERE u.usuario_id != ? AND u.usuario_estado = 1 AND (u.rol_id = 1 OR u.rol_id = 2)");
         $stmt->execute([$_SESSION["id"]]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

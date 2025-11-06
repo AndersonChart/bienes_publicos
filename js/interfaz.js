@@ -302,15 +302,29 @@ function mostrarInfoUsuario(data) {
         : 'img/icons/perfil.png';
     document.getElementById('foto_usuario_info').src = foto;
 
+    // Formatear fecha de nacimiento
+    let fechaFormateada = '';
+    if (data.usuario_nac) {
+        const fecha = new Date(data.usuario_nac);
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const año = fecha.getFullYear();
+        fechaFormateada = `${dia}-${mes}-${año}`;
+    }
+
+    // Traducir sexo binario
+    const sexoTraducido =   data.usuario_sexo === '0' ? 'M' :
+                            data.usuario_sexo === '1' ? 'F' : '';
+
     // Datos personales
     document.getElementById('info_nombre').textContent = data.usuario_nombre || '';
     document.getElementById('info_apellido').textContent = data.usuario_apellido || '';
     document.getElementById('info_correo').textContent = data.usuario_correo || '';
     document.getElementById('info_telefono').textContent = data.usuario_telefono || '';
     document.getElementById('info_cedula').textContent = data.usuario_cedula || '';
-    document.getElementById('info_nac').textContent = data.usuario_nac || '';
+    document.getElementById('info_nac').textContent = fechaFormateada;
     document.getElementById('info_direccion').textContent = data.usuario_direccion || '';
-    document.getElementById('info_sexo').textContent = data.usuario_sexo || '';
+    document.getElementById('info_sexo').textContent = sexoTraducido;
     document.getElementById('info_usuario').textContent = data.usuario_usuario || '';
 
     // Mostrar el modal
@@ -319,7 +333,6 @@ function mostrarInfoUsuario(data) {
         modal.showModal();
     }
 }
-
 
 // Activar botón "Info" en cada fila usuario
 $('#usuarioTabla tbody').on('click', '.btn_ver_info', function () {
@@ -345,5 +358,72 @@ document.querySelector('.modal__close')?.addEventListener('click', function () {
         modal.close();
         limpiarInfoUsuario();
     }
+});
+
+function mostrarEliminarUsuario(data) {
+    // Validar y asignar foto
+    const foto = data.usuario_foto && data.usuario_foto.trim() !== ''
+        ? data.usuario_foto
+        : 'img/icons/perfil.png';
+    document.getElementById('delete_foto').src = foto;
+
+    // Asignar datos personales
+    document.getElementById('delete_nombre').textContent = data.usuario_nombre || '';
+    document.getElementById('delete_apellido').textContent = data.usuario_apellido || '';
+    document.getElementById('delete_usuario').textContent = data.usuario_usuario || '';
+
+    // Guardar ID en el formulario
+    const form = document.getElementById('form_delete_usuario');
+    form.dataset.usuarioId = data.usuario_id;
+
+    // Mostrar el modal
+    const modal = document.querySelector('dialog[data-modal="eliminar_usuario"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+document.getElementById('form_delete_usuario')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.usuarioId;
+    if (!id) return;
+
+    const errorContainer = document.getElementById('error-container');
+    errorContainer.textContent = '';
+    errorContainer.style.display = 'none';
+
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({
+        accion: 'deshabilitar_usuario',
+        id: id
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+        // Cerrar modal de eliminación
+        const modalEliminar = document.querySelector('dialog[data-modal="eliminar_usuario"]');
+        if (modalEliminar?.open) modalEliminar.close();
+
+        // Mostrar modal de éxito
+        document.getElementById('success-message').textContent = data.mensaje || 'Operación completada.';
+        const modalSuccess = document.querySelector('dialog[data-modal="success"]');
+        if (modalSuccess && typeof modalSuccess.showModal === 'function') {
+            modalSuccess.showModal();
+        }
+
+        // Recargar tabla
+        tabla.ajax.reload(null, false);
+        } else {
+        errorContainer.textContent = data.mensaje || 'Error inesperado';
+        errorContainer.style.display = 'block';
+        }
+    })
+    .catch(() => {
+        errorContainer.textContent = 'Error de conexión con el servidor';
+        errorContainer.style.display = 'block';
+    });
 });
 

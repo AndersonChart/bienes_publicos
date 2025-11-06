@@ -62,8 +62,8 @@ function validarUsuario($datos, $modo = 'crear', $id = null) {
         $hoy = new DateTime();
         if ($fechaNac) {
             $edad = $hoy->diff($fechaNac)->y;
-            if ($edad < 15 || $edad > 100) {
-                $erroresFormato['usuario_nac'] = 'Edad fuera de rango';
+            if ($edad < 10 || $edad > 100) {
+                $erroresFormato['usuario_nac'] = 'Edad rechazada, mayores de 10 años';
             }
         } else {
             $erroresFormato['usuario_nac'] = 'Formato de fecha inválido';
@@ -350,8 +350,22 @@ switch ($accion) {
     break;
 
 
-    // case 'eliminar':
-    // etc.
+    case 'deshabilitar_usuario':
+        header('Content-Type: application/json');
+
+        $id = $_POST['id'] ?? '';
+        if (!$id) {
+            echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
+            exit;
+        }
+
+        $resultado = $usuario->desincorporar($id);
+        if ($resultado) {
+            echo json_encode(['exito' => true, 'mensaje' => 'Usuario deshabilitado correctamente.']);
+        } else {
+            echo json_encode(['error' => true, 'mensaje' => 'No se pudo deshabilitar el usuario.']);
+        }
+    break;
 
     default:
         echo json_encode([
