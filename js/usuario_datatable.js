@@ -151,10 +151,10 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Acción: Eliminar
+    // Eliminar
     $('#usuarioTabla tbody').on('click', '.icon-action[title="Eliminar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
-        if (fila && fila.usuario_id) {
+        if (fila?.usuario_id) {
             fetch('php/usuario_ajax.php', {
                 method: 'POST',
                 body: new URLSearchParams({ accion: 'obtener_usuario', id: fila.usuario_id })
@@ -162,28 +162,29 @@ window.addEventListener('load', function () {
             .then(res => res.json())
             .then(data => {
                 if (data.exito && data.usuario) {
-                    mostrarEliminarUsuario(data.usuario);
+                    mostrarConfirmacionUsuario(data.usuario, 'eliminar');
                 }
             });
         }
     });
 
-    // Acción: Recuperar
+    // Recuperar
     $('#usuarioTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
         if (!id) return;
 
         fetch('php/usuario_ajax.php', {
             method: 'POST',
-            body: new URLSearchParams({ accion: 'recuperar_usuario', id })
+            body: new URLSearchParams({ accion: 'obtener_usuario', id })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito) {
-                mostrarModalExito(data.mensaje || 'Usuario recuperado');
-                tabla.ajax.reload(null, false);
+            if (data.exito && data.usuario) {
+                mostrarConfirmacionUsuario(data.usuario, 'recuperar');
             }
         });
     });
+
+
 });
 

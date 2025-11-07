@@ -105,6 +105,7 @@
             <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar">
         </form>
     </dialog>
+
     <!-- Mensaje de exito -->
     <dialog data-modal="success" class="modal modal_success">
         <form method="dialog">
@@ -115,7 +116,7 @@
         </form>
     </dialog>
 
-
+    <!-- Información de registro -->
     <dialog data-modal="info_usuario" class="modal modal_info">
         <div class="modal_header-info">
             <form method="dialog">
@@ -144,6 +145,7 @@
         </div>
     </dialog>
 
+    <!-- Confirmación de eliminar -->
     <dialog data-modal="eliminar_usuario" class="modal modal_delete">
         <div class="modal_header-delete">
             <h2 class="modal_title modal_title-delete">¿Estás seguro de deshabilitar <br> este usuario?</h2>
@@ -166,6 +168,30 @@
         </form>    
         <div id="error-container" class="error-container"></div>
     </dialog>
+
+    <!-- Confirmación -->
+    <dialog data-modal="confirmar_usuario" class="modal modal_confirmar">
+        <div class="modal_header-confirmar">
+            <h2 class="modal_title modal_title-confirmar" id="confirmar_titulo"></h2>
+        </div>
+        <div class="img_info">
+            <img id="confirmar_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+        </div>
+        <div class="delete_container">
+            <span class="delete_data-title" id="confirmar_usuario"></span>
+            <span class="delete_data" id="confirmar_nombre"></span>
+            <span class="delete_data" id="confirmar_apellido"></span>
+        </div>
+        <form method="dialog">
+            <button class="modal__close modal__close-confirmar">Cancelar</button>
+        </form>
+        <form id="form_confirmar_usuario" method="POST">
+            <input type="submit" value="Aceptar" class="register_submit" id="btn_confirmar">
+        </form>
+        <div id="error-container-confirmar" class="error-container"></div>
+    </dialog>
+
+
 
 <div class="container_table_box">
     <div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->

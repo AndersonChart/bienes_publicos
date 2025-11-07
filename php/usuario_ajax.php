@@ -114,7 +114,20 @@ function validarUsuario($datos, $modo = 'crear', $id = null) {
     if ($modo === 'crear' || ($modo === 'actualizar' && $usuario->existeUsuario($datos['usuario_usuario']) && $usuario->leer_por_id($id)['usuario_usuario'] !== $datos['usuario_usuario'])) {
         $erroresDuplicados['usuario_usuario'] = 'Usuario ya registrado';
     }
+
+    
+    if (!empty($erroresDuplicados)) {
+        $primerCampo = array_key_first($erroresDuplicados);
+        return [
+            'error' => true,
+            'mensaje' => $erroresDuplicados[$primerCampo],
+            'errores' => $erroresDuplicados,
+            'campos' => [$primerCampo]
+        ];
+    }
+
     return ['valido' => true];
+
 }
 
 // Verifica que se haya enviado una acción
@@ -307,7 +320,7 @@ switch ($accion) {
             }
 
 
-            $rol = $_POST['rol_id'] ?? 1;
+            $rol = isset($_POST['rol_id']) ? $_POST['rol_id'] : $actual['rol_id'];
             $estado = 1;
 
             // Actualizar usuario

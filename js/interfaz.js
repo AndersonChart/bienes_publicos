@@ -46,51 +46,50 @@ document.getElementById('btn_editar_perfil')?.addEventListener('click', () => {
 function limpiarFormulario(form) {
     if (!form) return;
 
-    // Resetear campos del formulario
+    // Resetear campos del formulario (general)
     form.reset();
 
-    // Quitar clases de error visual
+    // Quitar clases de error visual (general)
     form.querySelectorAll('.input-error').forEach(el => {
         el.classList.remove('input-error');
     });
 
-    // Limpiar contenedores de error si existen
+    // Limpiar contenedores de error si existen (general)
     form.querySelectorAll('.error-container').forEach(container => {
         container.innerHTML = '';
         container.style.display = 'none';
     });
 
-    // Limpiar imágenes de previsualización
+    // Limpiar imágenes de previsualización ( usado en usuario: foto de perfil)
     form.querySelectorAll('img[id^="preview_"]').forEach(img => {
         img.removeAttribute('src');
         img.style.display = 'none';
     });
 
-    // Restaurar íconos visuales si existen
+    // Restaurar íconos visuales si existen ( usado en usuario: ícono de foto)
     form.querySelectorAll('.foto_perfil_icon').forEach(icono => {
         icono.style.opacity = '1';
     });
 
-    // Limpiar campos ocultos tipo ID
+    // Limpiar campos ocultos tipo ID ( usado en usuario: usuario_id)
     form.querySelectorAll('input[type="hidden"]').forEach(input => {
         input.value = '';
     });
 }
 
-//Limpiar info de usuario
+//  Función específica del módulo de usuario
 function limpiarInfoUsuario() {
-    // Limpiar todos los campos de texto
+    // Limpiar todos los campos de texto ( usado en modal de info de usuario)
     document.querySelectorAll('.info_data').forEach(el => {
         el.textContent = '';
     });
 
-    // Restaurar imagen de perfil por defecto
+    // Restaurar imagen de perfil por defecto ( usado en modal de info de usuario)
     const foto = document.getElementById('foto_usuario_info');
     if (foto) {
         foto.src = 'img/icons/perfil.png';
     }
 }
-
 
 //Mostrar contraseña al presionar el ojo
 document.addEventListener("click", function (e) {
@@ -175,16 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
-
     const btncrear = document.getElementById('btn_crear');
     if (btncrear) btncrear.disabled = false;
 
-    //Colocar la vista correspondiente
-    
-    // Puede seguirse agregando más vistas aquí
-
 });
+
+/*MODULO USUARIO*/
 
 //Función: formulario de actualizar usuario
 function abrirFormularioEdicion(id) {
@@ -258,7 +253,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const cedulaCompleta = tipo + '-' + numero;
         const formData = new FormData(form);
         formData.set('usuario_cedula', cedulaCompleta);
-        formData.append('rol_id', '1');
+
+        // Solo asignar rol si estás creando
+        if (!usuarioId) {
+            formData.append('rol_id', '1');
+        }
+
 
         // Acción condicional
         const accion = usuarioId ? 'actualizar' : 'crear';
@@ -388,66 +388,67 @@ document.querySelector('.modal__close')?.addEventListener('click', function () {
     }
 });
 
-//Deshabilitar registro
-function mostrarEliminarUsuario(data) {
-    // Validar y asignar foto
-    const foto = data.usuario_foto && data.usuario_foto.trim() !== ''
-        ? data.usuario_foto
-        : 'img/icons/perfil.png';
-    document.getElementById('delete_foto').src = foto;
+//Mostrar datos en confirmacion
+function mostrarConfirmacionUsuario(data, modo = 'eliminar') {
+    const foto = data.usuario_foto?.trim() !== '' ? data.usuario_foto : 'img/icons/perfil.png';
+    document.getElementById('confirmar_foto').src = foto;
+    document.getElementById('confirmar_nombre').textContent = data.usuario_nombre || '';
+    document.getElementById('confirmar_apellido').textContent = data.usuario_apellido || '';
+    document.getElementById('confirmar_usuario').textContent = data.usuario_usuario || '';
 
-    // Asignar datos personales
-    document.getElementById('delete_nombre').textContent = data.usuario_nombre || '';
-    document.getElementById('delete_apellido').textContent = data.usuario_apellido || '';
-    document.getElementById('delete_usuario').textContent = data.usuario_usuario || '';
+    const titulo = modo === 'recuperar'
+        ? '¿Estás seguro de recuperar este usuario?'
+        : '¿Estás seguro de deshabilitar este usuario?';
+    document.getElementById('confirmar_titulo').innerHTML = titulo;
 
-    // Guardar ID en el formulario
-    const form = document.getElementById('form_delete_usuario');
+    const form = document.getElementById('form_confirmar_usuario');
     form.dataset.usuarioId = data.usuario_id;
+    form.dataset.modo = modo;
 
-    // Mostrar el modal
-    const modal = document.querySelector('dialog[data-modal="eliminar_usuario"]');
-    if (modal && typeof modal.showModal === 'function') {
-        modal.showModal();
-    }
+    const modal = document.querySelector('dialog[data-modal="confirmar_usuario"]');
+    if (modal?.showModal) modal.showModal();
 }
 
-document.getElementById('form_delete_usuario')?.addEventListener('submit', function (e) {
+
+//Eliminar/recuperar Usuario
+document.getElementById('form_confirmar_usuario')?.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const id = this.dataset.usuarioId;
-    if (!id) return;
+    const modo = this.dataset.modo;
+    if (!id || !modo) return;
 
-    const errorContainer = document.getElementById('error-container');
+    const errorContainer = document.getElementById('error-container-confirmar');
     errorContainer.textContent = '';
     errorContainer.style.display = 'none';
 
+    const accion = modo === 'recuperar' ? 'recuperar_usuario' : 'deshabilitar_usuario';
+
     fetch('php/usuario_ajax.php', {
         method: 'POST',
-        body: new URLSearchParams({
-        accion: 'deshabilitar_usuario',
-        id: id
-        })
+        body: new URLSearchParams({ accion, id })
     })
     .then(res => res.json())
     .then(data => {
         if (data.exito) {
-        // Cerrar modal de eliminación
-        const modalEliminar = document.querySelector('dialog[data-modal="eliminar_usuario"]');
-        if (modalEliminar?.open) modalEliminar.close();
+            // Mostrar modal de éxito
+            document.getElementById('success-message').textContent = data.mensaje || 'Operación completada';
+            const modalSuccess = document.querySelector('dialog[data-modal="success"]');
+            if (modalSuccess?.showModal) {
+                modalSuccess.showModal();
+            }
 
-        // Mostrar modal de éxito
-        document.getElementById('success-message').textContent = data.mensaje || 'Operación completada';
-        const modalSuccess = document.querySelector('dialog[data-modal="success"]');
-        if (modalSuccess && typeof modalSuccess.showModal === 'function') {
-            modalSuccess.showModal();
-        }
+            // Cerrar modal de confirmación después de mostrar el de éxito
+            setTimeout(() => {
+                const modal = document.querySelector('dialog[data-modal="confirmar_usuario"]');
+                if (modal?.open) modal.close();
+            }, 100);
 
-        // Recargar tabla
-        $('#usuarioTabla').DataTable().ajax.reload(null, false);
+            // Recargar tabla
+            $('#usuarioTabla').DataTable().ajax.reload(null, false);
         } else {
-        errorContainer.textContent = data.mensaje || 'Error inesperado';
-        errorContainer.style.display = 'block';
+            errorContainer.textContent = data.mensaje || 'Error inesperado';
+            errorContainer.style.display = 'block';
         }
     })
     .catch(() => {
@@ -455,4 +456,3 @@ document.getElementById('form_delete_usuario')?.addEventListener('submit', funct
         errorContainer.style.display = 'block';
     });
 });
-

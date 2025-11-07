@@ -12,19 +12,19 @@ class usuario {
     }
 
     public function existeCorreo($correo) {
-    $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_correo = ? AND usuario_estado = 1");
+    $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_correo = ?");
     $stmt->execute([$correo]);
     return $stmt->fetchColumn() > 0;
     }
 
     public function existeCedula($cedula) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ? AND usuario_estado = 1");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ?");
         $stmt->execute([$cedula]);
         return $stmt->fetchColumn() > 0;
     }
 
     public function existeUsuario($usuario) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ? AND usuario_estado = 1");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ?");
         $stmt->execute([$usuario]);
         return $stmt->fetchColumn() > 0;
     }
