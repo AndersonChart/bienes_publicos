@@ -145,54 +145,52 @@
         </form>
     </dialog>
 
-    
-
     <!-- Confirmación de eliminar -->
-<dialog data-modal="eliminar_usuario" class="modal modal_confirmar">
-    <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de deshabilitar <br> este usuario?</h2>
-    </div>
-    <div class="img_info">
-        <img id="delete_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
-    </div>
-    <div class="delete_container">
-        <span class="delete_data-title" id="delete_usuario"></span>
-        <span class="delete_data" id="delete_nombre"></span>
-        <span class="delete_data" id="delete_apellido"></span>
-    </div>
-    <div class="modal_delete-buttons">
-        <form method="dialog">
-            <button class="modal__close modal__close-confirm">Cancelar</button>
-        </form>
-        <form id="form_delete_usuario" method="POST">
-            <input type="submit" value="Aceptar" name="delete" class="register_submit-confirm" id="btn_borrar">
-        </form>
-    </div>
-    <div id="error-container" class="error-container"></div>
-</dialog>
+    <dialog data-modal="eliminar_usuario" class="modal modal_confirmar">
+        <div class="modal_header-confirmar">
+            <h2 class="modal_title">¿Estás seguro de deshabilitar <br> este usuario?</h2>
+        </div>
+        <div class="img_info">
+            <img id="delete_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+        </div>
+        <div class="delete_container">
+            <span class="delete_data-title" id="delete_usuario"></span>
+            <span class="delete_data" id="delete_nombre"></span>
+            <span class="delete_data" id="delete_apellido"></span>
+        </div>
+        <div class="modal_delete-buttons">
+            <form method="dialog">
+                <button class="modal__close modal__close-confirm">Cancelar</button>
+            </form>
+            <form id="form_delete_usuario" method="POST">
+                <input type="submit" value="Aceptar" name="delete" class="register_submit-confirm" id="btn_borrar">
+            </form>
+        </div>
+        <div id="error-container-eliminar" class="error-container"></div>
+    </dialog>
 
-<!-- Confirmación de recuperar -->
-<dialog data-modal="confirmar_usuario" class="modal modal_confirmar">
-    <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de recuperar <br> este usuario?</h2>
-    </div>
-    <div class="img_info">
-        <img id="confirmar_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
-    </div>
-    <div class="delete_container">
-        <span class="delete_data-title" id="confirmar_usuario"></span>
-        <span class="delete_data" id="confirmar_nombre_completo"></span>
-    </div>
-    <div class="modal_delete-buttons">
-        <form method="dialog">
-            <button class="modal__close modal__close-confirm">Cancelar</button>
-        </form>
-        <form id="form_confirmar_usuario" method="POST">
-            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar">
-        </form>
-    </div>
-    <div id="error-container-confirmar" class="error-container"></div>
-</dialog>
+    <!-- Confirmación de recuperar -->
+    <dialog data-modal="confirmar_usuario" class="modal modal_confirmar">
+        <div class="modal_header-confirmar">
+            <h2 class="modal_title">¿Estás seguro de recuperar <br> este usuario?</h2>
+        </div>
+        <div class="img_info">
+            <img id="confirmar_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+        </div>
+        <div class="delete_container">
+            <span class="delete_data-title" id="confirmar_usuario"></span>
+            <span class="delete_data" id="confirmar_nombre_completo"></span>
+        </div>
+        <div class="modal_delete-buttons">
+            <form method="dialog">
+                <button class="modal__close modal__close-confirm">Cancelar</button>
+            </form>
+            <form id="form_confirmar_usuario" method="POST">
+                <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar">
+            </form>
+        </div>
+        <div id="error-container-confirmar" class="error-container"></div>
+    </dialog>
 
 
 

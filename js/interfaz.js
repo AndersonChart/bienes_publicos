@@ -47,6 +47,67 @@ function activarEdicionPerfil() {
     });
 }
 
+/**
+ * Carga categorías desde el backend y las inserta en un elemento select o contenedor.
+ * @param {string} selector - Selector CSS del elemento destino (ej: '#categoria', '.filtro-categorias')
+ * @param {object} opciones - Opciones adicionales:
+ *   - includeDefault: boolean (agrega opción "Seleccione una categoría")
+ *   - onComplete: function (callback con los datos)
+ */
+function cargarCategorias(selector, opciones = {}) {
+    fetch('php/categoria_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todas' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const contenedor = document.querySelector(selector);
+        if (!contenedor) return;
+
+        // Si es un <select>
+        if (contenedor.tagName === 'SELECT') {
+            contenedor.innerHTML = '';
+            if (opciones.includeDefault) {
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = 'Seleccione una categoría';
+                contenedor.appendChild(defaultOption);
+            }
+
+            data.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.categoria_id;
+                option.textContent = cat.categoria_nombre;
+                contenedor.appendChild(option);
+            });
+        }
+
+        
+
+        // Si es un contenedor de checkboxes
+        if (contenedor.classList.contains('categoria-checkboxes')) {
+            contenedor.innerHTML = '';
+            data.forEach(cat => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-inline';
+                label.innerHTML = `
+                    <input type="checkbox" name="categoria_filtro" value="${cat.categoria_id}">
+                    ${cat.categoria_nombre}
+                `;
+                contenedor.appendChild(label);
+            });
+        }
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(() => {
+        console.error('Error al cargar categorías');
+    });
+}
 
 
 //Función global: Limpiar formularios
@@ -456,7 +517,224 @@ document.getElementById('form_confirmar_usuario')?.addEventListener('submit', fu
         }
     })
     .catch(() => {
-        errorContainer.textContent = 'Error de conexión con el servidor';
-        errorContainer.style.display = 'block';
+        console.error('Error de conexión con el servidor');
     });
+});
+
+
+/* SUBMODULO CLASIFICACION */
+
+// Función: formulario de actualizar clasificación
+function abrirFormularioEdicion(id) {
+    // Primero cargar las categorías
+    cargarCategorias('#categoria', {
+        includeDefault: true,
+        onComplete: () => {
+            // Luego obtener los datos del registro
+            fetch('php/clasificacion_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({ accion: 'obtener_clasificacion', id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.exito || !data.clasificacion) return;
+
+                const c = data.clasificacion;
+                const form = document.getElementById('form_nueva_clasificacion');
+                if (!form) return;
+
+                form.clasificacion_id.value = c.clasificacion_id;
+                form.codigo.value = c.clasificacion_codigo;
+                form.nombre.value = c.clasificacion_nombre;
+                form.descripcion.value = c.clasificacion_descripcion;
+
+                // Asignar la categoría después de que el select esté poblado
+                form.categoria.value = c.categoria_id;
+
+                const modal = document.querySelector('[data-modal="new_clasificacion"]');
+                if (modal) modal.showModal();
+            });
+        }
+    });
+}
+
+
+// Crear o actualizar clasificación
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('form_nueva_clasificacion');
+    const errorContainer = document.getElementById('error-container-clasificacion');
+
+    //Seleccion de categoria
+    document.querySelector('[data-modal-target="new_clasificacion"]')?.addEventListener('click', () => {
+        cargarCategorias('#categoria', { includeDefault: true });
+    });
+
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const clasificacionId = document.getElementById('clasificacion_id').value;
+        const formData = new FormData(form);
+
+        // Acción condicional
+        const accion = clasificacionId ? 'actualizar' : 'crear';
+        formData.append('accion', accion);
+        if (clasificacionId) formData.append('clasificacion_id', clasificacionId);
+
+        fetch('php/clasificacion_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+
+            if (data.error) {
+                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                errorContainer.style.display = 'block';
+
+                if (data.campos && Array.isArray(data.campos)) {
+                    data.campos.forEach((campo, index) => {
+                        const input = form.querySelector(`[name="${campo}"]`);
+                        if (input) {
+                            input.classList.add('input-error');
+                            if (index === 0) input.focus();
+                        }
+                    });
+                }
+            } else if (data.exito) {
+                const esActualizacion = !!clasificacionId;
+                const mensaje = esActualizacion
+                    ? "Clasificación actualizada con éxito"
+                    : "Clasificación registrada con éxito";
+
+                if (esActualizacion) {
+                    const modalFormulario = document.querySelector('dialog[data-modal="new_clasificacion"]');
+                    if (modalFormulario && modalFormulario.open) {
+                        modalFormulario.close();
+                    }
+                }
+
+                mostrarModalExito(mensaje);
+                limpiarFormulario(form);
+                $('#clasificacionTabla').DataTable().ajax.reload(null, false);
+            }
+        })
+        .catch(() => {
+            errorContainer.innerHTML = 'Hubo un error con el servidor';
+            errorContainer.style.display = 'block';
+        });
+    });
+});
+
+// Mostrar información de clasificación
+function mostrarInfoclasificacion(data) {
+    document.getElementById('info_codigo').textContent = data.clasificacion_codigo || '';
+    document.getElementById('info_nombre').textContent = data.clasificacion_nombre || '';
+    document.getElementById('info_descripcion').textContent = data.clasificacion_descripcion || '';
+    document.getElementById('info_categoria').textContent = data.categoria_nombre || '';
+
+    const modal = document.querySelector('dialog[data-modal="info_clasificacion"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+// Limpiar modal info clasificación
+document.querySelector('dialog[data-modal="info_clasificacion"] .modal__close')?.addEventListener('click', function () {
+    const modal = document.querySelector('dialog[data-modal="info_clasificacion"]');
+    if (modal && modal.open) {
+        modal.close();
+    }
+});
+
+// Mostrar datos en confirmación
+function mostrarConfirmacionclasificacion(data, modo = 'eliminar') {
+    if (modo === 'eliminar') {
+        document.getElementById('delete_codigo').textContent = data.clasificacion_codigo || '';
+        document.getElementById('delete_nombre').textContent = data.clasificacion_nombre || '';
+        document.getElementById('delete_categoria').textContent = data.categoria_nombre || '';
+
+        const form = document.getElementById('form_delete_clasificacion');
+        form.dataset.clasificacionId = data.clasificacion_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="eliminar_clasificacion"]');
+        if (modal?.showModal) modal.showModal();
+    } else if (modo === 'recuperar') {
+        document.getElementById('confirmar_codigo').textContent = data.clasificacion_codigo || '';
+        document.getElementById('confirmar_nombre').textContent = data.clasificacion_nombre || '';
+        document.getElementById('confirmar_categoria').textContent = data.categoria_nombre || '';
+
+        const form = document.getElementById('form_confirmar_clasificacion');
+        form.dataset.clasificacionId = data.clasificacion_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="confirmar_clasificacion"]');
+        if (modal?.showModal) modal.showModal();
+    }
+}
+
+
+// Eliminar clasificación
+document.getElementById('form_delete_clasificacion')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.clasificacionId;
+    if (!id) return;
+
+    fetch('php/clasificacion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'deshabilitar_clasificacion', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="eliminar_clasificacion"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Clasificación deshabilitada');
+            $('#clasificacionTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+
+});
+
+//Recuperar clasificacion
+document.getElementById('form_confirmar_clasificacion')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.clasificacionId;
+    if (!id) return;
+
+    fetch('php/clasificacion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_clasificacion', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Respuesta recuperación:', data); // Verifica que se ejecuta
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="confirmar_clasificacion"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Clasificación recuperada');
+
+            estadoActual = 1;
+            $('#clasificacionTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});
+
+document.addEventListener('change', function (e) {
+    if (e.target.matches('#categoria')) {
+        $('#clasificacionTabla').DataTable().ajax.reload(null, false);
+    }
 });

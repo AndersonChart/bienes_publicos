@@ -385,28 +385,28 @@ switch ($accion) {
 
 
     case 'deshabilitar_usuario':
-    header('Content-Type: application/json');
+        header('Content-Type: application/json');
 
-    try {
-        $id = $_POST['id'] ?? '';
-        if (!$id) {
-            throw new Exception('ID no proporcionado');
+        try {
+            $id = $_POST['id'] ?? '';
+            if (!$id) {
+                throw new Exception('ID no proporcionado');
+            }
+
+            $exito = $usuario->desincorporar($id);
+
+            echo json_encode([
+                'exito' => $exito,
+                'mensaje' => $exito ? 'Usuario deshabilitado correctamente' : 'No se pudo deshabilitar el usuario'
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'Error al deshabilitar usuario',
+                'detalle' => $e->getMessage()
+            ]);
         }
-
-        $exito = $usuario->desincorporar($id);
-
-        echo json_encode([
-            'exito' => $exito,
-            'mensaje' => $exito ? 'Usuario deshabilitado correctamente' : 'No se pudo deshabilitar el usuario'
-        ]);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'exito' => false,
-            'mensaje' => 'Error al deshabilitar usuario',
-            'detalle' => $e->getMessage()
-        ]);
-    }
     break;
 
 
@@ -435,3 +435,4 @@ switch ($accion) {
         ]);
     break;
 }
+?>

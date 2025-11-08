@@ -44,6 +44,7 @@ CREATE TABLE categoria (
 -- Tabla de clasificaciones
 CREATE TABLE clasificacion (
     clasificacion_id INT NOT NULL AUTO_INCREMENT,
+    clasificacion_codigo VARCHAR(20) NOT NULL,
     clasificacion_nombre VARCHAR(100) NOT NULL,
     categoria_id INT NOT NULL,
     clasificacion_descripcion VARCHAR(200),
@@ -61,6 +62,7 @@ CREATE TABLE estado (
 -- Tabla de áreas
 CREATE TABLE area (
     area_id INT NOT NULL AUTO_INCREMENT,
+    area_codigo VARCHAR(20) NOT NULL,
     area_nombre VARCHAR(100) NOT NULL,
     area_descripcion VARCHAR(200),
     area_estado TINYINT(1) NOT NULL DEFAULT 1,
@@ -70,6 +72,7 @@ CREATE TABLE area (
 -- Tabla de marcas
 CREATE TABLE marca (
     marca_id INT NOT NULL AUTO_INCREMENT,
+    marca_codigo VARCHAR(20) NOT NULL,
     marca_nombre VARCHAR(100) NOT NULL,
     marca_imagen VARCHAR(255),
     marca_estado TINYINT(1) NOT NULL DEFAULT 1,
@@ -150,6 +153,16 @@ CREATE TABLE desincorporacion (
     desin_descripcion VARCHAR(200),
     PRIMARY KEY (desin_id)
 );
+
+-- Valores unicos
+ALTER TABLE clasificacion ADD UNIQUE (clasificacion_codigo);
+ALTER TABLE area ADD UNIQUE (area_codigo);
+ALTER TABLE marca ADD UNIQUE (marca_codigo);
+
+CREATE INDEX idx_usuario_usuario ON usuario(usuario_usuario);
+CREATE INDEX idx_usuario_cedula ON usuario(usuario_cedula);
+CREATE INDEX idx_persona_cedula ON persona(persona_cedula);
+
 
 -- Claves foráneas
 ALTER TABLE usuario ADD CONSTRAINT fk_usuario_rol FOREIGN KEY (rol_id) REFERENCES rol(rol_id);
