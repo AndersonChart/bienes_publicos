@@ -46,44 +46,48 @@ window.addEventListener('load', function () {
             {
                 data: null,
                 render: function (data, type, row) {
-                    const estado = row.usuario_estado;
+                    const estado = parseInt(row.usuario_estado);
+                    const rol = parseInt(usuarioRol);
+                    let botones = '';
 
-                    if (parseInt(usuarioRol) === 2) {
+                    if (rol === 2) {
                         if (estado === 1) {
-                            return `
-                            <div class="acciones">
-                                <div class="icon-action" data-modal-target="new_user" title="Actualizar">
-                                    <img src="img/icons/actualizar.png" alt="Actualizar">
+                            botones += `
+                                <div class="acciones">
+                                    <div class="icon-action" data-modal-target="new_user" title="Actualizar">
+                                        <img src="img/icons/actualizar.png" alt="Actualizar">
+                                    </div>
+                                    <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>
+                                    <div class="icon-action btn_eliminar" data-id="${row.usuario_id}" title="Eliminar">
+                                        <img src="img/icons/eliminar.png" alt="Eliminar">
+                                    </div>
                                 </div>
-                                <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
-                                </div>
-                                <div class="icon-action" data-modal-target="eliminar_usuario" title="Eliminar">
-                                    <img src="img/icons/eliminar.png" alt="Eliminar">
-                                </div>
-                            </div>
                             `;
                         } else {
-                            return `
-                            <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
+                            botones += `
+                                <div class="acciones">
+                                    <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>
+                                    <div class="icon-action btn_recuperar" data-id="${row.usuario_id}" title="Recuperar">
+                                        <img src="img/icons/recuperar.png" alt="Recuperar">
+                                    </div>
                                 </div>
-                                <div class="icon-action btn_recuperar" data-id="${row.usuario_id}" title="Recuperar">
-                                    <img src="img/icons/recuperar.png" alt="Recuperar">
-                                </div>
-                            </div>
                             `;
                         }
                     } else {
-                        return `
-                        <div class="acciones">
-                            <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
-                                <img src="img/icons/info.png" alt="Info">
+                        // Mostrar info sin importar el estado
+                        botones += `
+                            <div class="acciones">
+                                <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
+                                    <img src="img/icons/info.png" alt="Info">
+                                </div>
                             </div>
-                        </div>
                         `;
                     }
+                    return botones;
                 },
                 orderable: false
             }
@@ -152,21 +156,22 @@ window.addEventListener('load', function () {
     });
 
     // Eliminar
-    $('#usuarioTabla tbody').on('click', '.icon-action[title="Eliminar"]', function () {
-        const fila = tabla.row($(this).closest('tr')).data();
-        if (fila?.usuario_id) {
-            fetch('php/usuario_ajax.php', {
-                method: 'POST',
-                body: new URLSearchParams({ accion: 'obtener_usuario', id: fila.usuario_id })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.exito && data.usuario) {
-                    mostrarConfirmacionUsuario(data.usuario, 'eliminar');
-                }
-            });
-        }
+    $('#usuarioTabla tbody').on('click', '.btn_eliminar', function () {
+        const id = $(this).data('id');
+        if (!id) return;
+
+        fetch('php/usuario_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_usuario', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.usuario) {
+                mostrarConfirmacionUsuario(data.usuario, 'eliminar');
+            }
+        });
     });
+
 
     // Recuperar
     $('#usuarioTabla tbody').on('click', '.btn_recuperar', function () {

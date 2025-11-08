@@ -11,24 +11,47 @@ class usuario {
         $this->pdo = Conexion::conectar();
     }
 
-    public function existeCorreo($correo) {
-    $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_correo = ?");
-    $stmt->execute([$correo]);
-    return $stmt->fetchColumn() > 0;
-    }
+    public function existeCorreo($correo, $excluirId = null) {
+        $sql = "SELECT COUNT(*) FROM usuario WHERE usuario_correo = ?";
+        $params = [$correo];
 
-    public function existeCedula($cedula) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ?");
-        $stmt->execute([$cedula]);
+        if ($excluirId !== null) {
+            $sql .= " AND usuario_id != ?";
+            $params[] = $excluirId;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchColumn() > 0;
     }
 
-    public function existeUsuario($usuario) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ?");
-        $stmt->execute([$usuario]);
+    public function existeCedula($cedula, $excluirId = null) {
+        $sql = "SELECT COUNT(*) FROM usuario WHERE usuario_cedula = ?";
+        $params = [$cedula];
+
+        if ($excluirId !== null) {
+            $sql .= " AND usuario_id != ?";
+            $params[] = $excluirId;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchColumn() > 0;
     }
 
+    public function existeUsuario($usuario, $excluirId = null) {
+        $sql = "SELECT COUNT(*) FROM usuario WHERE usuario_usuario = ?";
+        $params = [$usuario];
+
+        if ($excluirId !== null) {
+            $sql .= " AND usuario_id != ?";
+            $params[] = $excluirId;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn() > 0;
+    }
 
     // Para crear nuevo registro
     public function crear($nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado) {

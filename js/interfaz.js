@@ -14,32 +14,39 @@ function mostrarModalExito(mensaje) {
     }
 }
 
-document.getElementById('btn_editar_perfil')?.addEventListener('click', () => {
-    fetch('php/usuario_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'obtener_usuario', id: idUsuarioSesion })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.exito && data.usuario) {
-            const u = data.usuario;
-            document.getElementById('usuario_id').value = u.usuario_id;
-            document.getElementById('nombre').value = u.usuario_nombre;
-            document.getElementById('apellido').value = u.usuario_apellido;
-            document.getElementById('correo').value = u.usuario_correo;
-            document.getElementById('telefono').value = u.usuario_telefono;
-            document.getElementById('tipo_cedula').value = u.usuario_cedula.charAt(0);
-            document.getElementById('numero_cedula').value = u.usuario_cedula.slice(2);
-            document.getElementById('sexo').value = u.usuario_sexo;
-            document.getElementById('direccion').value = u.usuario_direccion;
-            document.getElementById('nac').value = u.usuario_nac;
-            document.getElementById('nombre_usuario').value = u.usuario_usuario;
-            document.getElementById('preview_foto').src = u.usuario_foto || 'img/icons/perfil.png';
+function activarEdicionPerfil() {
+    const btn = document.getElementById('btn_editar_perfil');
+    if (!btn) return;
 
-            document.querySelector('dialog[data-modal="new_user"]')?.showModal();
-        }
+    btn.addEventListener('click', () => {
+        fetch('php/usuario_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_usuario', id: idUsuarioSesion })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.usuario) {
+                const u = data.usuario;
+                document.getElementById('usuario_id').value = u.usuario_id;
+                document.getElementById('nombre').value = u.usuario_nombre;
+                document.getElementById('apellido').value = u.usuario_apellido;
+                document.getElementById('correo').value = u.usuario_correo;
+                document.getElementById('telefono').value = u.usuario_telefono;
+                document.getElementById('tipo_cedula').value = u.usuario_cedula.charAt(0);
+                document.getElementById('numero_cedula').value = u.usuario_cedula.slice(2);
+                document.getElementById('sexo').value = u.usuario_sexo;
+                document.getElementById('direccion').value = u.usuario_direccion;
+                document.getElementById('nac').value = u.usuario_nac;
+                document.getElementById('nombre_usuario').value = u.usuario_usuario;
+                document.getElementById('preview_foto').src = u.usuario_foto || 'img/icons/perfil.png';
+
+                const modal = document.querySelector('dialog[data-modal="new_user"]');
+                if (modal?.showModal) modal.showModal();
+            }
+        });
     });
-});
+}
+
 
 
 //Función global: Limpiar formularios
@@ -178,6 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btncrear) btncrear.disabled = false;
 
 });
+
+window.addEventListener('load', () => {
+    activarEdicionPerfil();
+});
+
 
 /*MODULO USUARIO*/
 
@@ -392,14 +404,11 @@ document.querySelector('.modal__close')?.addEventListener('click', function () {
 function mostrarConfirmacionUsuario(data, modo = 'eliminar') {
     const foto = data.usuario_foto?.trim() !== '' ? data.usuario_foto : 'img/icons/perfil.png';
     document.getElementById('confirmar_foto').src = foto;
-    document.getElementById('confirmar_nombre').textContent = data.usuario_nombre || '';
-    document.getElementById('confirmar_apellido').textContent = data.usuario_apellido || '';
-    document.getElementById('confirmar_usuario').textContent = data.usuario_usuario || '';
 
-    const titulo = modo === 'recuperar'
-        ? '¿Estás seguro de recuperar este usuario?'
-        : '¿Estás seguro de deshabilitar este usuario?';
-    document.getElementById('confirmar_titulo').innerHTML = titulo;
+    document.getElementById('confirmar_nombre_completo').textContent =
+        `${data.usuario_nombre || ''} ${data.usuario_apellido || ''}`.trim();
+
+    document.getElementById('confirmar_usuario').textContent = data.usuario_usuario || '';
 
     const form = document.getElementById('form_confirmar_usuario');
     form.dataset.usuarioId = data.usuario_id;
@@ -408,6 +417,7 @@ function mostrarConfirmacionUsuario(data, modo = 'eliminar') {
     const modal = document.querySelector('dialog[data-modal="confirmar_usuario"]');
     if (modal?.showModal) modal.showModal();
 }
+
 
 
 //Eliminar/recuperar Usuario
@@ -431,18 +441,12 @@ document.getElementById('form_confirmar_usuario')?.addEventListener('submit', fu
     .then(res => res.json())
     .then(data => {
         if (data.exito) {
-            // Mostrar modal de éxito
-            document.getElementById('success-message').textContent = data.mensaje || 'Operación completada';
-            const modalSuccess = document.querySelector('dialog[data-modal="success"]');
-            if (modalSuccess?.showModal) {
-                modalSuccess.showModal();
-            }
+            // Cerrar primero el modal de confirmación
+            const modalConfirmar = document.querySelector('dialog[data-modal="confirmar_usuario"]');
+            if (modalConfirmar?.open) modalConfirmar.close();
 
-            // Cerrar modal de confirmación después de mostrar el de éxito
-            setTimeout(() => {
-                const modal = document.querySelector('dialog[data-modal="confirmar_usuario"]');
-                if (modal?.open) modal.close();
-            }, 100);
+            // Mostrar modal de éxito
+            mostrarModalExito(data.mensaje || 'Operación completada');
 
             // Recargar tabla
             $('#usuarioTabla').DataTable().ajax.reload(null, false);

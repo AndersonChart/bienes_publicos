@@ -4,7 +4,9 @@
 <script src="js/dataTables.select.min.js"></script>
 <script src="js/dataTables.responsive.min.js"></script>
 <script src="js/dataTables.scroller.min.js"></script>
-<script src="js/vistaUsuario.js"></script>
+<script>
+    const idUsuarioSesion = <?= $_SESSION['id'] ?>;
+</script>
 <script src="js/interfaz.js"></script>
 
 <?php

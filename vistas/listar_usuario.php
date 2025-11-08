@@ -106,16 +106,6 @@
         </form>
     </dialog>
 
-    <!-- Mensaje de exito -->
-    <dialog data-modal="success" class="modal modal_success">
-        <form method="dialog">
-            <div class="modal_icon"></div>
-            <h2 class="modal_title">¡Proceso éxitoso!</h2>
-            <p class="modal_success-message" id="success-message"></p>
-            <button class="modal__close-success" id="close-success">Aceptar</button>
-        </form>
-    </dialog>
-
     <!-- Información de registro -->
     <dialog data-modal="info_usuario" class="modal modal_info">
         <div class="modal_header-info">
@@ -144,52 +134,66 @@
             </ul>
         </div>
     </dialog>
+    
+    <!-- Mensaje de exito -->
+    <dialog data-modal="success" class="modal modal_success">
+        <form method="dialog">
+            <div class="modal_icon"></div>
+            <h2 class="modal_title">¡Proceso éxitoso!</h2>
+            <p class="modal_success-message" id="success-message"></p>
+            <button class="modal__close-success" id="close-success">Aceptar</button>
+        </form>
+    </dialog>
+
+    
 
     <!-- Confirmación de eliminar -->
-    <dialog data-modal="eliminar_usuario" class="modal modal_delete">
-        <div class="modal_header-delete">
-            <h2 class="modal_title modal_title-delete">¿Estás seguro de deshabilitar <br> este usuario?</h2>
-        </div>
-        <!-- Foto de perfil -->
-        <div class="img_info">
-            <img id="delete_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
-        </div>
-        <!-- Contenedor de usuario relevante -->
-        <div class="delete_container">
-            <span class="delete_data-title" id="delete_usuario"></span>
-            <span class="delete_data" id="delete_nombre"></span>
-            <span class="delete_data" id="delete_apellido"></span>
-        </div>
+<dialog data-modal="eliminar_usuario" class="modal modal_confirmar">
+    <div class="modal_header-confirmar">
+        <h2 class="modal_title">¿Estás seguro de deshabilitar <br> este usuario?</h2>
+    </div>
+    <div class="img_info">
+        <img id="delete_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+    </div>
+    <div class="delete_container">
+        <span class="delete_data-title" id="delete_usuario"></span>
+        <span class="delete_data" id="delete_nombre"></span>
+        <span class="delete_data" id="delete_apellido"></span>
+    </div>
+    <div class="modal_delete-buttons">
         <form method="dialog">
-                <button class="modal__close modal__close-delete">Cancelar</button>
+            <button class="modal__close modal__close-confirm">Cancelar</button>
         </form>
         <form id="form_delete_usuario" method="POST">
-            <input type="submit" value="Aceptar" name="delete" class="register_submit" id="btn_borrar">
-        </form>    
-        <div id="error-container" class="error-container"></div>
-    </dialog>
+            <input type="submit" value="Aceptar" name="delete" class="register_submit-confirm" id="btn_borrar">
+        </form>
+    </div>
+    <div id="error-container" class="error-container"></div>
+</dialog>
 
-    <!-- Confirmación -->
-    <dialog data-modal="confirmar_usuario" class="modal modal_confirmar">
-        <div class="modal_header-confirmar">
-            <h2 class="modal_title modal_title-confirmar" id="confirmar_titulo"></h2>
-        </div>
-        <div class="img_info">
-            <img id="confirmar_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
-        </div>
-        <div class="delete_container">
-            <span class="delete_data-title" id="confirmar_usuario"></span>
-            <span class="delete_data" id="confirmar_nombre"></span>
-            <span class="delete_data" id="confirmar_apellido"></span>
-        </div>
+<!-- Confirmación de recuperar -->
+<dialog data-modal="confirmar_usuario" class="modal modal_confirmar">
+    <div class="modal_header-confirmar">
+        <h2 class="modal_title">¿Estás seguro de recuperar <br> este usuario?</h2>
+    </div>
+    <div class="img_info">
+        <img id="confirmar_foto" src="img/icons/perfil.png" alt="Foto de perfil" class="foto_info">
+    </div>
+    <div class="delete_container">
+        <span class="delete_data-title" id="confirmar_usuario"></span>
+        <span class="delete_data" id="confirmar_nombre_completo"></span>
+    </div>
+    <div class="modal_delete-buttons">
         <form method="dialog">
-            <button class="modal__close modal__close-confirmar">Cancelar</button>
+            <button class="modal__close modal__close-confirm">Cancelar</button>
         </form>
         <form id="form_confirmar_usuario" method="POST">
-            <input type="submit" value="Aceptar" class="register_submit" id="btn_confirmar">
+            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar">
         </form>
-        <div id="error-container-confirmar" class="error-container"></div>
-    </dialog>
+    </div>
+    <div id="error-container-confirmar" class="error-container"></div>
+</dialog>
+
 
 
 

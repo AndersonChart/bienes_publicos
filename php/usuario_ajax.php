@@ -100,22 +100,42 @@ function validarUsuario($datos, $modo = 'crear', $id = null) {
         ];
     }
 
+    foreach ($datos as $clave => $valor) {
+        $datos[$clave] = trim($valor);
+    }
+
+
     // Validación de duplicados (solo en modo crear o si cambió el dato)
     $erroresDuplicados = [];
 
-    if ($modo === 'crear' || ($modo === 'actualizar' && $usuario->existeCorreo($datos['usuario_correo']) && $usuario->leer_por_id($id)['usuario_correo'] !== $datos['usuario_correo'])) {
+    $original = ($modo === 'actualizar' && $id) ? $usuario->leer_por_id($id) : [];
+
+    if ($modo === 'crear' && $usuario->existeCorreo($datos['usuario_correo'])) {
         $erroresDuplicados['usuario_correo'] = 'Correo ya registrado';
     }
 
-    if ($modo === 'crear' || ($modo === 'actualizar' && $usuario->existeCedula($datos['usuario_cedula']) && $usuario->leer_por_id($id)['usuario_cedula'] !== $datos['usuario_cedula'])) {
+    if ($modo === 'crear' && $usuario->existeCedula($datos['usuario_cedula'])) {
         $erroresDuplicados['usuario_cedula'] = 'Cédula ya registrada';
     }
 
-    if ($modo === 'crear' || ($modo === 'actualizar' && $usuario->existeUsuario($datos['usuario_usuario']) && $usuario->leer_por_id($id)['usuario_usuario'] !== $datos['usuario_usuario'])) {
+    if ($modo === 'crear' && $usuario->existeUsuario($datos['usuario_usuario'])) {
         $erroresDuplicados['usuario_usuario'] = 'Usuario ya registrado';
     }
 
-    
+    if ($modo === 'actualizar' && isset($original['usuario_correo']) && $datos['usuario_correo'] !== $original['usuario_correo'] && $usuario->existeCorreo($datos['usuario_correo'], $id)) {
+    $erroresDuplicados['usuario_correo'] = 'Correo ya registrado';
+    }
+
+    if ($modo === 'actualizar' && isset($original['usuario_cedula']) && $datos['usuario_cedula'] !== $original['usuario_cedula'] && $usuario->existeCedula($datos['usuario_cedula'], $id)) {
+        $erroresDuplicados['usuario_cedula'] = 'Cédula ya registrada';
+    }
+
+    if ($modo === 'actualizar' && isset($original['usuario_usuario']) && $datos['usuario_usuario'] !== $original['usuario_usuario'] && $usuario->existeUsuario($datos['usuario_usuario'], $id)) {
+        $erroresDuplicados['usuario_usuario'] = 'Usuario ya registrado';
+    }
+
+
+
     if (!empty($erroresDuplicados)) {
         $primerCampo = array_key_first($erroresDuplicados);
         return [
@@ -365,21 +385,30 @@ switch ($accion) {
 
 
     case 'deshabilitar_usuario':
-        header('Content-Type: application/json');
+    header('Content-Type: application/json');
 
+    try {
         $id = $_POST['id'] ?? '';
         if (!$id) {
-            echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
-            exit;
+            throw new Exception('ID no proporcionado');
         }
 
-        $resultado = $usuario->desincorporar($id);
-        if ($resultado) {
-            echo json_encode(['exito' => true, 'mensaje' => 'Usuario deshabilitado correctamente']);
-        } else {
-            echo json_encode(['error' => true, 'mensaje' => 'No se pudo deshabilitar el usuario']);
-        }
+        $exito = $usuario->desincorporar($id);
+
+        echo json_encode([
+            'exito' => $exito,
+            'mensaje' => $exito ? 'Usuario deshabilitado correctamente' : 'No se pudo deshabilitar el usuario'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'exito' => false,
+            'mensaje' => 'Error al deshabilitar usuario',
+            'detalle' => $e->getMessage()
+        ]);
+    }
     break;
+
 
     case 'recuperar_usuario':
         try {
