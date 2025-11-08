@@ -166,7 +166,6 @@
                 <input type="submit" value="Aceptar" name="delete" class="register_submit-confirm" id="btn_borrar">
             </form>
         </div>
-        <div id="error-container-eliminar" class="error-container"></div>
     </dialog>
 
     <!-- Confirmación de recuperar -->
@@ -189,7 +188,6 @@
                 <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar">
             </form>
         </div>
-        <div id="error-container-confirmar" class="error-container"></div>
     </dialog>
 
 

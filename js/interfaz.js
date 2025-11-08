@@ -69,10 +69,10 @@ function cargarCategorias(selector, opciones = {}) {
             contenedor.innerHTML = '';
             if (opciones.includeDefault) {
                 const defaultOption = document.createElement('option');
-                defaultOption.value = '';
+                defaultOption.value = 'Seleccione';
                 defaultOption.disabled = true;
                 defaultOption.selected = true;
-                defaultOption.textContent = 'Seleccione una categoría';
+                defaultOption.textContent = '';
                 contenedor.appendChild(defaultOption);
             }
 
@@ -81,22 +81,6 @@ function cargarCategorias(selector, opciones = {}) {
                 option.value = cat.categoria_id;
                 option.textContent = cat.categoria_nombre;
                 contenedor.appendChild(option);
-            });
-        }
-
-        
-
-        // Si es un contenedor de checkboxes
-        if (contenedor.classList.contains('categoria-checkboxes')) {
-            contenedor.innerHTML = '';
-            data.forEach(cat => {
-                const label = document.createElement('label');
-                label.className = 'checkbox-inline';
-                label.innerHTML = `
-                    <input type="checkbox" name="categoria_filtro" value="${cat.categoria_id}">
-                    ${cat.categoria_nombre}
-                `;
-                contenedor.appendChild(label);
             });
         }
 
@@ -255,7 +239,7 @@ window.addEventListener('load', () => {
 /*MODULO USUARIO*/
 
 //Función: formulario de actualizar usuario
-function abrirFormularioEdicion(id) {
+function abrirFormularioEdicionUsuario(id) {
     fetch('php/usuario_ajax.php', {
         method: 'POST',
         body: new URLSearchParams({ accion: 'obtener_usuario', id })
@@ -414,8 +398,10 @@ function mostrarInfoUsuario(data) {
     }
 
     // Traducir sexo binario
-    const sexoTraducido =   data.usuario_sexo === 0 ? 'M' :
-                            data.usuario_sexo === 1 ? 'F' : '';
+        const sexo = Number(data.usuario_sexo);
+        const sexoTraducido =   sexo === 0 ? 'M' :
+                                sexo === 1 ? 'F' : '';
+
 
     // Datos personales
     document.getElementById('info_nombre').textContent = data.usuario_nombre || '';
@@ -525,38 +511,37 @@ document.getElementById('form_confirmar_usuario')?.addEventListener('submit', fu
 /* SUBMODULO CLASIFICACION */
 
 // Función: formulario de actualizar clasificación
-function abrirFormularioEdicion(id) {
-    // Primero cargar las categorías
-    cargarCategorias('#categoria', {
-        includeDefault: true,
-        onComplete: () => {
-            // Luego obtener los datos del registro
-            fetch('php/clasificacion_ajax.php', {
-                method: 'POST',
-                body: new URLSearchParams({ accion: 'obtener_clasificacion', id })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.exito || !data.clasificacion) return;
+function abrirFormularioEdicionClasificacion(id) {
+    const form = document.getElementById('form_nueva_clasificacion');
+    if (!form) return;
 
-                const c = data.clasificacion;
-                const form = document.getElementById('form_nueva_clasificacion');
-                if (!form) return;
+    const cargar = new Promise(resolve => {
+        cargarCategorias('#categoria_form', {
+            includeDefault: true,
+            onComplete: resolve
+        });
+    });
 
-                form.clasificacion_id.value = c.clasificacion_id;
-                form.codigo.value = c.clasificacion_codigo;
-                form.nombre.value = c.clasificacion_nombre;
-                form.descripcion.value = c.clasificacion_descripcion;
+    const obtener = fetch('php/clasificacion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_clasificacion', id })
+    }).then(res => res.json());
 
-                // Asignar la categoría después de que el select esté poblado
-                form.categoria.value = c.categoria_id;
+    Promise.all([cargar, obtener]).then(([_, data]) => {
+        if (!data.exito || !data.clasificacion) return;
 
-                const modal = document.querySelector('[data-modal="new_clasificacion"]');
-                if (modal) modal.showModal();
-            });
-        }
+        const c = data.clasificacion;
+        form.clasificacion_id.value = c.clasificacion_id;
+        form.codigo.value = c.clasificacion_codigo;
+        form.nombre.value = c.clasificacion_nombre;
+        form.descripcion.value = c.clasificacion_descripcion;
+        form.querySelector('[name="categoria_id"]').value = c.categoria_id;
+
+        const modal = document.querySelector('[data-modal="new_clasificacion"]');
+        if (modal) modal.showModal();
     });
 }
+
 
 
 // Crear o actualizar clasificación
@@ -566,8 +551,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //Seleccion de categoria
     document.querySelector('[data-modal-target="new_clasificacion"]')?.addEventListener('click', () => {
-        cargarCategorias('#categoria', { includeDefault: true });
-    });
+    const modal = document.querySelector('[data-modal="new_clasificacion"]');
+    if (modal?.showModal) modal.showModal();
+
+    // Esperar a que el modal esté visible antes de cargar categorías
+    setTimeout(() => {
+        cargarCategorias('#categoria_form', { includeDefault: true });
+    }, 100); // pequeño delay para asegurar que el DOM esté listo
+});
+
 
 
     form.addEventListener('submit', function (e) {
@@ -732,9 +724,9 @@ document.getElementById('form_confirmar_clasificacion')?.addEventListener('submi
         console.error('Error de conexión con el servidor');
     });
 });
-
+//Filtros de categorias
 document.addEventListener('change', function (e) {
-    if (e.target.matches('#categoria')) {
+    if (e.target.matches('#categoria_filtro')) {
         $('#clasificacionTabla').DataTable().ajax.reload(null, false);
     }
 });

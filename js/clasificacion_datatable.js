@@ -20,7 +20,7 @@ window.addEventListener('load', function () {
             data: function (d) {
                 d.accion = 'leer_todos';
                 d.estado = estadoActual;
-                d.categoria_id = document.getElementById('categoria')?.value || '';
+                d.categoria_id = document.getElementById('categoria_filtro')?.value || '';
             },
             dataSrc: 'data',
             error: function (xhr, status, error) {

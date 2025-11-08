@@ -1,7 +1,8 @@
 <div class="banner_list">
     <div class="filters">
-        <select name="categoria_id" id="categoria" class="input_text input_select">
-            <option value="" selected disabled></option>
+        <!-- Filtro -->
+        <select name="categoria_id" id="categoria_filtro" class="input_text input_select">
+            <option value="" selected disabled>Seleccione</option>
         </select>
     </div>
     <div class="basics-container">
@@ -40,7 +41,7 @@
 
             <div class="input_block_content">
                 <label for="categoria" class="input_label">Categoría</label>
-                <select name="categoria_id" id="categoria" class="input_text input_select">
+                <select name="categoria_id" id="categoria_form" class="input_text input_select"></select>
                     <option value="" selected disabled></option>
                     
                 </select>
