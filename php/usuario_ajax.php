@@ -320,6 +320,14 @@ switch ($accion) {
 
             // Procesar imagen si se envía, si no mantener la actual
             if (isset($_FILES['usuario_foto']) && $_FILES['usuario_foto']['error'] === UPLOAD_ERR_OK) {
+                // Eliminar foto anterior si existe
+                if (!empty($actual['usuario_foto'])) {
+                    $rutaAnterior = '../' . $actual['usuario_foto'];
+                    if (file_exists($rutaAnterior)) {
+                        unlink($rutaAnterior);
+                    }
+                }
+
                 $nombreCompleto = $datos['usuario_nombre'] . '_' . $datos['usuario_apellido'];
                 $nombreLimpio = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($nombreCompleto));
                 $extension = pathinfo($_FILES['usuario_foto']['name'], PATHINFO_EXTENSION);
@@ -338,7 +346,6 @@ switch ($accion) {
             } else {
                 $datos['usuario_foto'] = $actual['usuario_foto'];
             }
-
 
             $rol = isset($_POST['rol_id']) ? $_POST['rol_id'] : $actual['rol_id'];
             $estado = 1;

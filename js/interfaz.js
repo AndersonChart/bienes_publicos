@@ -38,14 +38,24 @@ function activarEdicionPerfil() {
                 document.getElementById('direccion').value = u.usuario_direccion;
                 document.getElementById('nac').value = u.usuario_nac;
                 document.getElementById('nombre_usuario').value = u.usuario_usuario;
-                document.getElementById('preview_foto').src = u.usuario_foto || 'img/icons/perfil.png';
+
+                const foto = u.usuario_foto || 'img/icons/perfil.png';
+                const fotoConTimestamp = foto + '?t=' + new Date().getTime();
+
+                // Actualizar previsualización en el formulario
+                document.getElementById('preview_foto').src = fotoConTimestamp;
+
+                // Actualizar avatar del header
+                const avatarHeader = document.getElementById('foto_usuario_header');
+                if (avatarHeader) avatarHeader.src = fotoConTimestamp;
 
                 const modal = document.querySelector('dialog[data-modal="new_user"]');
                 if (modal?.showModal) modal.showModal();
             }
         });
     });
-}
+}   
+
 
 /**
  * Carga categorías desde el backend y las inserta en un elemento select o contenedor.
@@ -255,7 +265,7 @@ window.addEventListener('load', () => {
 /*MODULO USUARIO*/
 
 //Función: formulario de actualizar usuario
-function abrirFormularioEdicion(id) {
+function abrirFormularioEdicionUsuario(id) {
     fetch('php/usuario_ajax.php', {
         method: 'POST',
         body: new URLSearchParams({ accion: 'obtener_usuario', id })
@@ -293,7 +303,7 @@ function abrirFormularioEdicion(id) {
 }
 
 
-//Crear usuario
+//Crear/actualizar usuario
 document.addEventListener('DOMContentLoaded', function () {
     const inputFoto = document.getElementById('foto');
     const previewFoto = document.getElementById('preview_foto');
@@ -332,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('rol_id', '1');
         }
 
-
         // Acción condicional
         const accion = usuarioId ? 'actualizar' : 'crear';
         formData.append('accion', accion);
@@ -348,54 +357,73 @@ document.addEventListener('DOMContentLoaded', function () {
             errorContainer.innerHTML = '';
             errorContainer.style.display = 'none';
 
-        if (data.error) {
-            errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
-            errorContainer.style.display = 'block';
+            if (data.error) {
+                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                errorContainer.style.display = 'block';
 
-            if (data.campos && Array.isArray(data.campos)) {
-                data.campos.forEach((campo, index) => {
-                    let input = form.querySelector(`[name="${campo}"]`);
-                    if (campo === 'usuario_cedula') input = document.getElementById('numero_cedula');
-                    if (campo === 'usuario_foto') input = inputFoto;
-                    if (input) {
-                        const contenedor = input.closest('.input_text');
-                        if (contenedor) {
-                            contenedor.classList.add('input-error');
-                        } else {
-                            input.classList.add('input-error');
+                if (data.campos && Array.isArray(data.campos)) {
+                    data.campos.forEach((campo, index) => {
+                        let input = form.querySelector(`[name="${campo}"]`);
+                        if (campo === 'usuario_cedula') input = document.getElementById('numero_cedula');
+                        if (campo === 'usuario_foto') input = inputFoto;
+                        if (input) {
+                            const contenedor = input.closest('.input_text');
+                            if (contenedor) {
+                                contenedor.classList.add('input-error');
+                            } else {
+                                input.classList.add('input-error');
+                            }
+                            if (index === 0) input.focus();
                         }
-                        if (index === 0) input.focus();
-                    }
-                });
-            }
-        } else if (data.exito) {
-            const esActualizacion = !!document.getElementById('usuario_id').value;
-            const mensaje = esActualizacion ? "Usuario actualizado con éxito" : "Usuario registrado con éxito";
-            
-
-            // Solo cerrar el modal si fue una actualización
-            if (esActualizacion) {
-                const modalFormulario = document.querySelector('dialog[data-modal="new_user"]');
-                if (modalFormulario && modalFormulario.open) {
-                    modalFormulario.close();
+                    });
                 }
+            } else if (data.exito) {
+                const esActualizacion = !!usuarioId;
+                const mensaje = esActualizacion ? "Usuario actualizado con éxito" : "Usuario registrado con éxito";
+
+                // Solo cerrar el modal si fue una actualización
+                if (esActualizacion) {
+                    const modalFormulario = document.querySelector('dialog[data-modal="new_user"]');
+                    if (modalFormulario && modalFormulario.open) {
+                        modalFormulario.close();
+                    }
+                }
+
+                mostrarModalExito(mensaje);
+
+                // Si el usuario actualizado es el que está en sesión, refrescar su foto en el header
+                if (usuarioId && usuarioId === String(idUsuarioSesion)) {
+                    fetch('php/usuario_ajax.php', {
+                        method: 'POST',
+                        body: new URLSearchParams({ accion: 'obtener_usuario', id: usuarioId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exito && data.usuario) {
+                            const nuevaFoto = data.usuario.usuario_foto || 'img/icons/perfil.png';
+                            const avatarHeader = document.getElementById('foto_usuario_header');
+                            if (avatarHeader) {
+                                avatarHeader.src = nuevaFoto + '?t=' + new Date().getTime();
+                            }
+                        }
+                    });
+                }
+
+                // Limpiar formulario para siguiente registro
+                limpiarFormulario(form);
+                // Recarga la tabla
+                $('#usuarioTabla').DataTable().ajax.reload(null, false);
             }
-
-            mostrarModalExito(mensaje);
-
-            // Limpiar formulario para siguiente registro
-            limpiarFormulario(form);
-            // Recarga la tabla
-            $('#usuarioTabla').DataTable().ajax.reload(null, false);
-        }
-    })
-    .catch(() => {
-        errorContainer.innerHTML = 'Hubo un error con el servidor';
-        errorContainer.style.display = 'block';
+        })
+        .catch(() => {
+            errorContainer.innerHTML = 'Hubo un error con el servidor';
+            errorContainer.style.display = 'block';
+        });
     });
 });
-});
 
+
+//funcion INFO USUARIO
 function mostrarInfoUsuario(data) {
     // Foto de perfil
     const foto = data.usuario_foto && data.usuario_foto.trim() !== ''
@@ -461,7 +489,9 @@ document.querySelector('.modal__close')?.addEventListener('click', function () {
     }
 });
 
-//Mostrar datos en confirmacion
+
+
+//funcion: mostrar datos en confirmacion
 function mostrarConfirmacionUsuario(data, modo = 'eliminar') {
     const foto = data.usuario_foto?.trim() !== '' ? data.usuario_foto : 'img/icons/perfil.png';
     document.getElementById('confirmar_foto').src = foto;
@@ -480,8 +510,7 @@ function mostrarConfirmacionUsuario(data, modo = 'eliminar') {
 }
 
 
-
-//Eliminar/recuperar Usuario
+//funcion: Eliminar/recuperar Usuario
 document.getElementById('form_confirmar_usuario')?.addEventListener('submit', function (e) {
     e.preventDefault();
 

@@ -19,7 +19,7 @@
                 <h3 class="inicio-username"><?php echo $_SESSION["nombre"] ."<br>".$_SESSION["apellido"]; ?></h3>
             </div>
             <div class="inicio-avatar" id="btn_editar_perfil" title="Editar perfil">
-                <img src="<?php echo $_SESSION['usuario_foto'] ?: 'img/icons/perfil.png'; ?>" alt="Foto de Perfil">
+                <img id="foto_usuario_header" src="<?php echo $_SESSION['usuario_foto'] ?: 'img/icons/perfil.png'; ?>" alt="Foto de Perfil">
             </div>
 
             <!-- Formulario registro/actualización -->

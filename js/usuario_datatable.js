@@ -134,7 +134,7 @@ window.addEventListener('load', function () {
     $('#usuarioTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
         if (fila && fila.usuario_id) {
-            abrirFormularioEdicion(fila.usuario_id);
+            abrirFormularioEdicionUsuario(fila.usuario_id);
         }
     });
 
