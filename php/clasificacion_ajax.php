@@ -109,10 +109,12 @@ switch ($accion) {
     case 'leer_todos':
         try {
             $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
-            $registros = $clasificacion->leer_por_estado($estado);
+            $categoriaId = $_POST['categoria_id'] ?? null;
+
+            $registros = $clasificacion->leer_por_estado($estado, $categoriaId);
             echo json_encode(['data' => $registros]);
         } catch (Exception $e) {
-            http_response_code(500); // opcional: marca error HTTP
+            http_response_code(500);
             echo json_encode([
                 'data' => [],
                 'error' => true,
@@ -121,7 +123,6 @@ switch ($accion) {
             ]);
         }
     break;
-
     
     case 'crear':
         try {
@@ -243,28 +244,28 @@ switch ($accion) {
 
 
     case 'deshabilitar_clasificacion':
-    header('Content-Type: application/json');
+        header('Content-Type: application/json');
 
-    try {
-        $id = $_POST['id'] ?? '';
-        if (!$id) {
-            throw new Exception('ID no proporcionado');
+        try {
+            $id = $_POST['id'] ?? '';
+            if (!$id) {
+                throw new Exception('ID no proporcionado');
+            }
+
+            $exito = $clasificacion->desincorporar($id);
+
+            echo json_encode([
+                'exito' => $exito,
+                'mensaje' => $exito ? 'clasificacion deshabilitado correctamente' : 'No se pudo deshabilitar el clasificacion'
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'Error al deshabilitar clasificacion',
+                'detalle' => $e->getMessage()
+            ]);
         }
-
-        $exito = $clasificacion->desincorporar($id);
-
-        echo json_encode([
-            'exito' => $exito,
-            'mensaje' => $exito ? 'clasificacion deshabilitado correctamente' : 'No se pudo deshabilitar el clasificacion'
-        ]);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'exito' => false,
-            'mensaje' => 'Error al deshabilitar clasificacion',
-            'detalle' => $e->getMessage()
-        ]);
-    }
     break;
 
 

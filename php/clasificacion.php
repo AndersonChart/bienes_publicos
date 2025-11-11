@@ -61,10 +61,13 @@ class clasificacion {
             $params[] = $categoriaId;
         }
 
+        $sql .= " ORDER BY c.clasificacion_nombre ASC";
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
 
     // Leer un registro por ID (para actualizar un registro)

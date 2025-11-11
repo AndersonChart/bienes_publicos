@@ -100,6 +100,14 @@ window.addEventListener('load', function () {
         pageLength: 15,
     });
 
+    // Filtro por categoría
+    const categoriaFiltro = document.getElementById('categoria_filtro');
+    if (categoriaFiltro) {
+        categoriaFiltro.addEventListener('change', () => {
+            tabla.ajax.reload(null, false);
+        });
+    }
+
     // Botón para alternar entre habilitados y deshabilitados
     toggleBtn.addEventListener('click', () => {
         estadoActual = estadoActual === 0 ? 1 : 0;
@@ -137,7 +145,7 @@ window.addEventListener('load', function () {
         .then(res => res.json())
         .then(data => {
             if (data.exito && data.clasificacion) {
-                mostrarInfoclasificacion(data.clasificacion);
+                mostrarInfoClasificacion(data.clasificacion);
             }
         });
     });

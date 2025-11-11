@@ -60,7 +60,7 @@
             <form method="dialog">
                 <button class="modal__close">X</button>
             </form>
-            <h2 class="modal_title modal_title-info">Información del clasificacion</h2>
+            <h2 class="modal_title modal_title-info">Información de la clasificación</h2>
         </div>
 
         <!-- Contenedor de datos con scroll si excede -->
@@ -87,7 +87,7 @@
     <!-- Confirmación de eliminar -->
     <dialog data-modal="eliminar_clasificacion" class="modal modal_confirmar">
         <div class="modal_header-confirmar">
-            <h2 class="modal_title">¿Estás seguro de deshabilitar <br> esta clasificacion?</h2>
+            <h2 class="modal_title">¿Estás seguro de deshabilitar <br> esta clasificación?</h2>
         </div>
         <div class="delete_container">
             <span class="delete_data-title" id="delete_codigo"></span>
@@ -107,7 +107,7 @@
     <!-- Confirmación de recuperar -->
     <dialog data-modal="confirmar_clasificacion" class="modal modal_confirmar">
         <div class="modal_header-confirmar">
-            <h2 class="modal_title">¿Estás seguro de recuperar <br> esta clasificacion?</h2>
+            <h2 class="modal_title">¿Estás seguro de recuperar <br> esta clasificación?</h2>
         </div>
         <div class="delete_container">
             <span class="delete_data-title" id="confirmar_codigo"></span>

@@ -187,6 +187,38 @@ function limpiarInfoUsuario() {
     }
 }
 
+function limpiarFormularioMarca() {
+    const form = document.getElementById('form_nueva_marca');
+    if (!form) return;
+
+    form.reset();
+
+    form.querySelectorAll('.input-error').forEach(el => {
+        el.classList.remove('input-error');
+    });
+
+    const errorContainer = document.getElementById('error_container_marca');
+    if (errorContainer) {
+        errorContainer.innerHTML = '';
+        errorContainer.style.display = 'none';
+    }
+
+    const preview = document.getElementById('preview_foto_marca');
+    if (preview) {
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+    }
+
+    const idInput = document.getElementById('marca_id');
+    if (idInput) {
+        idInput.value = '';
+    }
+}
+
+
+
+
+
 //Mostrar contraseña al presionar el ojo
 document.addEventListener("click", function (e) {
     if (e.target.classList.contains("eye-icon")) {
@@ -274,12 +306,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btncrear) btncrear.disabled = false;
 
     cargarCategorias();
+    mantenerFotoUsuarioActualizada();
 });
 
 //Al cargar que pueda hacer las siguiente funciones
 window.addEventListener('load', () => {
     activarEdicionPerfil();
-    mantenerFotoUsuarioActualizada();
 });
 
 
@@ -613,9 +645,6 @@ function abrirFormularioEdicionClasificacion(id) {
     });
 }
 
-
-
-
 // Crear o actualizar clasificación
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('form_nueva_clasificacion');
@@ -689,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Mostrar información de clasificación
-function mostrarInfoclasificacion(data) {
+function mostrarInfoClasificacion(data) {
     document.getElementById('info_codigo').textContent = data.clasificacion_codigo || '';
     document.getElementById('info_nombre').textContent = data.clasificacion_nombre || '';
     document.getElementById('info_descripcion').textContent = data.clasificacion_descripcion || '';
@@ -797,4 +826,200 @@ document.addEventListener('change', function (e) {
     if (e.target.matches('#categoria_filtro')) {
         $('#clasificacionTabla').DataTable().ajax.reload(null, false);
     }
+});
+
+
+/* SUBMODULO MARCA */
+
+// Función: formulario de actualizar marca
+function abrirFormularioEdicionMarca(id) {
+    const form = document.getElementById('form_nueva_marca');
+    if (!form) return;
+
+    fetch('php/marca_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_marca', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.exito || !data.marca) return;
+
+        const m = data.marca;
+        form.querySelector('#marca_id').value = m.marca_id;
+        form.querySelector('#codigo_marca').value = m.marca_codigo;
+        form.querySelector('#nombre_marca').value = m.marca_nombre;
+
+        const preview = document.getElementById('preview_foto_marca');
+        const icono = document.querySelector('.foto_perfil_icon');
+
+        if (m.marca_imagen && m.marca_imagen.trim() !== '') {
+            preview.src = m.marca_imagen + '?t=' + new Date().getTime();
+            preview.style.display = 'block';
+            icono.style.opacity = '0';
+        } else {
+            preview.src = '';
+            preview.style.display = 'none';
+            icono.style.opacity = '1';
+        }
+
+        const modal = document.querySelector('[data-modal="new_marca"]');
+        if (modal?.showModal) modal.showModal();
+    })
+    .catch(err => {
+        console.error('Error al obtener marca:', err);
+    });
+}
+
+// Crear o actualizar marca
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('form_nueva_marca');
+    const errorContainer = document.getElementById('error_container_marca');
+    const inputFoto = document.getElementById('foto_marca');
+    const previewFoto = document.getElementById('preview_foto_marca');
+    const icono = document.querySelector('.foto_perfil_icon');
+
+    // Previsualizar imagen
+    inputFoto.addEventListener('change', function () {
+        const archivo = this.files[0];
+        if (archivo) {
+            const lector = new FileReader();
+            lector.onload = function (e) {
+                previewFoto.src = e.target.result;
+                previewFoto.style.display = 'block';y
+            };
+            lector.readAsDataURL(archivo);
+        }
+    });
+
+    // Abrir modal
+    document.querySelector('[data-modal-target="new_marca"]')?.addEventListener('click', () => {
+        const modal = document.querySelector('[data-modal="new_marca"]');
+        if (modal?.showModal) modal.showModal();
+        limpiarFormularioMarca(form);
+    });
+
+    // Envío del formulario
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const marcaId = document.getElementById('marca_id').value;
+        const formData = new FormData(form);
+        const accion = marcaId ? 'actualizar' : 'crear';
+
+        formData.append('accion', accion);
+        if (marcaId) formData.append('marca_id', marcaId);
+
+        fetch('php/marca_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+
+            if (data.error) {
+                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                errorContainer.style.display = 'block';
+
+                if (data.campos && Array.isArray(data.campos)) {
+                    data.campos.forEach((campo, index) => {
+                        const input = form.querySelector(`[name="${campo}"]`);
+                        if (input) {
+                            input.classList.add('input-error');
+                            if (index === 0) input.focus();
+                        }
+                    });
+                }
+            } else if (data.exito) {
+                const mensaje = marcaId ? "Marca actualizada con éxito" : "Marca registrada con éxito";
+                document.querySelector('dialog[data-modal="new_marca"]')?.close();
+                mostrarModalExito(mensaje);
+                limpiarFormularioMarca(form);
+                $('#marcaTabla').DataTable().ajax.reload(null, false);
+            }
+        })
+        .catch(() => {
+            errorContainer.innerHTML = 'Hubo un error con el servidor';
+            errorContainer.style.display = 'block';
+        });
+    });
+});
+
+// Mostrar información de marca
+function mostrarInfoMarca(data) {
+    document.getElementById('info_codigo_marca').textContent = data.marca_codigo || '';
+    document.getElementById('info_nombre_marca').textContent = data.marca_nombre || '';
+    document.getElementById('marca_imagen_info_marca').src = data.marca_imagen?.trim() !== '' ? data.marca_imagen : '';
+
+    const modal = document.querySelector('dialog[data-modal="info_marca"]');
+    if (modal?.showModal) modal.showModal();
+}
+
+// Limpiar modal info
+document.querySelector('dialog[data-modal="info_marca"] .modal__close')?.addEventListener('click', function () {
+    document.querySelector('dialog[data-modal="info_marca"]')?.close();
+});
+
+// Mostrar datos en confirmación
+function mostrarConfirmacionMarca(data, modo = 'eliminar') {
+    const imgId = modo === 'eliminar' ? 'delete_imagen_marca' : 'confirmar_imagen_marca';
+    const img = document.getElementById(imgId);
+    img.src = data.marca_imagen?.trim() !== '' ? data.marca_imagen + '?t=' + new Date().getTime() : '';
+
+    const codigoId = modo === 'eliminar' ? 'delete_codigo_marca' : 'confirmar_codigo_marca';
+    const nombreId = modo === 'eliminar' ? 'delete_nombre_marca' : 'confirmar_nombre_marca';
+
+    document.getElementById(codigoId).textContent = data.marca_codigo || '';
+    document.getElementById(nombreId).textContent = data.marca_nombre || '';
+
+    const formId = modo === 'eliminar' ? 'form_delete_marca' : 'form_confirmar_marca';
+    const modalId = modo === 'eliminar' ? 'eliminar_marca' : 'confirmar_marca';
+
+    const form = document.getElementById(formId);
+    form.dataset.marcaId = data.marca_id;
+    form.dataset.modo = modo;
+
+    document.querySelector(`dialog[data-modal="${modalId}"]`)?.showModal();
+}
+
+// Eliminar marca
+document.getElementById('form_delete_marca')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.marcaId;
+    if (!id) return;
+
+    fetch('php/marca_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'deshabilitar_marca', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            document.querySelector('dialog[data-modal="eliminar_marca"]')?.close();
+            mostrarModalExito(data.mensaje || 'Marca deshabilitada');
+            $('#marcaTabla').DataTable().ajax.reload(null, false);
+        }
+    });
+});
+
+// Recuperar marca
+document.getElementById('form_confirmar_marca')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.marcaId;
+    if (!id) return;
+
+    fetch('php/marca_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_marca', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            document.querySelector('dialog[data-modal="confirmar_marca"]')?.close();
+            mostrarModalExito(data.mensaje || 'Marca recuperada');
+            estadoActual = 1;
+            $('#marcaTabla').DataTable().ajax.reload(null, false);
+        }
+    });
 });

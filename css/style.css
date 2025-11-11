@@ -555,10 +555,6 @@ body {
     gap: 10px;
 }
 
-.filters {
-    
-}
-
 .new_user {
     flex: 0 1 70px;
     background: #090;
@@ -603,7 +599,7 @@ body {
 }
 
 .estado-rojo {
-    background-color: #600;
+    background-color: #900;
 }
 
 .estado-verde {
@@ -611,8 +607,8 @@ body {
 }
 
 .estado-rojo:hover {
-    color: #600;
-    border: 2px solid #600;
+    color: #900;
+    border: 2px solid #900;
     background-color: #fff;
     box-shadow: 0 5px 10px #003;
     transform: scale(1.05);
@@ -660,7 +656,36 @@ body {
     background-color: #ccc;
 }
 
-#clasificacionTabla td img {
+#clasificacionTabla td {
+    width: 40px;
+    height: 40px;
+}
+
+#marcaTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#marcaTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#marcaTabla td img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+.imagen_celda_wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.tabla_imagen {
+    object-fit: contain;
+}
+
+#marcaTabla .acciones img {
     width: 40px;
     height: 40px;
     object-fit: cover;
@@ -680,7 +705,7 @@ body {
     justify-content: center;
     align-items: center;
 }
-.icon-action img {
+.acciones img {
     width: 24px;
     height: 24px;
     object-fit: contain;
@@ -1208,6 +1233,21 @@ body {
     cursor: pointer;
 }
 
+.categoria_filtro {
+    background: #049;
+    color: #fff;
+    transition-property: all;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+}
+
+.categoria_filtro:hover {
+    background-color: #fff;
+    color: #049;
+    border: 3px #049 solid;
+    border-radius: 10px;
+}
+
 .input_select-cedula {
     height: 100%;
     border: transparent;
@@ -1277,6 +1317,37 @@ body {
     object-fit: cover;
     object-position: center;
     border-radius: 50%;
+    display: none;
+}
+
+.foto_imagen_wrapper {
+    width: 100px;
+    height: 100px;
+    background-color: #eee;
+    border: 2px solid #999;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+
+.foto_imagen_wrapper:hover {
+    border: 2px solid #04a;
+    background-color: #bbb;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
+}
+
+.foto_imagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     display: none;
 }
     
