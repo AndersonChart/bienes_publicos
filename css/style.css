@@ -549,6 +549,12 @@ body {
     margin-top: 20px;
 }
 
+.filters {
+    display: flex;
+    flex-flow: row;
+    gap: 10px;
+}
+
 .basics-container {
     display: flex;
     flex-flow: row;
@@ -1233,7 +1239,7 @@ body {
     cursor: pointer;
 }
 
-.categoria_filtro {
+.filters select {
     background: #049;
     color: #fff;
     transition-property: all;
@@ -1241,7 +1247,7 @@ body {
     transition-timing-function: ease;
 }
 
-.categoria_filtro:hover {
+.filters select:hover {
     background-color: #fff;
     color: #049;
     border: 3px #049 solid;

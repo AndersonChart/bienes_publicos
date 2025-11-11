@@ -79,8 +79,6 @@ function mantenerFotoUsuarioActualizada() {
     });
 }
 
-
-
 function cargarCategorias(opciones = {}) {
     fetch('php/categoria_ajax.php', {
         method: 'POST',
@@ -133,6 +131,131 @@ function cargarCategorias(opciones = {}) {
     })
     .catch(err => {
         console.error('Error al cargar categorías:', err);
+    });
+}
+
+function cargarClasificacion(opciones = {}) {
+    const params = new URLSearchParams({ accion: 'leer_todos' });
+
+    // Si se pasa una categoría, se incluye en la petición
+    if (opciones.categoria_id) {
+        params.append('categoria_id', opciones.categoria_id);
+    }
+
+    fetch('php/clasificacion_ajax.php', {
+        method: 'POST',
+        body: params
+    })
+    .then(res => res.json())
+    .then(data => {
+        const lista = Array.isArray(data.data) ? data.data : [];
+
+        if (lista.length === 0) {
+            console.warn('No se recibieron clasificaciones válidas:', data);
+            return;
+        }
+
+        // Selects para filtros (ej. en la parte superior de la vista)
+        document.querySelectorAll('select.clasificacion_filtro').forEach(select => {
+            select.innerHTML = '';
+            const todasOption = document.createElement('option');
+            todasOption.value = '';
+            todasOption.textContent = 'Todas las clasificaciones';
+            select.appendChild(todasOption);
+
+            lista.forEach(clasificacion => {
+                const option = document.createElement('option');
+                option.value = clasificacion.clasificacion_id;
+                option.textContent = clasificacion.clasificacion_nombre;
+                select.appendChild(option);
+            });
+        });
+
+        // Selects para formularios (ej. dentro de modales)
+        document.querySelectorAll('select.clasificacion_form').forEach(select => {
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.textContent = 'Seleccione una clasificación';
+            select.appendChild(defaultOption);
+
+            lista.forEach(clasificacion => {
+                const option = document.createElement('option');
+                option.value = clasificacion.clasificacion_id;
+                option.textContent = clasificacion.clasificacion_nombre;
+                select.appendChild(option);
+            });
+        });
+
+        // Callback opcional
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(lista);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar clasificación:', err);
+    });
+}
+
+function cargarMarca(opciones = {}) {
+    const params = new URLSearchParams({ accion: 'leer_todos' });
+
+    fetch('php/marca_ajax.php', {
+        method: 'POST',
+        body: params
+    })
+    .then(res => res.json())
+    .then(data => {
+        const lista = Array.isArray(data.data) ? data.data : [];
+
+        if (lista.length === 0) {
+            console.warn('No se recibieron marcas válidas:', data);
+            return;
+        }
+
+        // Selects para filtros (ej. en la parte superior de la vista)
+        document.querySelectorAll('select.marca_filtro').forEach(select => {
+            select.innerHTML = '';
+            const todasOption = document.createElement('option');
+            todasOption.value = '';
+            todasOption.textContent = 'Todas las marcas';
+            select.appendChild(todasOption);
+
+            lista.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca.marca_id;
+                option.textContent = marca.marca_nombre;
+                select.appendChild(option);
+            });
+        });
+
+        // Selects para formularios (ej. dentro de modales)
+        document.querySelectorAll('select.marca_form').forEach(select => {
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.textContent = 'Seleccione una marca';
+            select.appendChild(defaultOption);
+
+            lista.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca.marca_id;
+                option.textContent = marca.marca_nombre;
+                select.appendChild(option);
+            });
+        });
+
+        // Callback opcional
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(lista);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar marca:', err);
     });
 }
 
@@ -215,6 +338,49 @@ function limpiarFormularioMarca() {
     }
 }
 
+function limpiarFormularioBien() {
+    const form = document.getElementById('form_nuevo_bien');
+    if (!form) return;
+
+    // Resetear campos del formulario
+    form.reset();
+
+    // Quitar clases de error visual
+    form.querySelectorAll('.input-error').forEach(el => {
+        el.classList.remove('input-error');
+    });
+
+    // Limpiar contenedor de error específico
+    const errorContainer = document.getElementById('error-container-clasificacion');
+    if (errorContainer) {
+        errorContainer.innerHTML = '';
+        errorContainer.style.display = 'none';
+    }
+
+    // Limpiar imagen de previsualización
+    const preview = document.getElementById('preview_foto');
+    if (preview) {
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+    }
+
+    // Restaurar ícono visual
+    const icono = form.querySelector('.foto_perfil_icon');
+    if (icono) {
+        icono.style.opacity = '1';
+    }
+
+    // Limpiar campos ocultos tipo ID
+    const idInput = document.getElementById('bien_tipo_id');
+    if (idInput) {
+        idInput.value = '';
+    }
+
+    // Restaurar selects al estado inicial
+    form.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+}
 
 
 
@@ -306,6 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btncrear) btncrear.disabled = false;
 
     cargarCategorias();
+    cargarClasificacion();
+    cargarMarca();
     mantenerFotoUsuarioActualizada();
 });
 
@@ -649,73 +817,75 @@ function abrirFormularioEdicionClasificacion(id) {
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('form_nueva_clasificacion');
     const errorContainer = document.getElementById('error-container-clasificacion');
+    const btnNuevo = document.querySelector('[data-modal-target="new_clasificacion"]');
+    const modalFormulario = document.querySelector('dialog[data-modal="new_clasificacion"]');
 
     // Abrir modal y cargar categorías
-    document.querySelector('[data-modal-target="new_clasificacion"]')?.addEventListener('click', () => {
-        const modal = document.querySelector('[data-modal="new_clasificacion"]');
-        if (modal?.showModal) modal.showModal();
-
-        // Cargar categorías para formularios
-        cargarCategorias();
-    });
+    if (btnNuevo && modalFormulario) {
+        btnNuevo.addEventListener('click', () => {
+            if (modalFormulario.showModal) modalFormulario.showModal();
+            cargarCategorias();
+            limpiarFormulario(form);
+        });
+    }
 
     // Envío del formulario
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        const clasificacionId = document.getElementById('clasificacion_id').value;
-        const formData = new FormData(form);
+            const clasificacionId = document.getElementById('clasificacion_id').value;
+            const formData = new FormData(form);
+            const accion = clasificacionId ? 'actualizar' : 'crear';
 
-        const accion = clasificacionId ? 'actualizar' : 'crear';
-        formData.append('accion', accion);
-        if (clasificacionId) formData.append('clasificacion_id', clasificacionId);
+            formData.append('accion', accion);
+            if (clasificacionId) formData.append('clasificacion_id', clasificacionId);
 
-        fetch('php/clasificacion_ajax.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            errorContainer.innerHTML = '';
-            errorContainer.style.display = 'none';
+            fetch('php/clasificacion_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
 
-            if (data.error) {
-                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
-                errorContainer.style.display = 'block';
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
 
-                if (data.campos && Array.isArray(data.campos)) {
-                    data.campos.forEach((campo, index) => {
-                        const input = form.querySelector(`[name="${campo}"]`);
-                        if (input) {
-                            input.classList.add('input-error');
-                            if (index === 0) input.focus();
-                        }
-                    });
-                }
-            } else if (data.exito) {
-                const esActualizacion = !!clasificacionId;
-                const mensaje = esActualizacion
-                    ? "Clasificación actualizada con éxito"
-                    : "Clasificación registrada con éxito";
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            const input = form.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const esActualizacion = !!clasificacionId;
+                    const mensaje = esActualizacion
+                        ? "Clasificación actualizada con éxito"
+                        : "Clasificación registrada con éxito";
 
-                if (esActualizacion) {
-                    const modalFormulario = document.querySelector('dialog[data-modal="new_clasificacion"]');
                     if (modalFormulario && modalFormulario.open) {
                         modalFormulario.close();
                     }
-                }
 
-                mostrarModalExito(mensaje);
-                limpiarFormulario(form);
-                $('#clasificacionTabla').DataTable().ajax.reload(null, false);
-            }
-        })
-        .catch(() => {
-            errorContainer.innerHTML = 'Hubo un error con el servidor';
-            errorContainer.style.display = 'block';
+                    mostrarModalExito(mensaje);
+                    limpiarFormulario(form);
+                    $('#clasificacionTabla').DataTable().ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
         });
-    });
+    }
 });
+
 
 // Mostrar información de clasificación
 function mostrarInfoClasificacion(data) {
@@ -872,79 +1042,89 @@ function abrirFormularioEdicionMarca(id) {
 
 // Crear o actualizar marca
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('form_nueva_marca');
-    const errorContainer = document.getElementById('error_container_marca');
-    const inputFoto = document.getElementById('foto_marca');
-    const previewFoto = document.getElementById('preview_foto_marca');
-    const icono = document.querySelector('.foto_perfil_icon');
+    const formMarca = document.getElementById('form_nueva_marca');
+    const errorContainerMarca = document.getElementById('error_container_marca');
+    const inputFotoMarca = document.getElementById('foto_marca');
+    const previewFotoMarca = document.getElementById('preview_foto_marca');
+    const iconoMarca = formMarca?.querySelector('.foto_perfil_icon');
 
-    // Previsualizar imagen
-    inputFoto.addEventListener('change', function () {
-        const archivo = this.files[0];
-        if (archivo) {
-            const lector = new FileReader();
-            lector.onload = function (e) {
-                previewFoto.src = e.target.result;
-                previewFoto.style.display = 'block';y
-            };
-            lector.readAsDataURL(archivo);
-        }
-    });
+    // Previsualizar imagen de marca
+    if (inputFotoMarca && previewFotoMarca && iconoMarca) {
+        inputFotoMarca.addEventListener('change', function () {
+            const archivo = this.files[0];
+            if (archivo) {
+                const lector = new FileReader();
+                lector.onload = function (e) {
+                    previewFotoMarca.src = e.target.result;
+                    previewFotoMarca.style.display = 'block';
+                    iconoMarca.style.opacity = '0';
+                };
+                lector.readAsDataURL(archivo);
+            }
+        });
+    }
 
     // Abrir modal
-    document.querySelector('[data-modal-target="new_marca"]')?.addEventListener('click', () => {
-        const modal = document.querySelector('[data-modal="new_marca"]');
-        if (modal?.showModal) modal.showModal();
-        limpiarFormularioMarca(form);
-    });
+    const btnNuevaMarca = document.querySelector('[data-modal-target="new_marca"]');
+    const modalMarca = document.querySelector('[data-modal="new_marca"]');
+
+    if (btnNuevaMarca && modalMarca) {
+        btnNuevaMarca.addEventListener('click', () => {
+            if (modalMarca.showModal) modalMarca.showModal();
+            limpiarFormularioMarca(formMarca);
+        });
+    }
 
     // Envío del formulario
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
+    if (formMarca) {
+        formMarca.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        const marcaId = document.getElementById('marca_id').value;
-        const formData = new FormData(form);
-        const accion = marcaId ? 'actualizar' : 'crear';
+            const marcaId = document.getElementById('marca_id').value;
+            const formData = new FormData(formMarca);
+            const accion = marcaId ? 'actualizar' : 'crear';
 
-        formData.append('accion', accion);
-        if (marcaId) formData.append('marca_id', marcaId);
+            formData.append('accion', accion);
+            if (marcaId) formData.append('marca_id', marcaId);
 
-        fetch('php/marca_ajax.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            errorContainer.innerHTML = '';
-            errorContainer.style.display = 'none';
+            fetch('php/marca_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainerMarca.innerHTML = '';
+                errorContainerMarca.style.display = 'none';
 
-            if (data.error) {
-                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
-                errorContainer.style.display = 'block';
+                if (data.error) {
+                    errorContainerMarca.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainerMarca.style.display = 'block';
 
-                if (data.campos && Array.isArray(data.campos)) {
-                    data.campos.forEach((campo, index) => {
-                        const input = form.querySelector(`[name="${campo}"]`);
-                        if (input) {
-                            input.classList.add('input-error');
-                            if (index === 0) input.focus();
-                        }
-                    });
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            const input = formMarca.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const mensaje = marcaId ? "Marca actualizada con éxito" : "Marca registrada con éxito";
+                    modalMarca?.close();
+                    mostrarModalExito(mensaje);
+                    limpiarFormularioMarca(formMarca);
+                    $('#marcaTabla').DataTable().ajax.reload(null, false);
                 }
-            } else if (data.exito) {
-                const mensaje = marcaId ? "Marca actualizada con éxito" : "Marca registrada con éxito";
-                document.querySelector('dialog[data-modal="new_marca"]')?.close();
-                mostrarModalExito(mensaje);
-                limpiarFormularioMarca(form);
-                $('#marcaTabla').DataTable().ajax.reload(null, false);
-            }
-        })
-        .catch(() => {
-            errorContainer.innerHTML = 'Hubo un error con el servidor';
-            errorContainer.style.display = 'block';
+            })
+            .catch(() => {
+                errorContainerMarca.innerHTML = 'Hubo un error con el servidor';
+                errorContainerMarca.style.display = 'block';
+            });
         });
-    });
+    }
 });
+
 
 // Mostrar información de marca
 function mostrarInfoMarca(data) {
@@ -1023,3 +1203,243 @@ document.getElementById('form_confirmar_marca')?.addEventListener('submit', func
         }
     });
 });
+
+
+/*MODULO BIENES_TIPO*/
+
+// Función: formulario de actualizar
+function abrirFormularioEdicionBien(id) {
+    const formBien = document.getElementById('form_nuevo_bien');
+    if (!formBien) return;
+
+    fetch('php/bien_tipo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_bien', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.exito || !data.bien) return;
+
+        const b = data.bien;
+        formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
+        formBien.querySelector('#codigo').value = b.bien_codigo;
+        formBien.querySelector('#nombre_bien').value = b.bien_nombre;
+        formBien.querySelector('#modelo').value = b.bien_modelo;
+        formBien.querySelector('#marca').value = b.marca_id;
+        formBien.querySelector('#clasificacion').value = b.clasificacion_id;
+        formBien.querySelector('#descripcion').value = b.bien_descripcion;
+
+        const preview = document.getElementById('preview_foto');
+        const icono = document.querySelector('.foto_perfil_icon');
+
+        if (b.bien_imagen && b.bien_imagen.trim() !== '') {
+            preview.src = b.bien_imagen + '?t=' + new Date().getTime();
+            preview.style.display = 'block';
+            icono.style.opacity = '0';
+        } else {
+            preview.src = '';
+            preview.style.display = 'none';
+            icono.style.opacity = '1';
+        }
+
+        document.querySelector('[data-modal="new_bien_tipo"]')?.showModal();
+    })
+    .catch(err => console.error('Error al obtener bien:', err));
+}
+
+// Crear o actualizar
+document.addEventListener('DOMContentLoaded', function () {
+    const formBien = document.getElementById('form_nuevo_bien');
+    const inputFotoBien = document.getElementById('foto_bien');
+    const previewFotoBien = document.getElementById('preview_foto');
+    const iconoBien = formBien?.querySelector('.foto_perfil_icon');
+
+    // Previsualizar imagen de bien
+    if (inputFotoBien && previewFotoBien && iconoBien) {
+        inputFotoBien.addEventListener('change', function () {
+            const archivo = this.files[0];
+            if (archivo) {
+                const lector = new FileReader();
+                lector.onload = function (e) {
+                    previewFotoBien.src = e.target.result;
+                    previewFotoBien.style.display = 'block';
+                    iconoBien.style.opacity = '0';
+                };
+                lector.readAsDataURL(archivo);
+            }
+        });
+    }
+
+
+    // Abrir modal
+    const btnNuevo = document.querySelector('[data-modal-target="new_bien_tipo"]');
+    if (btnNuevo) {
+        btnNuevo.addEventListener('click', () => {
+            const modal = document.querySelector('[data-modal="new_bien_tipo"]');
+            limpiarFormularioBien(formBien);
+            if (modal?.showModal) modal.showModal();
+            cargarCategorias();
+            cargarClasificacion();
+            cargarMarca();
+        });
+    }
+
+    // Envío del formulario
+    if (formBien) {
+        formBien.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const bienTipoId = document.getElementById('bien_tipo_id').value;
+            const formData = new FormData(formBien);
+            const accion = bienTipoId ? 'actualizar' : 'crear';
+
+            formData.append('accion', accion);
+            if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
+
+            fetch('php/bien_tipo_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            const input = formBien.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const mensaje = bienTipoId ? "Bien actualizado con éxito" : "Bien registrado con éxito";
+                    document.querySelector('dialog[data-modal="new_bien_tipo"]')?.close();
+                    mostrarModalExito(mensaje);
+                    limpiarFormularioBien(formBien);
+                    $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
+});
+
+
+
+// Mostrar información
+function mostrarInfoBien(data) {
+    document.getElementById('info_codigo').textContent = data.bien_codigo || '';
+    document.getElementById('info_nombre').textContent = data.bien_nombre || '';
+    document.getElementById('info_modelo').textContent = data.bien_modelo || '';
+    document.getElementById('info_marca').textContent = data.marca_nombre || '';
+    document.getElementById('info_clasificacion').textContent = data.clasificacion_nombre || '';
+    document.getElementById('info_descripcion').textContent = data.bien_descripcion || '';
+    document.getElementById('info_imagen').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen : '';
+
+    const modal = document.querySelector('dialog[data-modal="info_bien"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+
+// Mostrar datos en confirmación
+function mostrarConfirmacionBien(data, modo = 'eliminar') {
+    if (modo === 'eliminar') {
+        document.getElementById('delete_codigo_bien').textContent = data.bien_codigo || '';
+        document.getElementById('delete_nombre_bien').textContent = data.bien_nombre || '';
+        document.getElementById('delete_clasificacion_bien').textContent = data.clasificacion_nombre || '';
+        document.getElementById('delete_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
+
+        const formBien = document.getElementById('form_delete_bien');
+        formBien.dataset.bienTipoId = data.bien_tipo_id;
+        formBien.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="eliminar_bien"]');
+        if (modal?.showModal) modal.showModal();
+    } else if (modo === 'recuperar') {
+        document.getElementById('confirmar_codigo_bien').textContent = data.bien_codigo || '';
+        document.getElementById('confirmar_nombre_bien').textContent = data.bien_nombre || '';
+        document.getElementById('confirmar_clasificacion_bien').textContent = data.clasificacion_nombre || '';
+        document.getElementById('confirmar_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
+
+        const formBien = document.getElementById('form_confirmar_bien');
+        formBien.dataset.bienTipoId = data.bien_tipo_id;
+        formBien.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="confirmar_bien"]');
+        if (modal?.showModal) modal.showModal();
+    }
+}
+
+
+
+// Eliminar
+document.getElementById('form_delete_bien').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.bienTipoId;
+    if (!id) return;
+
+    fetch('php/bien_tipo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'deshabilitar_bien', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="eliminar_bien"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Bien deshabilitado');
+            $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});
+
+
+document.getElementById('form_confirmar_bien').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.bienTipoId;
+    if (!id) return;
+
+    fetch('php/bien_tipo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_bien', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="confirmar_bien"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Bien recuperado');
+            estadoActual = 1;
+            $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});
+
+document.addEventListener('change', function (e) {
+    if (e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro')) {
+        $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+    }
+});
+
