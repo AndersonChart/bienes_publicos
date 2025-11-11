@@ -14,6 +14,7 @@ function mostrarModalExito(mensaje) {
     }
 }
 
+//Editar perfil de usuario al presionar a su foto de perfil
 function activarEdicionPerfil() {
     const btn = document.getElementById('btn_editar_perfil');
     if (!btn) return;
@@ -54,54 +55,87 @@ function activarEdicionPerfil() {
             }
         });
     });
-}   
+}
+
+//Para mantener la foto de perfil
+function mantenerFotoUsuarioActualizada() {
+    const avatar = document.getElementById('foto_usuario_header');
+    if (!avatar) return;
+
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_usuario', id: idUsuarioSesion })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito && data.usuario) {
+            const nuevaFoto = data.usuario.usuario_foto || 'img/icons/perfil.png';
+            const actual = avatar.getAttribute('src').split('?')[0];
+
+            if (actual !== nuevaFoto) {
+                avatar.src = nuevaFoto + '?t=' + new Date().getTime();
+            }
+        }
+    });
+}
 
 
-/**
- * Carga categorías desde el backend y las inserta en un elemento select o contenedor.
- * @param {string} selector - Selector CSS del elemento destino (ej: '#categoria', '.filtro-categorias')
- * @param {object} opciones - Opciones adicionales:
- *   - includeDefault: boolean (agrega opción "Seleccione una categoría")
- *   - onComplete: function (callback con los datos)
- */
-function cargarCategorias(selector, opciones = {}) {
+
+function cargarCategorias(opciones = {}) {
     fetch('php/categoria_ajax.php', {
         method: 'POST',
         body: new URLSearchParams({ accion: 'leer_todas' })
     })
     .then(res => res.json())
     .then(data => {
-        const contenedor = document.querySelector(selector);
-        if (!contenedor) return;
+        if (!Array.isArray(data)) {
+            console.error('Respuesta inválida al cargar categorías:', data);
+            return;
+        }
 
-        // Si es un <select>
-        if (contenedor.tagName === 'SELECT') {
-            contenedor.innerHTML = '';
-            if (opciones.includeDefault) {
-                const defaultOption = document.createElement('option');
-                defaultOption.value = 'Seleccione';
-                defaultOption.disabled = true;
-                defaultOption.selected = true;
-                defaultOption.textContent = '';
-                contenedor.appendChild(defaultOption);
-            }
+        // Selects para filtros
+        document.querySelectorAll('select.categoria_filtro').forEach(select => {
+            select.innerHTML = '';
+            const todasOption = document.createElement('option');
+            todasOption.value = '';
+            todasOption.textContent = 'Todas las categorías';
+            select.appendChild(todasOption);
 
             data.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.categoria_id;
                 option.textContent = cat.categoria_nombre;
-                contenedor.appendChild(option);
+                select.appendChild(option);
             });
-        }
+        });
+
+        // Selects para formularios
+        document.querySelectorAll('select.categoria_form').forEach(select => {
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.textContent = 'Seleccione una categoría';
+            select.appendChild(defaultOption);
+
+            data.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.categoria_id;
+                option.textContent = cat.categoria_nombre;
+                select.appendChild(option);
+            });
+        });
 
         if (typeof opciones.onComplete === 'function') {
             opciones.onComplete(data);
         }
     })
-    .catch(() => {
-        console.error('Error al cargar categorías');
+    .catch(err => {
+        console.error('Error al cargar categorías:', err);
     });
 }
+
 
 
 //Función global: Limpiar formularios
@@ -239,10 +273,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btncrear = document.getElementById('btn_crear');
     if (btncrear) btncrear.disabled = false;
 
+    cargarCategorias();
 });
 
+//Al cargar que pueda hacer las siguiente funciones
 window.addEventListener('load', () => {
     activarEdicionPerfil();
+    mantenerFotoUsuarioActualizada();
 });
 
 
@@ -544,32 +581,38 @@ function abrirFormularioEdicionClasificacion(id) {
     const form = document.getElementById('form_nueva_clasificacion');
     if (!form) return;
 
-    const cargar = new Promise(resolve => {
-        cargarCategorias('#categoria_form', {
-            includeDefault: true,
-            onComplete: resolve
-        });
-    });
-
-    const obtener = fetch('php/clasificacion_ajax.php', {
+    // Obtener datos de la clasificación
+    fetch('php/clasificacion_ajax.php', {
         method: 'POST',
         body: new URLSearchParams({ accion: 'obtener_clasificacion', id })
-    }).then(res => res.json());
-
-    Promise.all([cargar, obtener]).then(([_, data]) => {
+    })
+    .then(res => res.json())
+    .then(data => {
         if (!data.exito || !data.clasificacion) return;
 
         const c = data.clasificacion;
-        form.clasificacion_id.value = c.clasificacion_id;
-        form.codigo.value = c.clasificacion_codigo;
-        form.nombre.value = c.clasificacion_nombre;
-        form.descripcion.value = c.clasificacion_descripcion;
-        form.querySelector('[name="categoria_id"]').value = c.categoria_id;
 
-        const modal = document.querySelector('[data-modal="new_clasificacion"]');
-        if (modal) modal.showModal();
+        // Cargar categorías y luego asignar el valor
+        cargarCategorias({
+            onComplete: () => {
+                form.clasificacion_id.value = c.clasificacion_id;
+                form.codigo.value = c.clasificacion_codigo;
+                form.nombre.value = c.clasificacion_nombre;
+                form.descripcion.value = c.clasificacion_descripcion;
+
+                const categoriaSelect = form.querySelector('[name="categoria_id"]');
+                if (categoriaSelect) categoriaSelect.value = c.categoria_id;
+
+                const modal = document.querySelector('[data-modal="new_clasificacion"]');
+                if (modal?.showModal) modal.showModal();
+            }
+        });
+    })
+    .catch(err => {
+        console.error('Error al obtener clasificación:', err);
     });
 }
+
 
 
 
@@ -578,26 +621,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('form_nueva_clasificacion');
     const errorContainer = document.getElementById('error-container-clasificacion');
 
-    //Seleccion de categoria
+    // Abrir modal y cargar categorías
     document.querySelector('[data-modal-target="new_clasificacion"]')?.addEventListener('click', () => {
-    const modal = document.querySelector('[data-modal="new_clasificacion"]');
-    if (modal?.showModal) modal.showModal();
+        const modal = document.querySelector('[data-modal="new_clasificacion"]');
+        if (modal?.showModal) modal.showModal();
 
-    // Esperar a que el modal esté visible antes de cargar categorías
-    setTimeout(() => {
-        cargarCategorias('#categoria_form', { includeDefault: true });
-    }, 100); // pequeño delay para asegurar que el DOM esté listo
-});
+        // Cargar categorías para formularios
+        cargarCategorias();
+    });
 
-
-
+    // Envío del formulario
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
         const clasificacionId = document.getElementById('clasificacion_id').value;
         const formData = new FormData(form);
 
-        // Acción condicional
         const accion = clasificacionId ? 'actualizar' : 'crear';
         formData.append('accion', accion);
         if (clasificacionId) formData.append('clasificacion_id', clasificacionId);

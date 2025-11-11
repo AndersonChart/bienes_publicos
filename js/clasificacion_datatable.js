@@ -121,7 +121,7 @@ window.addEventListener('load', function () {
     $('#clasificacionTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
         if (fila && fila.clasificacion_id) {
-            abrirFormularioEdicion(fila.clasificacion_id);
+            abrirFormularioEdicionClasificacion(fila.clasificacion_id);
         }
     });
 

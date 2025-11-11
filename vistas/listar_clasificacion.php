@@ -1,9 +1,12 @@
 <div class="banner_list">
     <div class="filters">
         <!-- Filtro -->
-        <select name="categoria_id" id="categoria_filtro" class="input_text input_select">
-            <option value="" selected disabled>Seleccione</option>
-        </select>
+        <div class="input_block_content">
+                <label for="categoria" class="input_label">Categoría:</label>
+                <select name="categoria_id" id="categoria_filtro" class="input_text input_select categoria_filtro">
+                    <option value="" selected disabled>Seleccione</option>
+                </select>
+        </div>
     </div>
     <div class="basics-container">
         <div class="new_user new_user-usuario" data-modal-target="new_clasificacion">+ Nuevo</div>
@@ -40,10 +43,9 @@
             </div>
 
             <div class="input_block_content">
-                <label for="categoria" class="input_label">Categoría</label>
-                <select name="categoria_id" id="categoria_form" class="input_text input_select"></select>
-                    <option value="" selected disabled></option>
-                    
+                <label for="categoria_form" class="input_label">Categoría</label>
+                <select name="categoria_id" id="categoria_form" class="input_text input_select categoria_form">
+                    <option value="" selected disabled>Seleccione una categoría</option>
                 </select>
             </div>
 

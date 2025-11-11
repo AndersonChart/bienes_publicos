@@ -546,6 +546,7 @@ body {
     height: 10%; /* o lo que necesites */
     background: transparent;
     margin: 0px 20px;
+    margin-top: 20px;
 }
 
 .basics-container {

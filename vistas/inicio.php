@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="css/inicio_estilo.css">
-
 <div class="inicio-container">
     <div class="bienvenida">
         <h1>¡Hola, <?php echo $_SESSION["nombre"] . " " . $_SESSION["apellido"]; ?>!</h1>

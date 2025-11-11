@@ -185,11 +185,12 @@ ALTER TABLE recepcion ADD CONSTRAINT fk_recepcion_bien FOREIGN KEY (bien_id) REF
 
 ALTER TABLE desincorporacion ADD CONSTRAINT fk_desin_bien FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
 
-
 -- Datos de ejemplo
 INSERT INTO categoria (categoria_nombre) VALUES ('Tecnologico'), ('Mobiliario'), ('Otros');
 INSERT INTO rol (rol_nombre) VALUES ('Administrador'), ('Administrador Principal'), ('Director'), ('Vicereptor');
 INSERT INTO estado (estado_nombre) VALUES ('Disponible'), ('Asignado'), ('Mantenimiento'), ('Desincorporado');
+
+-- Registros de Usuario (el primero es el principal)
 INSERT INTO usuario (
     usuario_nombre, usuario_apellido, usuario_correo, usuario_telefono,
     usuario_sexo, usuario_cedula, usuario_nac, usuario_direccion,
@@ -206,11 +207,41 @@ INSERT INTO usuario (
 ('Sofía', 'Morales', 'sofia.morales@gmail.com', '04141230008', 1, 'V-11111108', '2000-08-08', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'sofia08', 1, 'img/icons/perfil.png'),
 ('Andrés', 'López', 'andres.lopez@gmail.com', '04141230009', 0, 'V-11111109', '2000-09-09', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'andres09', 1, 'img/icons/perfil.png'),
 ('Valentina', 'Suárez', 'valentina.suarez@gmail.com', '04141230010', 1, 'V-11111110', '2000-10-10', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'valentina10', 1, 'img/icons/perfil.png'),
--- (20 usuarios más con patrón similar)
 ('Diego', 'Mendoza', 'diego.mendoza@gmail.com', '04141230011', 0, 'V-11114111', '2000-11-11', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'diego11', 1, 'img/icons/perfil.png'),
 ('Camila', 'Herrera', 'camila.herrera@gmail.com', '04141230012', 1, 'V-11111112', '2000-12-12', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'camila12', 1, 'img/icons/perfil.png'),
 ('Javier', 'Castro', 'javier.castro@gmail.com', '04141230013', 0, 'V-11111113', '2001-01-13', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'javier13', 1, 'img/icons/perfil.png'),
 ('Isabela', 'Rivas', 'isabela.rivas@gmail.com', '04141230014', 1, 'V-11111114', '2001-02-14', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'isabela14', 1, 'img/icons/perfil.png'),
 ('Tomás', 'Silva', 'tomas.silva@gmail.com', '04141230015', 0, 'V-11111115', '2001-03-15', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'tomas15', 1, 'img/icons/perfil.png'),
--- ...
 ('Lucía', 'Navarro', 'lucia.navarro@gmail.com', '04141230030', 1, 'V-11111130', '2001-10-30', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'lucia30', 1, 'img/icons/perfil.png');
+
+-- Registros de clasificaciones
+INSERT INTO clasificacion (
+    clasificacion_codigo,
+    clasificacion_nombre,
+    categoria_id,
+    clasificacion_descripcion,
+    clasificacion_estado
+) VALUES
+('TEC-A01', 'Laptop HP ProBook', 1, 'Equipo portátil para uso administrativo', 1),
+('TEC-B02', 'Monitor LG 24"', 1, 'Pantalla LED para estaciones de trabajo', 1),
+('TEC-C03', 'Impresora Epson L3250', 1, 'Impresión multifuncional con sistema continuo', 1),
+('TEC-D04', 'Router TP-Link AX1800', 1, 'Red WiFi para oficinas pequeñas', 1),
+('TEC-E05', 'Teclado Logitech K120', 1, '', 1),
+
+('MOB-A06', 'Escritorio Ejecutivo', 2, 'Madera laminada con gavetas', 1),
+('MOB-B07', 'Silla Ergonómica', 2, 'Respaldo ajustable y ruedas giratorias', 1),
+('MOB-C08', 'Archivador Metálico', 2, '3 gavetas con cerradura', 1),
+('MOB-D09', 'Mesa de Reunión Ovalada', 2, '', 1),
+('MOB-E10', 'Estantería Modular', 2, 'Ideal para almacenamiento de documentos', 1),
+
+('OTR-A11', 'Extintor de CO2', 3, 'Equipo de seguridad contra incendios', 1),
+('OTR-B12', 'Reloj de Pared', 3, '', 1),
+('OTR-C13', 'Dispensador de Agua', 3, 'Sistema de enfriamiento y calentamiento', 1),
+('OTR-D14', 'Caja de Herramientas', 3, 'Contiene destornilladores, llaves y martillo', 1),
+('OTR-E15', 'Botiquín de Primeros Auxilios', 3, '', 1),
+
+('TEC-F16', 'Tablet Samsung Galaxy Tab A', 1, 'Uso para inspecciones móviles', 1),
+('TEC-G17', 'Cámara Web Logitech C920', 1, '', 1),
+('MOB-F18', 'Panel Divisor de Oficina', 2, 'Separador acústico de espacios', 1),
+('MOB-G19', 'Lámpara de Escritorio LED', 2, '', 1),
+('OTR-F20', 'Pizarrón Acrílico Blanco', 3, 'Uso en salas de capacitación', 1);
