@@ -225,6 +225,58 @@ function cargarCategorias(opciones = {}) {
     });
 }
 
+function cargarRol(opciones = {}) {
+    fetch('php/rol_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todos' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!Array.isArray(data)) {
+            console.error('Respuesta inválida al cargar roles:', data);
+            return;
+        }
+
+        document.querySelectorAll('select.rol_form').forEach(select => {
+            select.innerHTML = '';
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.textContent = 'Seleccione un rol';
+
+            // Solo marcar como selected si NO hay rol preseleccionado (es creación)
+            if (!opciones.selected) {
+                defaultOption.selected = true;
+            }
+
+            select.appendChild(defaultOption);
+
+            data.forEach(rol => {
+                const option = document.createElement('option');
+                option.value = rol.rol_id;
+                option.textContent = rol.rol_nombre;
+
+                // Marcar como seleccionado si estamos actualizando
+                if (opciones.selected && opciones.selected == rol.rol_id) {
+                    option.selected = true;
+                }
+
+                select.appendChild(option);
+            });
+        });
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar roles:', err);
+    });
+}
+
+
+
 function cargarClasificacion(opciones = {}) {
     const params = new URLSearchParams({ accion: 'leer_todos' });
 
@@ -563,6 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btncrear) btncrear.disabled = false;
 
     cargarCategorias();
+    cargarRol();
     cargarClasificacion();
     cargarMarca();
     mantenerFotoUsuarioActualizada();
@@ -578,6 +631,9 @@ window.addEventListener('load', () => {
 
 //Función: formulario de actualizar usuario
 function abrirFormularioEdicionUsuario(id) {
+    const form = document.getElementById('form_nuevo_usuario');
+    if (!form) return;
+
     fetch('php/usuario_ajax.php', {
         method: 'POST',
         body: new URLSearchParams({ accion: 'obtener_usuario', id })
@@ -587,32 +643,36 @@ function abrirFormularioEdicionUsuario(id) {
         if (!data.exito || !data.usuario) return;
 
         const u = data.usuario;
-        const form = document.getElementById('form_nuevo_usuario');
-        if (!form) return;
 
-        form.usuario_id.value = u.usuario_id;
-        form.nombre.value = u.usuario_nombre;
-        form.apellido.value = u.usuario_apellido;
-        form.correo.value = u.usuario_correo;
-        form.telefono.value = u.usuario_telefono;
-        form.usuario_usuario.value = u.usuario_usuario;
-        form.direccion.value = u.usuario_direccion;
-        form.nac.value = u.usuario_nac;
-        form.sexo.value = u.usuario_sexo;
-        form.tipo_cedula.value = u.usuario_cedula.split('-')[0];
-        document.getElementById('numero_cedula').value = u.usuario_cedula.split('-')[1];
+        cargarRol({
+            selected: u.rol_id,
+            onComplete: () => {
+                form.usuario_id.value = u.usuario_id;
+                form.nombre.value = u.usuario_nombre;
+                form.apellido.value = u.usuario_apellido;
+                form.correo.value = u.usuario_correo;
+                form.telefono.value = u.usuario_telefono;
+                form.usuario_usuario.value = u.usuario_usuario;
+                form.direccion.value = u.usuario_direccion;
+                form.nac.value = u.usuario_nac;
+                form.sexo.value = u.usuario_sexo;
+                form.tipo_cedula.value = u.usuario_cedula.split('-')[0];
+                document.getElementById('numero_cedula').value = u.usuario_cedula.split('-')[1];
 
-        // Previsualizar foto
-        const previewFoto = document.getElementById('preview_foto');
-        const icono = document.querySelector('.foto_perfil_icon');
-        previewFoto.src = u.usuario_foto || 'img/icons/perfil.png';
-        previewFoto.style.display = 'block';
-        icono.style.opacity = '0';
+                const previewFoto = document.getElementById('preview_foto');
+                const icono = document.querySelector('.foto_perfil_icon');
+                previewFoto.src = u.usuario_foto || 'img/icons/perfil.png';
+                previewFoto.style.display = 'block';
+                icono.style.opacity = '0';
 
-        const modal = document.querySelector('[data-modal="new_user"]');
-        if (modal) modal.showModal();
+                const modal = document.querySelector('[data-modal="new_user"]');
+                if (modal?.showModal) modal.showModal();
+            }
+        });
     });
 }
+
+
 
 
 //Crear/actualizar usuario
