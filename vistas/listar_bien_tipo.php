@@ -70,7 +70,7 @@
             <div class="foto_perfil_container">
                 <input type="file" id="foto_bien" name="bien_imagen" class="input_file" accept=".jpg,.jpeg,.png">
                 <div class="foto_imagen_wrapper" onclick="document.getElementById('foto_bien').click()">
-                    <img id="preview_foto" class="foto_imagen" alt="Foto del bien">
+                    <img id="preview_foto_bien" class="foto_imagen" alt="Foto del bien">
                     <span class="foto_perfil_icon imagen_icon"></span>
                 </div>
             </div>

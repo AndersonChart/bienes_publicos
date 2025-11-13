@@ -82,7 +82,7 @@
                     <input type="file" id="foto" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
                     <div class="foto_perfil_wrapper" onclick="document.getElementById('foto').click()">
                         <img id="preview_foto" class="foto_perfil_imagen" alt="Foto de perfil">
-                        <span  class="foto_perfil_icon">+</span>
+                        <span  class="foto_perfil_icon"></span>
                     </div>
                 </div>
             </div>
@@ -161,6 +161,7 @@
                 <li><strong class="info_subtitle">Dirección:</strong> <span class="info_data" id="info_direccion"></span></li>
                 <li><strong class="info_subtitle">Sexo:</strong> <span class="info_data" id="info_sexo"></span></li>
                 <li><strong class="info_subtitle">Nombre de Usuario:</strong> <span class="info_data" id="info_usuario"></span></li>
+                <li><strong class="info_subtitle">Rol:</strong> <span class="info_data" id="info_rol"></span></li>
             </ul>
         </div>
     </dialog>

@@ -93,10 +93,10 @@
                     <div class="input_block_content">
                         <label for="foto" class="input_label input-condition">Foto de Perfil</label>
                         <div class="foto_perfil_container">
-                            <input type="file" id="foto_perfil" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
-                            <div class="foto_perfil_wrapper" onclick="document.getElementById('foto_perfil').click()">
-                                <img id="preview_foto_perfil" class="foto_perfil_imagen" alt="Foto de perfil">
-                                <span  class="foto_perfil_icon">+</span>
+                            <input type="file" id="foto_editar_perfil" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
+                            <div class="foto_perfil_wrapper" onclick="document.getElementById('foto_editar_perfil').click()">
+                                <img id="preview_foto_editar_perfil" class="foto_perfil_imagen" alt="Foto de perfil">
+                                <span  class="foto_perfil_icon foto_editar_perfil_icon"></span>
                             </div>
                         </div>
                     </div>

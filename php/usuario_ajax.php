@@ -186,7 +186,8 @@ switch ($accion) {
                 'usuario_direccion' => $_POST['usuario_direccion'] ?? '',
                 'usuario_sexo'      => $_POST['usuario_sexo'] ?? '',
                 'usuario_usuario'   => $_POST['usuario_usuario'] ?? '',
-                'usuario_clave'     => $_POST['usuario_clave'] ?? ''
+                'usuario_clave'     => $_POST['usuario_clave'] ?? '',
+                'rol_id'            => $_POST['rol_id'] ?? ''
             ];
 
             // Validar datos

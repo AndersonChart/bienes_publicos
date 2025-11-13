@@ -68,10 +68,16 @@ class usuario {
 
     // Leer un registro por ID (para actualizar un registro)
     public function leer_por_id($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM usuario WHERE usuario_id = ?");
+        $stmt = $this->pdo->prepare("
+            SELECT u.*, r.rol_nombre
+            FROM usuario u
+            LEFT JOIN rol r ON u.rol_id = r.rol_id
+            WHERE u.usuario_id = ?
+        ");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
 
     // Actualizar registro
     public function actualizar($nombre,$apellido,$correo,$telefono,$cedula,$nac,$direccion,$sexo,$clave,$usuario,$rol,$foto,$estado,$id) {

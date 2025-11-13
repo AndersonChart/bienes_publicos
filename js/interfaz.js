@@ -21,9 +21,9 @@ function activarEdicionPerfil() {
     const btnCerrar = document.getElementById('cerrar_modal_user_edit');
     const form = document.getElementById('form_editar_perfil');
     const errorContainer = document.getElementById('error-container-perfil');
-    const inputFoto = document.getElementById('foto_perfil');
-    const previewFoto = document.getElementById('preview_foto_perfil');
-    const icono = document.querySelector('.foto_perfil_icon');
+    const inputFoto = document.getElementById('foto_editar_perfil');
+    const previewFoto = document.getElementById('preview_foto_editar_perfil');
+    const icono = document.querySelector('.foto_editar_perfil_icon');
 
     if (!btn || !modal || !btnCerrar || !form || !inputFoto || !previewFoto || !errorContainer) return;
 
@@ -35,7 +35,7 @@ function activarEdicionPerfil() {
             lector.onload = function (e) {
                 previewFoto.src = e.target.result;
                 previewFoto.style.display = 'block';
-                icono.style.opacity = '0';
+                icono.style.opacity = '0';  
             };
             lector.readAsDataURL(archivo);
         }
@@ -69,7 +69,9 @@ function activarEdicionPerfil() {
 
                 const avatarHeader = document.getElementById('foto_usuario_header');
                 if (avatarHeader) avatarHeader.src = foto;
-
+                
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
                 modal.showModal();
             }
         });
@@ -274,8 +276,6 @@ function cargarRol(opciones = {}) {
         console.error('Error al cargar roles:', err);
     });
 }
-
-
 
 function cargarClasificacion(opciones = {}) {
     const params = new URLSearchParams({ accion: 'leer_todos' });
@@ -709,9 +709,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(form);
         formData.set('usuario_cedula', cedulaCompleta);
 
-        // Solo asignar rol si estás creando
-        if (!usuarioId) {
-            formData.append('rol_id', '1');
+        // Solo asignar rol si estás creando y el select está vacío
+        if (!usuarioId && !formData.get('rol_id')) {
+            formData.append('rol_id', '1'); // valor por defecto solo si no eligió nada
         }
 
         // Acción condicional
@@ -829,6 +829,7 @@ function mostrarInfoUsuario(data) {
     document.getElementById('info_direccion').textContent = data.usuario_direccion || '';
     document.getElementById('info_sexo').textContent = sexoTraducido;
     document.getElementById('info_usuario').textContent = data.usuario_usuario || '';
+    document.getElementById('info_rol').textContent = data.rol_nombre || '';
 
     // Mostrar el modal
     const modal = document.querySelector('dialog[data-modal="info_usuario"]');
@@ -1391,7 +1392,7 @@ function abrirFormularioEdicionBien(id) {
         formBien.querySelector('#clasificacion').value = b.clasificacion_id;
         formBien.querySelector('#descripcion').value = b.bien_descripcion;
 
-        const preview = document.getElementById('preview_foto');
+        const preview = document.getElementById('preview_foto');       /*ARREGLAR*/
         const icono = document.querySelector('.foto_perfil_icon');
 
         if (b.bien_imagen && b.bien_imagen.trim() !== '') {
@@ -1413,7 +1414,7 @@ function abrirFormularioEdicionBien(id) {
 document.addEventListener('DOMContentLoaded', function () {
     const formBien = document.getElementById('form_nuevo_bien');
     const inputFotoBien = document.getElementById('foto_bien');
-    const previewFotoBien = document.getElementById('preview_foto');
+    const previewFotoBien = document.getElementById('preview_foto');    /*ARREGLAR*/
     const iconoBien = formBien?.querySelector('.foto_perfil_icon');
 
     // Previsualizar imagen de bien
