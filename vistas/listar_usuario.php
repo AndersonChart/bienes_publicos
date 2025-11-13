@@ -1,8 +1,10 @@
 <div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="new_user new_user-usuario" data-modal-target="new_user">+ Nuevo</div>
-    <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
-</div>
+    <?php if ($_SESSION["rol"] == 3): ?>
+        <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+    <?php endif; ?>
+    </div>
 
 
 <!-- Ventana Modal -->
@@ -16,7 +18,7 @@
         <p class="condition">Opcional</p>
         <form id="form_nuevo_usuario" method="POST" autocomplete="off" class="user_container">
             
-        <input type="hidden" name="usuario_id" id="usuario_id">
+            <input type="hidden" name="usuario_id" id="usuario_id">
         
             <div class="input_block_content">
                 <label for="nombre" class="input_label">Nombre</label>
@@ -85,6 +87,8 @@
                 </div>
             </div>
 
+            <?php if ($_SESSION["rol"] == 3){ ?>
+            
             <div class="input_block_content">
                 <label for="password" class="input_label">Contraseña</label>
                 <div class="input_text">
@@ -101,7 +105,33 @@
                 </div>
             </div>
 
-            <div id="error-container" class="error-container"></div>
+            <div class="input_block_content">
+                <label for="rol" class="input_label">Rol</label>
+                <select name="rol_id" id="rol_form" class="input_text input_select rol_form">
+                    <option value="" selected disabled>Rol por Defecto</option>
+                </select>
+            </div>
+            <?php }else{ ?>
+
+            <div class="input_block_content">
+                <label for="password" class="input_label">Contraseña</label>
+                <div class="input_text">
+                    <input type="password" name="usuario_clave" class="input_password" >
+                    <div class="eye-icon" onclick="togglePassword()"></div>
+                </div>
+            </div>
+
+            <div class="input_block_content">
+                <label for="password_repeat" class="input_label">Repetir Contraseña</label>
+                <div class="input_text">
+                    <input type="password" name="repetir_clave" class="input_password">
+                    <div class="eye-icon" onclick="togglePassword()"></div>
+                </div>
+            </div>
+            
+            <?php }; ?>
+            
+            <div id="error-container-usuario" class="error-container"></div>
             <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar">
         </form>
     </dialog>

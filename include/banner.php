@@ -23,51 +23,51 @@
             </div>
 
             <!-- Formulario registro/actualización -->
-            <dialog data-modal="new_user" class="modal modal_new-user">
+            <dialog data-modal="user_edit" class="modal modal_new-user">
                 <form method="dialog">
-                    <button class="modal__close">X</button>
+                    <button class="modal__close" id="cerrar_modal_user_edit">X</button>
                 </form>
 
-                <h2 class="modal_title">Registro de Usuario</h2>
+                <h2 class="modal_title">Editar Perfil</h2>
                 <p class="condition">Opcional</p>
-                <form id="form_nuevo_usuario" method="POST" autocomplete="off" class="user_container">
+                <form id="form_editar_perfil" method="POST" autocomplete="off" class="user_container">
                     
-                <input type="hidden" name="usuario_id" id="usuario_id">
+                    <input type="hidden" name="usuario_id" id="usuario_id_perfil">
                 
                     <div class="input_block_content">
                         <label for="nombre" class="input_label">Nombre</label>
-                        <input type="text" id="nombre" name="usuario_nombre" class="input_text" autofocus>
+                        <input type="text" id="nombre_perfil" name="usuario_nombre" class="input_text" autofocus>
                     </div>
 
                     <div class="input_block_content">
                         <label for="apellido" class="input_label">Apellido</label>
-                        <input type="text" id="apellido" name="usuario_apellido" class="input_text">
+                        <input type="text" id="apellido_perfil" name="usuario_apellido" class="input_text">
                     </div>
 
                     <div class="input_block_content">
                         <label for="correo" class="input_label">Correo electrónico</label>
-                        <input type="text" id="correo" name="usuario_correo" class="input_text">
+                        <input type="text" id="correo_perfil" name="usuario_correo" class="input_text">
                     </div>
 
                     <div class="input_block_content">
                         <label for="telefono" class="input_label input-condition">Teléfono</label>
-                        <input type="text" maxlength="11" id="telefono" name="usuario_telefono" class="input_text">
+                        <input type="text" maxlength="11" id="telefono_perfil" name="usuario_telefono" class="input_text">
                     </div>
 
                     <div class="input_block_content">
                         <label for="cedula" class="input_label">Cédula</label>
                         <div class="input_text">
-                            <select name="tipo_cedula" id="tipo_cedula" class="input_select input_select-cedula">
+                            <select name="tipo_cedula" id="tipo_cedula_perfil" class="input_select input_select-cedula">
                             <option value="V">V</option>
                             <option value="E">E</option>
                             </select>
-                            <input type="text" maxlength="8" name="usuario_cedula" class="input_password" id="numero_cedula">
+                            <input type="text" maxlength="8" name="usuario_cedula" class="input_password" id="numero_cedula_perfil">
                         </div>
                     </div>
 
                     <div class="input_block_content">
                         <label for="sexo" class="input_label">Sexo</label>
-                        <select name="usuario_sexo" id="sexo" class="input_text input_select">
+                        <select name="usuario_sexo" id="sexo_perfil" class="input_text input_select">
                             <option value="" selected disabled></option>
                             <option value="0">M</option>
                             <option value="1">F</option>
@@ -76,26 +76,26 @@
 
                     <div class="input_block_content">
                         <label for="direccion" class="input_label input-condition">Dirección</label>
-                        <input type="text" maxlength="100" name="usuario_direccion" id="direccion" class="input_text">
+                        <input type="text" maxlength="100" name="usuario_direccion" id="direccion_perfil" class="input_text">
                     </div>
 
                     <div class="input_block_content">
                         <label for="nac" class="input_label">Fecha de nacimiento</label>
-                        <input type="date" name="usuario_nac" id="nac" class="input_text input_date">
+                        <input type="date" name="usuario_nac" id="nac_perfil" class="input_text input_date">
                     </div>
 
                     <h2 class="modal_subtitle">Credenciales</h2>
 
                     <div class="input_block_content">
                         <label for="nombre_usuario" class="input_label">Nombre de Usuario</label>
-                        <input type="text" id="nombre_usuario" name="usuario_usuario" class="input_text">
+                        <input type="text" id="nombre_usuario_perfil" name="usuario_usuario" class="input_text">
                     </div>
                     <div class="input_block_content">
                         <label for="foto" class="input_label input-condition">Foto de Perfil</label>
                         <div class="foto_perfil_container">
-                            <input type="file" id="foto" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
-                            <div class="foto_perfil_wrapper" onclick="document.getElementById('foto').click()">
-                                <img id="preview_foto" class="foto_perfil_imagen" alt="Foto de perfil">
+                            <input type="file" id="foto_perfil" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
+                            <div class="foto_perfil_wrapper" onclick="document.getElementById('foto_perfil').click()">
+                                <img id="preview_foto_perfil" class="foto_perfil_imagen" alt="Foto de perfil">
                                 <span  class="foto_perfil_icon">+</span>
                             </div>
                         </div>
@@ -117,7 +117,7 @@
                         </div>
                     </div>
 
-                    <div id="error-container" class="error-container"></div>
+                    <div id="error-container-perfil" class="error-container"></div>
                     <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar">
                 </form>
             </dialog>

@@ -17,8 +17,31 @@ function mostrarModalExito(mensaje) {
 //Editar perfil de usuario al presionar a su foto de perfil
 function activarEdicionPerfil() {
     const btn = document.getElementById('btn_editar_perfil');
-    if (!btn) return;
+    const modal = document.querySelector('dialog[data-modal="user_edit"]');
+    const btnCerrar = document.getElementById('cerrar_modal_user_edit');
+    const form = document.getElementById('form_editar_perfil');
+    const errorContainer = document.getElementById('error-container-perfil');
+    const inputFoto = document.getElementById('foto_perfil');
+    const previewFoto = document.getElementById('preview_foto_perfil');
+    const icono = document.querySelector('.foto_perfil_icon');
 
+    if (!btn || !modal || !btnCerrar || !form || !inputFoto || !previewFoto || !errorContainer) return;
+
+    // Previsualizar imagen
+    inputFoto.addEventListener('change', function () {
+        const archivo = this.files[0];
+        if (archivo) {
+            const lector = new FileReader();
+            lector.onload = function (e) {
+                previewFoto.src = e.target.result;
+                previewFoto.style.display = 'block';
+                icono.style.opacity = '0';
+            };
+            lector.readAsDataURL(archivo);
+        }
+    });
+
+    // Abrir modal al hacer clic en el avatar
     btn.addEventListener('click', () => {
         fetch('php/usuario_ajax.php', {
             method: 'POST',
@@ -28,34 +51,102 @@ function activarEdicionPerfil() {
         .then(data => {
             if (data.exito && data.usuario) {
                 const u = data.usuario;
-                document.getElementById('usuario_id').value = u.usuario_id;
-                document.getElementById('nombre').value = u.usuario_nombre;
-                document.getElementById('apellido').value = u.usuario_apellido;
-                document.getElementById('correo').value = u.usuario_correo;
-                document.getElementById('telefono').value = u.usuario_telefono;
-                document.getElementById('tipo_cedula').value = u.usuario_cedula.charAt(0);
-                document.getElementById('numero_cedula').value = u.usuario_cedula.slice(2);
-                document.getElementById('sexo').value = u.usuario_sexo;
-                document.getElementById('direccion').value = u.usuario_direccion;
-                document.getElementById('nac').value = u.usuario_nac;
-                document.getElementById('nombre_usuario').value = u.usuario_usuario;
+                document.getElementById('usuario_id_perfil').value = u.usuario_id;
+                document.getElementById('nombre_perfil').value = u.usuario_nombre;
+                document.getElementById('apellido_perfil').value = u.usuario_apellido;
+                document.getElementById('correo_perfil').value = u.usuario_correo;
+                document.getElementById('telefono_perfil').value = u.usuario_telefono;
+                document.getElementById('tipo_cedula_perfil').value = u.usuario_cedula.charAt(0);
+                document.getElementById('numero_cedula_perfil').value = u.usuario_cedula.slice(2);
+                document.getElementById('sexo_perfil').value = u.usuario_sexo;
+                document.getElementById('direccion_perfil').value = u.usuario_direccion;
+                document.getElementById('nac_perfil').value = u.usuario_nac;
+                document.getElementById('nombre_usuario_perfil').value = u.usuario_usuario;
 
                 const foto = u.usuario_foto || 'img/icons/perfil.png';
-                const fotoConTimestamp = foto + '?t=' + new Date().getTime();
+                previewFoto.src = foto + '?t=' + new Date().getTime();
+                icono.style.opacity = '0';
 
-                // Actualizar previsualización en el formulario
-                document.getElementById('preview_foto').src = fotoConTimestamp;
-
-                // Actualizar avatar del header
                 const avatarHeader = document.getElementById('foto_usuario_header');
-                if (avatarHeader) avatarHeader.src = fotoConTimestamp;
+                if (avatarHeader) avatarHeader.src = foto;
 
-                const modal = document.querySelector('dialog[data-modal="new_user"]');
-                if (modal?.showModal) modal.showModal();
+                modal.showModal();
             }
         });
     });
+
+    // Cerrar modal al presionar X
+    btnCerrar.addEventListener('click', () => {
+        modal.close();
+    });
+
+    // Enviar formulario y cerrar modal si fue exitoso
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const tipo = document.getElementById('tipo_cedula_perfil').value;
+        const numero = document.getElementById('numero_cedula_perfil').value.trim();
+        const cedulaCompleta = tipo + '-' + numero;
+
+        const formData = new FormData(form);
+        formData.set('usuario_cedula', cedulaCompleta);
+        formData.append('accion', 'actualizar');
+        formData.append('usuario_id', document.getElementById('usuario_id_perfil').value);
+
+        fetch('php/usuario_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+
+            if (data.error) {
+                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                errorContainer.style.display = 'block';
+
+                if (data.campos && Array.isArray(data.campos)) {
+                    data.campos.forEach((campo, index) => {
+                        let input;
+                        if (campo === 'usuario_cedula') {
+                            input = document.getElementById('numero_cedula_perfil');
+                        } else if (campo === 'usuario_foto') {
+                            input = inputFoto;
+                        } else {
+                            input = form.querySelector(`[name="${campo}"]`);
+                        }
+
+                        if (input) {
+                            const contenedor = input.closest('.input_text');
+                            if (contenedor) {
+                                contenedor.classList.add('input-error');
+                            } else {
+                                input.classList.add('input-error');
+                            }
+                            if (index === 0) input.focus();
+                        }
+                    });
+                }
+            } else if (data.exito) {
+                modal.close();
+                form.reset();
+                previewFoto.src = 'img/icons/perfil.png';
+                icono.style.opacity = '1';
+
+                const successModal = document.querySelector('dialog[data-modal="success"]');
+                document.getElementById('success-message').textContent = "Perfil actualizado con éxito";
+                if (successModal?.showModal) successModal.showModal();
+            }
+        })
+        .catch(() => {
+            errorContainer.innerHTML = 'Hubo un error con el servidor';
+            errorContainer.style.display = 'block';
+        });
+    });
 }
+
+
 
 //Para mantener la foto de perfil
 function mantenerFotoUsuarioActualizada() {
@@ -530,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewFoto = document.getElementById('preview_foto');
     const icono = document.querySelector('.foto_perfil_icon');
     const form = document.getElementById('form_nuevo_usuario');
-    const errorContainer = document.getElementById('error-container');
+    const errorContainer = document.getElementById('error-container-usuario');
 
     // Previsualizar imagen
     inputFoto.addEventListener('change', function () {
@@ -716,62 +807,73 @@ document.querySelector('.modal__close')?.addEventListener('click', function () {
 
 //funcion: mostrar datos en confirmacion
 function mostrarConfirmacionUsuario(data, modo = 'eliminar') {
-    const foto = data.usuario_foto?.trim() !== '' ? data.usuario_foto : 'img/icons/perfil.png';
-    document.getElementById('confirmar_foto').src = foto;
+    const imgId = modo === 'eliminar' ? 'delete_foto' : 'confirmar_foto';
+    const img = document.getElementById(imgId);
+    img.src = data.usuario_foto?.trim() !== '' ? data.usuario_foto + '?t=' + new Date().getTime() : 'img/icons/perfil.png';
 
-    document.getElementById('confirmar_nombre_completo').textContent =
-        `${data.usuario_nombre || ''} ${data.usuario_apellido || ''}`.trim();
+    const usuarioId = modo === 'eliminar' ? 'delete_usuario' : 'confirmar_usuario';
+    const nombreId = modo === 'eliminar' ? 'delete_nombre' : 'confirmar_nombre_completo';
+    const apellidoId = modo === 'eliminar' ? 'delete_apellido' : null;
 
-    document.getElementById('confirmar_usuario').textContent = data.usuario_usuario || '';
+    document.getElementById(usuarioId).textContent = data.usuario_usuario || '';
+    document.getElementById(nombreId).textContent = `${data.usuario_nombre || ''} ${data.usuario_apellido || ''}`.trim();
+    if (apellidoId) {
+        document.getElementById(apellidoId).textContent = data.usuario_apellido || '';
+    }
 
-    const form = document.getElementById('form_confirmar_usuario');
+    const formId = modo === 'eliminar' ? 'form_delete_usuario' : 'form_confirmar_usuario';
+    const modalId = modo === 'eliminar' ? 'eliminar_usuario' : 'confirmar_usuario';
+
+    const form = document.getElementById(formId);
     form.dataset.usuarioId = data.usuario_id;
     form.dataset.modo = modo;
 
-    const modal = document.querySelector('dialog[data-modal="confirmar_usuario"]');
-    if (modal?.showModal) modal.showModal();
+    document.querySelector(`dialog[data-modal="${modalId}"]`)?.showModal();
 }
 
 
-//funcion: Eliminar/recuperar Usuario
-document.getElementById('form_confirmar_usuario')?.addEventListener('submit', function (e) {
+
+//funcion: Eliminar
+document.getElementById('form_delete_usuario')?.addEventListener('submit', function (e) {
     e.preventDefault();
-
     const id = this.dataset.usuarioId;
-    const modo = this.dataset.modo;
-    if (!id || !modo) return;
-
-    const errorContainer = document.getElementById('error-container-confirmar');
-    errorContainer.textContent = '';
-    errorContainer.style.display = 'none';
-
-    const accion = modo === 'recuperar' ? 'recuperar_usuario' : 'deshabilitar_usuario';
+    if (!id) return;
 
     fetch('php/usuario_ajax.php', {
         method: 'POST',
-        body: new URLSearchParams({ accion, id })
+        body: new URLSearchParams({ accion: 'deshabilitar_usuario', id })
     })
     .then(res => res.json())
     .then(data => {
         if (data.exito) {
-            // Cerrar primero el modal de confirmación
-            const modalConfirmar = document.querySelector('dialog[data-modal="confirmar_usuario"]');
-            if (modalConfirmar?.open) modalConfirmar.close();
-
-            // Mostrar modal de éxito
-            mostrarModalExito(data.mensaje || 'Operación completada');
-
-            // Recargar tabla
+            document.querySelector('dialog[data-modal="eliminar_usuario"]')?.close();
+            mostrarModalExito(data.mensaje || 'Usuario deshabilitado');
             $('#usuarioTabla').DataTable().ajax.reload(null, false);
-        } else {
-            errorContainer.textContent = data.mensaje || 'Error inesperado';
-            errorContainer.style.display = 'block';
         }
-    })
-    .catch(() => {
-        console.error('Error de conexión con el servidor');
     });
 });
+
+//Recuperar
+document.getElementById('form_confirmar_usuario')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.usuarioId;
+    if (!id) return;
+
+    fetch('php/usuario_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_usuario', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            document.querySelector('dialog[data-modal="confirmar_usuario"]')?.close();
+            mostrarModalExito(data.mensaje || 'Usuario recuperado');
+            estadoActual = 1;
+            $('#usuarioTabla').DataTable().ajax.reload(null, false);
+        }
+    });
+});
+
 
 
 /* SUBMODULO CLASIFICACION */

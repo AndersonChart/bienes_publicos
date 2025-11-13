@@ -6,10 +6,29 @@ window.addEventListener('load', function () {
 
     let estadoActual = 1; // 0 = deshabilitados, 1 = habilitados
     const toggleBtn = document.getElementById('toggleEstado');
-    const usuarioRol = document.getElementById('usuario')?.dataset.id;
+    const usuarioRol = parseInt(document.getElementById('usuario')?.dataset.id || '0');
 
-    toggleBtn.textContent = 'Deshabilitados';
-    toggleBtn.classList.add('estado-rojo');
+    // Solo configurar el botón si existe (rol 3)
+    if (toggleBtn) {
+        toggleBtn.textContent = 'Deshabilitados';
+        toggleBtn.classList.add('estado-rojo');
+
+        toggleBtn.addEventListener('click', () => {
+            estadoActual = estadoActual === 0 ? 1 : 0;
+
+            if (estadoActual === 0) {
+                toggleBtn.textContent = 'Habilitados';
+                toggleBtn.classList.remove('estado-rojo');
+                toggleBtn.classList.add('estado-verde');
+            } else {
+                toggleBtn.textContent = 'Deshabilitados';
+                toggleBtn.classList.remove('estado-verde');
+                toggleBtn.classList.add('estado-rojo');
+            }
+
+            tabla.ajax.reload(null, false);
+        });
+    }
 
     const tabla = $('#usuarioTabla').DataTable({
         scrollY: '500px',
@@ -47,10 +66,9 @@ window.addEventListener('load', function () {
                 data: null,
                 render: function (data, type, row) {
                     const estado = parseInt(row.usuario_estado);
-                    const rol = parseInt(usuarioRol);
                     let botones = '';
 
-                    if (rol === 2) {
+                    if (usuarioRol !== 1) {
                         if (estado === 1) {
                             botones += `
                                 <div class="acciones">
@@ -78,7 +96,6 @@ window.addEventListener('load', function () {
                             `;
                         }
                     } else {
-                        // Mostrar info sin importar el estado
                         botones += `
                             <div class="acciones">
                                 <div class="icon-action btn_ver_info" data-modal-target="info_usuario" data-id="${row.usuario_id}" title="Info">
@@ -113,83 +130,50 @@ window.addEventListener('load', function () {
         pageLength: 15,
     });
 
-    // Botón para alternar entre habilitados y deshabilitados
-    toggleBtn.addEventListener('click', () => {
-        estadoActual = estadoActual === 0 ? 1 : 0;
-
-        if (estadoActual === 0) {
-            toggleBtn.textContent = 'Habilitados';
-            toggleBtn.classList.remove('estado-rojo');
-            toggleBtn.classList.add('estado-verde');
-        } else {
-            toggleBtn.textContent = 'Deshabilitados';
-            toggleBtn.classList.remove('estado-verde');
-            toggleBtn.classList.add('estado-rojo');
-        }
-
-        tabla.ajax.reload(null, false);
-    });
-
-    // Acción: Actualizar
+    // Listeners para acciones
     $('#usuarioTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
-        if (fila && fila.usuario_id) {
-            abrirFormularioEdicionUsuario(fila.usuario_id);
-        }
+        if (fila?.usuario_id) abrirFormularioEdicionUsuario(fila.usuario_id);
     });
 
-    // Acción: Ver info
     $('#usuarioTabla tbody').on('click', '.btn_ver_info', function () {
         const id = $(this).data('id');
         if (!id) return;
-
         fetch('php/usuario_ajax.php', {
             method: 'POST',
-            body: new URLSearchParams({ accion: 'obtener_usuario', id: id })
+            body: new URLSearchParams({ accion: 'obtener_usuario', id })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito && data.usuario) {
-                mostrarInfoUsuario(data.usuario);
-            }
+            if (data.exito && data.usuario) mostrarInfoUsuario(data.usuario);
         });
     });
 
-    // Eliminar
     $('#usuarioTabla tbody').on('click', '.btn_eliminar', function () {
         const id = $(this).data('id');
         if (!id) return;
-
         fetch('php/usuario_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_usuario', id })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito && data.usuario) {
-                mostrarConfirmacionUsuario(data.usuario, 'eliminar');
-            }
+            if (data.exito && data.usuario) mostrarConfirmacionUsuario(data.usuario, 'eliminar');
         });
     });
 
-
-    // Recuperar
     $('#usuarioTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
         if (!id) return;
-
         fetch('php/usuario_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_usuario', id })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito && data.usuario) {
-                mostrarConfirmacionUsuario(data.usuario, 'recuperar');
-            }
+            if (data.exito && data.usuario) mostrarConfirmacionUsuario(data.usuario, 'recuperar');
         });
     });
-
-
 });
+
 
