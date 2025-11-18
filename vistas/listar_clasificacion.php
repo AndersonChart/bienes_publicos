@@ -1,3 +1,4 @@
+<div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="filters">
         <!-- Filtro -->
@@ -10,7 +11,9 @@
     </div>
     <div class="basics-container">
         <div class="new_user new_user-usuario" data-modal-target="new_clasificacion">+ Nuevo</div>
-        <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+        <?php if ($_SESSION["rol"] == 3): ?>
+            <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+        <?php endif; ?>
     </div>
 </div>
 

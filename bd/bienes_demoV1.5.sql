@@ -89,7 +89,7 @@ CREATE TABLE bien_tipo (
     bien_modelo VARCHAR(100),
     marca_id INT,
     bien_descripcion VARCHAR(200),
-    estado_id INT DEFAULT 1,
+    bien_estado TINYINT(1) NOT NULL DEFAULT 1,
     bien_imagen VARCHAR(255),
     PRIMARY KEY (bien_tipo_id)
 );
@@ -107,7 +107,7 @@ CREATE TABLE bien (
 CREATE TABLE cargo (
     cargo_id INT NOT NULL AUTO_INCREMENT,
     cargo_codigo VARCHAR(20) NOT NULL,
-    estado_id INT DEFAULT 1,
+    cargo_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (cargo_id)
 );
 
@@ -128,10 +128,9 @@ CREATE TABLE persona (
     PRIMARY KEY (persona_id)
 );
 
--- Tabla de asignaciones
+-- Tabla de notas de asignacion
 CREATE TABLE asignacion (
     asignacion_id INT NOT NULL AUTO_INCREMENT,
-    bien_id INT NOT NULL,
     area_id INT NOT NULL,
     persona_id INT NOT NULL,
     asignacion_fecha DATE NOT NULL,
@@ -140,25 +139,31 @@ CREATE TABLE asignacion (
     PRIMARY KEY (asignacion_id)
 );
 
--- Tabla de recepción
-CREATE TABLE recepcion (
-    recepcion_id INT NOT NULL AUTO_INCREMENT,
-    bien_id INT,
-    recepcion_cantidad INT NOT NULL,
-    recepcion_fecha DATE NOT NULL,
-    recepcion_descripcion VARCHAR(200),
-    PRIMARY KEY (recepcion_id)
+-- Tabla de bienes asignados
+CREATE TABLE asignacion_bien (
+    asignacion_bien_id INT NOT NULL AUTO_INCREMENT,
+    bien_id INT NOT NULL,
+    asignacion_id INT NOT NULL,
+    PRIMARY KEY (asignacion_bien_id)
 );
 
--- Tabla de desincorporación
-CREATE TABLE desincorporacion (
-    desin_id INT NOT NULL AUTO_INCREMENT,
-    bien_id INT,
-    desin_cantidad INT NOT NULL,
-    desin_fecha DATE NOT NULL,
-    desin_descripcion VARCHAR(200),
-    PRIMARY KEY (desin_id)
+-- Tabla de recepción/desincorporación
+CREATE TABLE ajuste (
+    ajuste_id INT NOT NULL AUTO_INCREMENT,
+    ajuste_fecha DATE NOT NULL,
+    ajuste_descripcion VARCHAR(200),
+    ajuste_tipo TINYINT(2) NOT NULL, --1. Entrada 0. Salida
+    PRIMARY KEY (ajuste_id)
 );
+
+-- Tabla de bienes por recepción/desincorporación
+CREATE TABLE ajuste_bien (
+    ajuste_bien_id INT NOT NULL AUTO_INCREMENT,
+    bien_id INT NOT NULL,
+    ajuste_id INT NOT NULL,
+    PRIMARY KEY (ajuste_bien_id)
+);
+
 
 -- Índices y valores únicos
 ALTER TABLE clasificacion ADD UNIQUE (clasificacion_codigo);
@@ -170,21 +175,75 @@ CREATE INDEX idx_usuario_cedula ON usuario(usuario_cedula);
 CREATE INDEX idx_persona_cedula ON persona(persona_cedula);
 
 -- Claves foráneas
-ALTER TABLE usuario ADD CONSTRAINT fk_usuario_rol FOREIGN KEY (rol_id) REFERENCES rol(rol_id);
-ALTER TABLE clasificacion ADD CONSTRAINT fk_clasificacion_categoria FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
-ALTER TABLE bien_tipo ADD CONSTRAINT fk_bien_tipo_categoria FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
-ALTER TABLE bien_tipo ADD CONSTRAINT fk_bien_tipo_clasificacion FOREIGN KEY (clasificacion_id) REFERENCES clasificacion(clasificacion_id);
-ALTER TABLE bien_tipo ADD CONSTRAINT fk_bien_tipo_marca FOREIGN KEY (marca_id) REFERENCES marca(marca_id);
-ALTER TABLE bien_tipo ADD CONSTRAINT fk_bien_tipo_estado FOREIGN KEY (estado_id) REFERENCES estado(estado_id);
-ALTER TABLE bien ADD CONSTRAINT fk_bien_bien_tipo FOREIGN KEY (bien_tipo_id) REFERENCES bien_tipo(bien_tipo_id);
-ALTER TABLE bien ADD CONSTRAINT fk_bien_estado FOREIGN KEY (estado_id) REFERENCES estado(estado_id);
-ALTER TABLE cargo ADD CONSTRAINT fk_cargo_estado FOREIGN KEY (estado_id) REFERENCES estado(estado_id);
-ALTER TABLE persona ADD CONSTRAINT fk_persona_cargo FOREIGN KEY (cargo_id) REFERENCES cargo(cargo_id);
-ALTER TABLE asignacion ADD CONSTRAINT fk_asignacion_bien FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
-ALTER TABLE asignacion ADD CONSTRAINT fk_asignacion_area FOREIGN KEY (area_id) REFERENCES area(area_id);
-ALTER TABLE asignacion ADD CONSTRAINT fk_asignacion_persona FOREIGN KEY (persona_id) REFERENCES persona(persona_id);
-ALTER TABLE recepcion ADD CONSTRAINT fk_recepcion_bien FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
-ALTER TABLE desincorporacion ADD CONSTRAINT fk_desin_bien FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
+-- Usuario → Rol
+ALTER TABLE usuario 
+    ADD CONSTRAINT fk_usuario_rol 
+    FOREIGN KEY (rol_id) REFERENCES rol(rol_id);
+
+-- Clasificación → Categoría
+ALTER TABLE clasificacion 
+    ADD CONSTRAINT fk_clasificacion_categoria 
+    FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
+
+-- Bien Tipo → Categoría
+ALTER TABLE bien_tipo 
+    ADD CONSTRAINT fk_bien_tipo_categoria 
+    FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
+
+-- Bien Tipo → Clasificación
+ALTER TABLE bien_tipo 
+    ADD CONSTRAINT fk_bien_tipo_clasificacion 
+    FOREIGN KEY (clasificacion_id) REFERENCES clasificacion(clasificacion_id);
+
+-- Bien Tipo → Marca
+ALTER TABLE bien_tipo 
+    ADD CONSTRAINT fk_bien_tipo_marca 
+    FOREIGN KEY (marca_id) REFERENCES marca(marca_id);
+
+-- Bien → Bien Tipo
+ALTER TABLE bien 
+    ADD CONSTRAINT fk_bien_bien_tipo 
+    FOREIGN KEY (bien_tipo_id) REFERENCES bien_tipo(bien_tipo_id);
+
+-- Bien → Estado
+ALTER TABLE bien 
+    ADD CONSTRAINT fk_bien_estado 
+    FOREIGN KEY (estado_id) REFERENCES estado(estado_id);
+
+-- Persona → Cargo
+ALTER TABLE persona 
+    ADD CONSTRAINT fk_persona_cargo 
+    FOREIGN KEY (cargo_id) REFERENCES cargo(cargo_id);
+
+-- Asignación → Área
+ALTER TABLE asignacion 
+    ADD CONSTRAINT fk_asignacion_area 
+    FOREIGN KEY (area_id) REFERENCES area(area_id);
+
+-- Asignación → Persona
+ALTER TABLE asignacion 
+    ADD CONSTRAINT fk_asignacion_persona 
+    FOREIGN KEY (persona_id) REFERENCES persona(persona_id);
+
+-- Asignación Bien → Asignación
+ALTER TABLE asignacion_bien 
+    ADD CONSTRAINT fk_asignacion_bien_asignacion 
+    FOREIGN KEY (asignacion_id) REFERENCES asignacion(asignacion_id);
+
+-- Asignación Bien → Bien
+ALTER TABLE asignacion_bien 
+    ADD CONSTRAINT fk_asignacion_bien_bien 
+    FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
+
+-- Ajuste Bien → Ajuste
+ALTER TABLE ajuste_bien 
+    ADD CONSTRAINT fk_ajuste_bien_ajuste 
+    FOREIGN KEY (ajuste_id) REFERENCES ajuste(ajuste_id);
+
+-- Ajuste Bien → Bien
+ALTER TABLE ajuste_bien 
+    ADD CONSTRAINT fk_ajuste_bien_bien 
+    FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
 
 -- Datos de ejemplo
 INSERT INTO categoria (categoria_nombre) VALUES ('Tecnologico'), ('Mobiliario'), ('Otros');

@@ -1,7 +1,10 @@
 <!-- Botones superiores -->
+<div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="new_user new_user-usuario" data-modal-target="new_marca">+ Nuevo</div>
-    <div id="toggleEstado_marca" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+    <?php if ($_SESSION["rol"] == 3): ?>
+        <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+    <?php endif; ?>
 </div>
 
 <!-- Modal: Registro/actualización -->

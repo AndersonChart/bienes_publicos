@@ -1,4 +1,5 @@
 <!-- Filtros y botones superiores -->
+<div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="filters">
             <label for="categoria" class="input_label">Categoría:</label>
@@ -12,7 +13,9 @@
     </div>
     <div class="basics-container">
         <div class="new_user new_user-usuario" data-modal-target="new_bien_tipo">+ Nuevo</div>
-        <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+        <?php if ($_SESSION["rol"] == 3): ?>
+            <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+        <?php endif; ?>
     </div>
 </div>
 
