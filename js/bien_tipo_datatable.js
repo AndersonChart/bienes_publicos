@@ -6,9 +6,28 @@ window.addEventListener('load', function () {
 
     let estadoActual = 1;
     const toggleBtn = document.getElementById('toggleEstado');
+    const usuarioRol = parseInt(document.getElementById('usuario')?.dataset.id || '0');
 
-    toggleBtn.textContent = 'Deshabilitados';
-    toggleBtn.classList.add('estado-rojo');
+    if (toggleBtn) {
+        toggleBtn.textContent = 'Deshabilitados';
+        toggleBtn.classList.add('estado-rojo');
+
+        toggleBtn.addEventListener('click', () => {
+            estadoActual = estadoActual === 0 ? 1 : 0;
+
+            if (estadoActual === 0) {
+                toggleBtn.textContent = 'Habilitados';
+                toggleBtn.classList.remove('estado-rojo');
+                toggleBtn.classList.add('estado-verde');
+            } else {
+                toggleBtn.textContent = 'Deshabilitados';
+                toggleBtn.classList.remove('estado-verde');
+                toggleBtn.classList.add('estado-rojo');
+            }
+
+            tabla.ajax.reload(null, false);
+        });
+    }
 
     const tabla = $('#bienTipoTabla').DataTable({
         scrollY: '500px',
@@ -53,28 +72,38 @@ window.addEventListener('load', function () {
                     const estado = parseInt(row.estado_id);
                     let botones = '';
 
-                    if (estado === 1) {
-                        botones += `
-                            <div class="acciones">
-                                <div class="icon-action" data-modal-target="new_bien" title="Actualizar">
-                                    <img src="img/icons/actualizar.png" alt="Actualizar">
+                    if (usuarioRol === 3) {
+                        if (estado === 1) {
+                            botones += `
+                                <div class="acciones">
+                                    <div class="icon-action" data-modal-target="new_bien" title="Actualizar">
+                                        <img src="img/icons/actualizar.png" alt="Actualizar">
+                                    </div>
+                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>
+                                    <div class="icon-action btn_eliminar" data-id="${row.bien_tipo_id}" title="Eliminar">
+                                        <img src="img/icons/eliminar.png" alt="Eliminar">
+                                    </div>
                                 </div>
-                                <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
+                            `;
+                        } else {
+                            botones += `
+                                <div class="acciones">
+                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>
+                                    <div class="icon-action btn_recuperar" data-id="${row.bien_tipo_id}" title="Recuperar">
+                                        <img src="img/icons/recuperar.png" alt="Recuperar">
+                                    </div>
                                 </div>
-                                <div class="icon-action btn_eliminar" data-id="${row.bien_tipo_id}" title="Eliminar">
-                                    <img src="img/icons/eliminar.png" alt="Eliminar">
-                                </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     } else {
                         botones += `
                             <div class="acciones">
                                 <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
-                                </div>
-                                <div class="icon-action btn_recuperar" data-id="${row.bien_tipo_id}" title="Recuperar">
-                                    <img src="img/icons/recuperar.png" alt="Recuperar">
                                 </div>
                             </div>
                         `;
@@ -106,7 +135,6 @@ window.addEventListener('load', function () {
         pageLength: 15,
     });
 
-    // Filtro por categoría
     const categoriaFiltro = document.getElementById('categoria_filtro');
     if (categoriaFiltro) {
         categoriaFiltro.addEventListener('change', () => {
@@ -114,24 +142,13 @@ window.addEventListener('load', function () {
         });
     }
 
-    // Botón para alternar estado
-    toggleBtn.addEventListener('click', () => {
-        estadoActual = estadoActual === 0 ? 1 : 0;
+    const clasificacionFiltro = document.getElementById('clasificacion');
+    if (clasificacionFiltro) {
+        clasificacionFiltro.addEventListener('change', () => {
+            tabla.ajax.reload(null, false);
+        });
+    }
 
-        if (estadoActual === 0) {
-            toggleBtn.textContent = 'Habilitados';
-            toggleBtn.classList.remove('estado-rojo');
-            toggleBtn.classList.add('estado-verde');
-        } else {
-            toggleBtn.textContent = 'Deshabilitados';
-            toggleBtn.classList.remove('estado-verde');
-            toggleBtn.classList.add('estado-rojo');
-        }
-
-        tabla.ajax.reload(null, false);
-    });
-
-    // Acción: Actualizar
     $('#bienTipoTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
         if (fila && fila.bien_tipo_id) {
@@ -139,7 +156,6 @@ window.addEventListener('load', function () {
         }
     });
 
-    // Acción: Ver info
     $('#bienTipoTabla tbody').on('click', '.btn_ver_info', function () {
         const id = $(this).data('id');
         if (!id) return;
@@ -156,7 +172,6 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Acción: Eliminar
     $('#bienTipoTabla tbody').on('click', '.btn_eliminar', function () {
         const id = $(this).data('id');
         if (!id) return;
@@ -173,7 +188,6 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Acción: Recuperar
     $('#bienTipoTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
         if (!id) return;
@@ -190,3 +204,4 @@ window.addEventListener('load', function () {
         });
     });
 });
+

@@ -8,7 +8,7 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
     $erroresFormato = [];
 
     // Campos obligatorios
-    $camposObligatorios = ['bien_tipo_codigo', 'bien_tipo_nombre'];
+    $camposObligatorios = ['bien_tipo_codigo', 'bien_nombre'];
     $camposFaltantes = [];
 
     foreach ($camposObligatorios as $campo) {
@@ -30,19 +30,19 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $erroresFormato['bien_tipo_codigo'] = 'El código debe tener máximo 20 caracteres entre letras, números, guiones o guiones bajos';
     }
 
-    if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,100}$/u', $datos['bien_tipo_nombre'])) {
-        $erroresFormato['bien_tipo_nombre'] = 'El nombre tiene máximo 100 caracteres';
+    if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,100}$/u', $datos['bien_nombre'])) {
+        $erroresFormato['bien_nombre'] = 'El nombre tiene máximo 100 caracteres';
     }
 
     // Validación de imagen (solo si se sube)
-    if (isset($_FILES['bien_tipo_imagen']) && $_FILES['bien_tipo_imagen']['error'] === UPLOAD_ERR_OK) {
-        $extension = strtolower(pathinfo($_FILES['bien_tipo_imagen']['name'], PATHINFO_EXTENSION));
-        $peso = $_FILES['bien_tipo_imagen']['size'];
+    if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
+        $extension = strtolower(pathinfo($_FILES['bien_imagen']['name'], PATHINFO_EXTENSION));
+        $peso = $_FILES['bien_imagen']['size'];
 
         if (!in_array($extension, ['jpg', 'jpeg', 'png'])) {
-            $erroresFormato['bien_tipo_imagen'] = 'Formato de imagen no permitido (solo JPG, JPEG o PNG)';
+            $erroresFormato['bien_imagen'] = 'Formato de imagen no permitido (solo JPG, JPEG o PNG)';
         } elseif ($peso > 3 * 1024 * 1024) {
-            $erroresFormato['bien_tipo_imagen'] = 'La imagen supera el tamaño máximo de 3MB';
+            $erroresFormato['bien_imagen'] = 'La imagen supera el tamaño máximo de 3MB';
         }
     }
 
@@ -76,15 +76,15 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $erroresDuplicados['bien_tipo_codigo'] = 'Código ya registrado';
     }
 
-    if ($modo === 'crear' && $bien_tipo_tipo->existeNombre($datos['bien_tipo_nombre'])) {
-        $erroresDuplicados['bien_tipo_nombre'] = 'Nombre ya registrado';
+    if ($modo === 'crear' && $bien_tipo_tipo->existeNombre($datos['bien_nombre'])) {
+        $erroresDuplicados['bien_nombre'] = 'Nombre ya registrado';
     }
 
     if ($modo === 'actualizar' &&
-        isset($original['bien_tipo_nombre']) &&
-        $datos['bien_tipo_nombre'] !== $original['bien_tipo_nombre'] &&
-        $bien_tipo_tipo->existeNombre($datos['bien_tipo_nombre'], $id)) {
-        $erroresDuplicados['bien_tipo_nombre'] = 'Nombre ya registrado';
+        isset($original['bien_nombre']) &&
+        $datos['bien_nombre'] !== $original['bien_nombre'] &&
+        $bien_tipo_tipo->existeNombre($datos['bien_nombre'], $id)) {
+        $erroresDuplicados['bien_nombre'] = 'Nombre ya registrado';
     }
 
     if (!empty($erroresDuplicados)) {
@@ -128,14 +128,14 @@ switch ($accion) {
             header('Content-Type: application/json');
 
             $datos = [
-                'bien_codigo' => $_POST['bien_codigo'] ?? '',
+                'bien_tipo_codigo' => $_POST['bien_tipo_codigo'] ?? '',
                 'categoria_id' => $_POST['categoria_id'] ?? '',
                 'clasificacion_id' => $_POST['clasificacion_id'] ?? '',
                 'bien_nombre' => $_POST['bien_nombre'] ?? '',
                 'bien_modelo' => $_POST['bien_modelo'] ?? '',
                 'marca_id' => $_POST['marca_id'] ?? '',
                 'bien_descripcion' => $_POST['bien_descripcion'] ?? '',
-                'estado_id' => 1,
+                'bien_estado' => 1,
                 'bien_imagen' => ''
             ];
 
@@ -157,9 +157,9 @@ switch ($accion) {
             }
 
             $resultado = $bien_tipo->crear(
-                $datos['bien_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
+                $datos['bien_tipo_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
                 $datos['marca_id'], $datos['categoria_id'], $datos['clasificacion_id'],
-                $datos['bien_descripcion'], $datos['estado_id'], $datos['bien_imagen']
+                $datos['bien_descripcion'], $datos['bien_estado'], $datos['bien_imagen']
             );
 
             echo json_encode([
@@ -190,21 +190,21 @@ switch ($accion) {
     case 'actualizar':
         try {
             header('Content-Type: application/json');
-            $id = $_POST['bien_id'] ?? '';
+            $id = $_POST['bien_tipo_id'] ?? '';
             if (!$id) {
                 echo json_encode(['error' => true, 'mensaje' => 'ID de bien no proporcionado']);
                 exit;
             }
 
             $datos = [
-                'bien_codigo' => $_POST['bien_codigo'] ?? '',
+                'bien_tipo_codigo' => $_POST['bien_tipo_codigo'] ?? '',
                 'categoria_id' => $_POST['categoria_id'] ?? '',
                 'clasificacion_id' => $_POST['clasificacion_id'] ?? '',
                 'bien_nombre' => $_POST['bien_nombre'] ?? '',
                 'bien_modelo' => $_POST['bien_modelo'] ?? '',
                 'marca_id' => $_POST['marca_id'] ?? '',
                 'bien_descripcion' => $_POST['bien_descripcion'] ?? '',
-                'estado_id' => 1,
+                'bien_estado' => 1,
                 'bien_imagen' => ''
             ];
 
@@ -235,9 +235,9 @@ switch ($accion) {
             }
 
             $resultado = $bien_tipo->actualizar(
-                $datos['bien_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
+                $datos['bien_tipo_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
                 $datos['marca_id'], $datos['categoria_id'], $datos['clasificacion_id'],
-                $datos['bien_descripcion'], $datos['estado_id'], $datos['bien_imagen'], $id
+                $datos['bien_descripcion'], $datos['bien_estado'], $datos['bien_imagen'], $id
             );
 
             echo json_encode([

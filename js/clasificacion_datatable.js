@@ -6,13 +6,32 @@ window.addEventListener('load', function () {
 
     let estadoActual = 1; // 0 = deshabilitados, 1 = habilitados
     const toggleBtn = document.getElementById('toggleEstado');
+    const usuarioRol = parseInt(document.getElementById('usuario')?.dataset.id || '0');
 
-    toggleBtn.textContent = 'Deshabilitados';
-    toggleBtn.classList.add('estado-rojo');
+    if (toggleBtn) {
+        toggleBtn.textContent = 'Deshabilitados';
+        toggleBtn.classList.add('estado-rojo');
+
+        toggleBtn.addEventListener('click', () => {
+            estadoActual = estadoActual === 0 ? 1 : 0;
+
+            if (estadoActual === 0) {
+                toggleBtn.textContent = 'Habilitados';
+                toggleBtn.classList.remove('estado-rojo');
+                toggleBtn.classList.add('estado-verde');
+            } else {
+                toggleBtn.textContent = 'Deshabilitados';
+                toggleBtn.classList.remove('estado-verde');
+                toggleBtn.classList.add('estado-rojo');
+            }
+
+            tabla.ajax.reload(null, false);
+        });
+    }
 
     const tabla = $('#clasificacionTabla').DataTable({
         scrollY: '500px',
-        scrollCollapse: true,   
+        scrollCollapse: true,
         responsive: true,
         ajax: {
             url: 'php/clasificacion_ajax.php',
@@ -34,7 +53,7 @@ window.addEventListener('load', function () {
             { data: 'categoria_nombre' },
             {
                 data: 'clasificacion_descripcion',
-                render: function (data, type, row) {
+                render: function (data) {
                     if (!data) return '';
                     const maxLength = 100;
                     return data.length > maxLength
@@ -48,6 +67,7 @@ window.addEventListener('load', function () {
                     const estado = parseInt(row.clasificacion_estado);
                     let botones = '';
 
+                    if (usuarioRol === 3) {
                         if (estado === 1) {
                             botones += `
                                 <div class="acciones">
@@ -74,6 +94,16 @@ window.addEventListener('load', function () {
                                 </div>
                             `;
                         }
+                    } else {
+                        botones += `
+                            <div class="acciones">
+                                <div class="icon-action btn_ver_info" data-modal-target="info_clasificacion" data-id="${row.clasificacion_id}" title="Info">
+                                    <img src="img/icons/info.png" alt="Info">
+                                </div>
+                            </div>
+                        `;
+                    }
+
                     return botones;
                 },
                 orderable: false
@@ -100,7 +130,6 @@ window.addEventListener('load', function () {
         pageLength: 15,
     });
 
-    // Filtro por categoría
     const categoriaFiltro = document.getElementById('categoria_filtro');
     if (categoriaFiltro) {
         categoriaFiltro.addEventListener('change', () => {
@@ -108,27 +137,10 @@ window.addEventListener('load', function () {
         });
     }
 
-    // Botón para alternar entre habilitados y deshabilitados
-    toggleBtn.addEventListener('click', () => {
-        estadoActual = estadoActual === 0 ? 1 : 0;
-
-        if (estadoActual === 0) {
-            toggleBtn.textContent = 'Habilitados';
-            toggleBtn.classList.remove('estado-rojo');
-            toggleBtn.classList.add('estado-verde');
-        } else {
-            toggleBtn.textContent = 'Deshabilitados';
-            toggleBtn.classList.remove('estado-verde');
-            toggleBtn.classList.add('estado-rojo');
-        }
-
-        tabla.ajax.reload(null, false);
-    });
-
     // Acción: Actualizar
     $('#clasificacionTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
-        if (fila && fila.clasificacion_id) {
+        if (fila?.clasificacion_id) {
             abrirFormularioEdicionClasificacion(fila.clasificacion_id);
         }
     });
@@ -140,7 +152,7 @@ window.addEventListener('load', function () {
 
         fetch('php/clasificacion_ajax.php', {
             method: 'POST',
-            body: new URLSearchParams({ accion: 'obtener_clasificacion', id: id })
+            body: new URLSearchParams({ accion: 'obtener_clasificacion', id })
         })
         .then(res => res.json())
         .then(data => {
@@ -167,7 +179,6 @@ window.addEventListener('load', function () {
         });
     });
 
-
     // Recuperar
     $('#clasificacionTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
@@ -184,7 +195,6 @@ window.addEventListener('load', function () {
             }
         });
     });
-
-
 });
+
 

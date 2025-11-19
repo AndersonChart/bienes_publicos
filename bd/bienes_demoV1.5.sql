@@ -152,7 +152,7 @@ CREATE TABLE ajuste (
     ajuste_id INT NOT NULL AUTO_INCREMENT,
     ajuste_fecha DATE NOT NULL,
     ajuste_descripcion VARCHAR(200),
-    ajuste_tipo TINYINT(2) NOT NULL, --1. Entrada 0. Salida
+    ajuste_tipo TINYINT(2) NOT NULL, -- 1. Entrada 0. Salida
     PRIMARY KEY (ajuste_id)
 );
 

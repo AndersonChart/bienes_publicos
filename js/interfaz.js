@@ -172,6 +172,56 @@ function mantenerFotoUsuarioActualizada() {
     });
 }
 
+function cargarRol(opciones = {}) {
+    fetch('php/rol_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todos' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!Array.isArray(data)) {
+            console.error('Respuesta inválida al cargar roles:', data);
+            return;
+        }
+
+        document.querySelectorAll('select.rol_form').forEach(select => {
+            select.innerHTML = '';
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.textContent = 'Seleccione un rol';
+
+            // Solo marcar como selected si NO hay rol preseleccionado (es creación)
+            if (!opciones.selected) {
+                defaultOption.selected = true;
+            }
+
+            select.appendChild(defaultOption);
+
+            data.forEach(rol => {
+                const option = document.createElement('option');
+                option.value = rol.rol_id;
+                option.textContent = rol.rol_nombre;
+
+                // Marcar como seleccionado si estamos actualizando
+                if (opciones.selected && opciones.selected == rol.rol_id) {
+                    option.selected = true;
+                }
+
+                select.appendChild(option);
+            });
+        });
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar roles:', err);
+    });
+}
+
 function cargarCategorias(opciones = {}) {
     fetch('php/categoria_ajax.php', {
         method: 'POST',
@@ -224,56 +274,6 @@ function cargarCategorias(opciones = {}) {
     })
     .catch(err => {
         console.error('Error al cargar categorías:', err);
-    });
-}
-
-function cargarRol(opciones = {}) {
-    fetch('php/rol_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'leer_todos' })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!Array.isArray(data)) {
-            console.error('Respuesta inválida al cargar roles:', data);
-            return;
-        }
-
-        document.querySelectorAll('select.rol_form').forEach(select => {
-            select.innerHTML = '';
-
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.disabled = true;
-            defaultOption.textContent = 'Seleccione un rol';
-
-            // Solo marcar como selected si NO hay rol preseleccionado (es creación)
-            if (!opciones.selected) {
-                defaultOption.selected = true;
-            }
-
-            select.appendChild(defaultOption);
-
-            data.forEach(rol => {
-                const option = document.createElement('option');
-                option.value = rol.rol_id;
-                option.textContent = rol.rol_nombre;
-
-                // Marcar como seleccionado si estamos actualizando
-                if (opciones.selected && opciones.selected == rol.rol_id) {
-                    option.selected = true;
-                }
-
-                select.appendChild(option);
-            });
-        });
-
-        if (typeof opciones.onComplete === 'function') {
-            opciones.onComplete(data);
-        }
-    })
-    .catch(err => {
-        console.error('Error al cargar roles:', err);
     });
 }
 
@@ -1384,37 +1384,55 @@ function abrirFormularioEdicionBien(id) {
         if (!data.exito || !data.bien) return;
 
         const b = data.bien;
-        formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
-        formBien.querySelector('#codigo').value = b.bien_codigo;
-        formBien.querySelector('#nombre_bien').value = b.bien_nombre;
-        formBien.querySelector('#modelo').value = b.bien_modelo;
-        formBien.querySelector('#marca').value = b.marca_id;
-        formBien.querySelector('#clasificacion').value = b.clasificacion_id;
-        formBien.querySelector('#descripcion').value = b.bien_descripcion;
 
-        const preview = document.getElementById('preview_foto');       /*ARREGLAR*/
-        const icono = document.querySelector('.foto_perfil_icon');
+        cargarCategorias({
+            selected: b.categoria_id,
+            onComplete: () => {
+                cargarClasificacion({
+                    selected: b.clasificacion_id,
+                    categoria_id: b.categoria_id,
+                    onComplete: () => {
+                        cargarMarca({
+                            selected: b.marca_id,
+                            onComplete: () => {
+                                formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
+                                formBien.querySelector('#bien_tipo_codigo').value = b.bien_tipo_codigo;
+                                formBien.querySelector('#bien_nombre').value = b.bien_nombre;
+                                formBien.querySelector('#bien_modelo').value = b.bien_modelo;
+                                formBien.querySelector('#bien_descripcion').value = b.bien_descripcion;
 
-        if (b.bien_imagen && b.bien_imagen.trim() !== '') {
-            preview.src = b.bien_imagen + '?t=' + new Date().getTime();
-            preview.style.display = 'block';
-            icono.style.opacity = '0';
-        } else {
-            preview.src = '';
-            preview.style.display = 'none';
-            icono.style.opacity = '1';
-        }
+                                const preview = document.getElementById('preview_foto_bien');
+                                const icono = document.querySelector('.foto_perfil_icon');
 
-        document.querySelector('[data-modal="new_bien_tipo"]')?.showModal();
+                                if (b.bien_imagen && b.bien_imagen.trim() !== '') {
+                                    preview.src = b.bien_imagen + '?t=' + new Date().getTime();
+                                    preview.style.display = 'block';
+                                    icono.style.opacity = '0';
+                                } else {
+                                    preview.src = '';
+                                    preview.style.display = 'none';
+                                    icono.style.opacity = '1';
+                                }
+
+                                const modal = document.querySelector('[data-modal="new_bien_tipo"]');
+                                if (modal?.showModal) modal.showModal();
+                            }
+                        });
+                    }
+                });
+            }
+        });
     })
     .catch(err => console.error('Error al obtener bien:', err));
 }
 
+
 // Crear o actualizar
 document.addEventListener('DOMContentLoaded', function () {
     const formBien = document.getElementById('form_nuevo_bien');
+    const errorContainerBien = document.getElementById('error-container-bien');
     const inputFotoBien = document.getElementById('foto_bien');
-    const previewFotoBien = document.getElementById('preview_foto');    /*ARREGLAR*/
+    const previewFotoBien = document.getElementById('preview_foto_bien');    /*ARREGLAR*/
     const iconoBien = formBien?.querySelector('.foto_perfil_icon');
 
     // Previsualizar imagen de bien
@@ -1465,12 +1483,12 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(res => res.json())
             .then(data => {
-                errorContainer.innerHTML = '';
-                errorContainer.style.display = 'none';
+                errorContainerBien.innerHTML = '';
+                errorContainerBien.style.display = 'none';
 
                 if (data.error) {
-                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
-                    errorContainer.style.display = 'block';
+                    errorContainerBien.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainerBien.style.display = 'block';
 
                     if (data.campos && Array.isArray(data.campos)) {
                         data.campos.forEach((campo, index) => {
@@ -1490,8 +1508,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(() => {
-                errorContainer.innerHTML = 'Hubo un error con el servidor';
-                errorContainer.style.display = 'block';
+                errorContainerBien.innerHTML = 'Hubo un error con el servidor';
+                errorContainerBien.style.display = 'block';
             });
         });
     }
@@ -1501,7 +1519,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Mostrar información
 function mostrarInfoBien(data) {
-    document.getElementById('info_codigo').textContent = data.bien_codigo || '';
+    document.getElementById('info_codigo').textContent = data.bien_tipo_codigo || '';
     document.getElementById('info_nombre').textContent = data.bien_nombre || '';
     document.getElementById('info_modelo').textContent = data.bien_modelo || '';
     document.getElementById('info_marca').textContent = data.marca_nombre || '';
@@ -1519,7 +1537,7 @@ function mostrarInfoBien(data) {
 // Mostrar datos en confirmación
 function mostrarConfirmacionBien(data, modo = 'eliminar') {
     if (modo === 'eliminar') {
-        document.getElementById('delete_codigo_bien').textContent = data.bien_codigo || '';
+        document.getElementById('delete_codigo_bien').textContent = data.bien_tipo_codigo || '';
         document.getElementById('delete_nombre_bien').textContent = data.bien_nombre || '';
         document.getElementById('delete_clasificacion_bien').textContent = data.clasificacion_nombre || '';
         document.getElementById('delete_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
@@ -1531,7 +1549,7 @@ function mostrarConfirmacionBien(data, modo = 'eliminar') {
         const modal = document.querySelector('dialog[data-modal="eliminar_bien"]');
         if (modal?.showModal) modal.showModal();
     } else if (modo === 'recuperar') {
-        document.getElementById('confirmar_codigo_bien').textContent = data.bien_codigo || '';
+        document.getElementById('confirmar_codigo_bien').textContent = data.bien_tipo_codigo || '';
         document.getElementById('confirmar_nombre_bien').textContent = data.bien_nombre || '';
         document.getElementById('confirmar_clasificacion_bien').textContent = data.clasificacion_nombre || '';
         document.getElementById('confirmar_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';

@@ -5,10 +5,29 @@ window.addEventListener('load', function () {
     }
 
     let estadoActual = 1; // 0 = deshabilitados, 1 = habilitados
-    const toggleBtn = document.getElementById('toggleEstado_marca');
+    const toggleBtn = document.getElementById('toggleEstado');
+    const usuarioRol = parseInt(document.getElementById('usuario')?.dataset.id || '0');
 
-    toggleBtn.textContent = 'Deshabilitados';
-    toggleBtn.classList.add('estado-rojo');
+    if (toggleBtn) {
+        toggleBtn.textContent = 'Deshabilitados';
+        toggleBtn.classList.add('estado-rojo');
+
+        toggleBtn.addEventListener('click', () => {
+            estadoActual = estadoActual === 0 ? 1 : 0;
+
+            if (estadoActual === 0) {
+                toggleBtn.textContent = 'Habilitados';
+                toggleBtn.classList.remove('estado-rojo');
+                toggleBtn.classList.add('estado-verde');
+            } else {
+                toggleBtn.textContent = 'Deshabilitados';
+                toggleBtn.classList.remove('estado-verde');
+                toggleBtn.classList.add('estado-rojo');
+            }
+
+            tabla.ajax.reload(null, false);
+        });
+    }
 
     const tabla = $('#marcaTabla').DataTable({
         scrollY: '500px',
@@ -42,39 +61,49 @@ window.addEventListener('load', function () {
                 },
                 orderable: false
             },
-
             {
                 data: null,
                 render: function (data, type, row) {
                     const estado = parseInt(row.marca_estado);
                     let botones = '';
 
-                    if (estado === 1) {
-                        botones += `
-                            <div class="acciones">
-                                <div class="icon-action" data-modal-target="new_marca" title="Actualizar">
-                                    <img src="img/icons/actualizar.png" alt="Actualizar">
+                    if (usuarioRol === 3) {
+                        if (estado === 1) {
+                            botones += `
+                                <div class="acciones">
+                                    <div class="icon-action" data-modal-target="new_marca" title="Actualizar">
+                                        <img src="img/icons/actualizar.png" alt="Actualizar">
+                                    </div>
+                                    <div class="icon-action btn_ver_info_marca" data-modal-target="info_marca" data-id="${row.marca_id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>
+                                    <div class="icon-action btn_eliminar_marca" data-id="${row.marca_id}" title="Eliminar">
+                                        <img src="img/icons/eliminar.png" alt="Eliminar">
+                                    </div>
                                 </div>
-                                <div class="icon-action btn_ver_info_marca" data-modal-target="info_marca" data-id="${row.marca_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
+                            `;
+                        } else {
+                            botones += `
+                                <div class="acciones">
+                                    <div class="icon-action btn_ver_info_marca" data-modal-target="info_marca" data-id="${row.marca_id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>
+                                    <div class="icon-action btn_recuperar_marca" data-id="${row.marca_id}" title="Recuperar">
+                                        <img src="img/icons/recuperar.png" alt="Recuperar">
+                                    </div>
                                 </div>
-                                <div class="icon-action btn_eliminar_marca" data-id="${row.marca_id}" title="Eliminar">
-                                    <img src="img/icons/eliminar.png" alt="Eliminar">
-                                </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     } else {
                         botones += `
                             <div class="acciones">
                                 <div class="icon-action btn_ver_info_marca" data-modal-target="info_marca" data-id="${row.marca_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
                                 </div>
-                                <div class="icon-action btn_recuperar_marca" data-id="${row.marca_id}" title="Recuperar">
-                                    <img src="img/icons/recuperar.png" alt="Recuperar">
-                                </div>
                             </div>
                         `;
                     }
+
                     return botones;
                 },
                 orderable: false
@@ -99,23 +128,6 @@ window.addEventListener('load', function () {
         },
         lengthMenu: [ [5, 10, 15, 20, 30], [5, 10, 15, 20, 30] ],
         pageLength: 15,
-    });
-
-    // Alternar estado
-    toggleBtn.addEventListener('click', () => {
-        estadoActual = estadoActual === 0 ? 1 : 0;
-
-        if (estadoActual === 0) {
-            toggleBtn.textContent = 'Habilitados';
-            toggleBtn.classList.remove('estado-rojo');
-            toggleBtn.classList.add('estado-verde');
-        } else {
-            toggleBtn.textContent = 'Deshabilitados';
-            toggleBtn.classList.remove('estado-verde');
-            toggleBtn.classList.add('estado-rojo');
-        }
-
-        tabla.ajax.reload(null, false);
     });
 
     // Actualizar

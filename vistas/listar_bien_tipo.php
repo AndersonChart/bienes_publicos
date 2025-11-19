@@ -28,18 +28,18 @@
         <input type="hidden" name="bien_tipo_id" id="bien_tipo_id">
 
         <div class="input_block_content">
-            <label for="codigo" class="input_label">Código</label>
-            <input type="text" maxlength="20" name="bien_codigo" class="input_text" id="codigo" autofocus>
+            <label for="bien_tipo_codigo" class="input_label">Código</label>
+            <input type="text" maxlength="20" name="bien_tipo_codigo" class="input_text" id="bien_tipo_codigo" autofocus>
         </div>
 
         <div class="input_block_content">
-            <label for="nombre" class="input_label">Nombre</label>
-            <input type="text" id="nombre_bien" name="bien_nombre" class="input_text">
+            <label for="bien_nombre" class="input_label">Nombre</label>
+            <input type="text" id="bien_nombre" name="bien_nombre" class="input_text">
         </div>
 
         <div class="input_block_content">
-            <label for="categoria_form" class="input_label">Categoría</label>
-            <select name="categoria_id" id="categoria_form" class="input_text input_select categoria_form">
+            <label for="categoria_form-bien" class="input_label">Categoría</label>
+            <select name="categoria_id" id="categoria_form-bien" class="input_text input_select categoria_form">
                 <option value="" selected disabled>Seleccione una categoría</option>
             </select>
         </div>
@@ -53,7 +53,7 @@
 
         <div class="input_block_content">
             <label for="modelo" class="input_label input-condition">Modelo</label>
-            <input type="text" id="modelo" name="bien_modelo" class="input_text">
+            <input type="text" id="bien_modelo" name="bien_modelo" class="input_text">
         </div>
 
         <div class="input_block_content">
@@ -65,7 +65,7 @@
 
         <div class="input_block_content">
             <label for="descripcion" class="input_label input-condition">Descripción</label>
-            <input type="text" id="descripcion" name="bien_descripcion" class="input_text">
+            <input type="text" id="bien_descripcion" name="bien_descripcion" class="input_text">
         </div>
 
         <div class="input_block_content">
@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <div id="error-container-clasificacion" class="error-container"></div>
+        <div id="error-container-bien" class="error-container"></div>
         <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_bien_tipo">
     </form>
 </dialog>
