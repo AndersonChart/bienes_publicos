@@ -1435,6 +1435,46 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewFotoBien = document.getElementById('preview_foto_bien');
     const iconoBien = formBien?.querySelector('.foto_perfil_icon');
 
+    // Campos que quieres controlar dinámicamente
+    const selectCategoria = formBien?.querySelector('[name="categoria_id"]');
+    const inputModelo = formBien?.querySelector('[name="bien_modelo"]');
+    const selectMarca = formBien?.querySelector('[name="marca_id"]');
+
+    // Función para aplicar la dinámica
+    function aplicarDinamicaCategoria() {
+        if (!selectCategoria) return;
+        const valor = selectCategoria.value;
+
+        if (valor === "2") { // Mobiliario
+            if (inputModelo) {
+                inputModelo.value = "";
+                inputModelo.disabled = true;
+                inputModelo.style.opacity = "0.5";
+            }
+            if (selectMarca) {
+                selectMarca.value = "";
+                selectMarca.disabled = true;
+                selectMarca.style.opacity = "0.5";
+            }
+        } else {
+            if (inputModelo) {
+                inputModelo.disabled = false;
+                inputModelo.style.opacity = "1";
+            }
+            if (selectMarca) {
+                selectMarca.disabled = false;
+                selectMarca.style.opacity = "1";
+            }
+        }
+    }
+
+    // Escuchar cambios en la categoría
+    if (selectCategoria) {
+        selectCategoria.addEventListener('change', aplicarDinamicaCategoria);
+        // Ejecutar al cargar por si ya viene seleccionada
+        aplicarDinamicaCategoria();
+    }
+
     // Previsualizar imagen de bien
     if (inputFotoBien && previewFotoBien && iconoBien) {
         inputFotoBien.addEventListener('change', function () {
@@ -1451,7 +1491,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-
     // Abrir modal
     const btnNuevo = document.querySelector('[data-modal-target="new_bien_tipo"]');
     if (btnNuevo) {
@@ -1465,7 +1504,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Envío del formulario
+    // Envío del formulario de Bienes
     if (formBien) {
         formBien.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -1476,11 +1515,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             formData.append('accion', accion);
             if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
-
-            // 🔎 Depuración: ver qué datos se están enviando
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
 
             fetch('php/bien_tipo_ajax.php', {
                 method: 'POST',
@@ -1506,9 +1540,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 } else if (data.exito) {
                     const mensaje = bienTipoId ? "Bien actualizado con éxito" : "Bien registrado con éxito";
-                    document.querySelector('dialog[data-modal="new_bien_tipo"]')?.close();
+
+                    // Cerrar modal de Bienes
+                    const modalBien = document.querySelector('dialog[data-modal="new_bien_tipo"]');
+                    if (modalBien && modalBien.open) {
+                        modalBien.close();
+                    }
+
                     mostrarModalExito(mensaje);
                     limpiarFormularioBien(formBien);
+
+                    // Recargar tabla de Bienes
                     $('#bienTipoTabla').DataTable().ajax.reload(null, false);
                 }
             })
@@ -1519,6 +1561,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
 
 
 
@@ -1536,7 +1579,7 @@ function mostrarInfoBien(data) {
     if (modal && typeof modal.showModal === 'function') {
         modal.showModal();
     }
-}       
+}
 
 
 // Mostrar datos en confirmación

@@ -97,9 +97,10 @@
         <ul class="info_lista">
             <li><strong class="info_subtitle">Código:</strong> <span class="info_data" id="info_codigo"></span></li>
             <li><strong class="info_subtitle">Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
-            <li><strong class="info_subtitle">Modelo:</strong> <span class="info_data" id="info_modelo"></span></li>
-            <li><strong class="info_subtitle">Marca:</strong> <span class="info_data" id="info_marca"></span></li>
+            <li><strong class="info_subtitle">Categoría:</strong> <span class="info_data" id="info_categoria"></span></li>
             <li><strong class="info_subtitle">Clasificación:</strong> <span class="info_data" id="info_clasificacion"></span></li>
+            <li><strong class="info_subtitle">Marca:</strong> <span class="info_data" id="info_marca"></span></li>
+            <li><strong class="info_subtitle">Modelo:</strong> <span class="info_data" id="info_modelo"></span></li>
             <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_descripcion"></span></li>
         </ul>
     </div>
