@@ -1381,9 +1381,9 @@ function abrirFormularioEdicionBien(id) {
     })
     .then(res => res.json())
     .then(data => {
-        if (!data.exito || !data.bien) return;
+        if (!data.exito || !data.bien_tipo) return;
 
-        const b = data.bien;
+        const b = data.bien_tipo;
 
         cargarCategorias({
             selected: b.categoria_id,
@@ -1432,7 +1432,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const formBien = document.getElementById('form_nuevo_bien');
     const errorContainerBien = document.getElementById('error-container-bien');
     const inputFotoBien = document.getElementById('foto_bien');
-    const previewFotoBien = document.getElementById('preview_foto_bien');    /*ARREGLAR*/
+    const previewFotoBien = document.getElementById('preview_foto_bien');
     const iconoBien = formBien?.querySelector('.foto_perfil_icon');
 
     // Previsualizar imagen de bien
@@ -1476,6 +1476,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             formData.append('accion', accion);
             if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
+
+            // 🔎 Depuración: ver qué datos se están enviando
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
 
             fetch('php/bien_tipo_ajax.php', {
                 method: 'POST',
@@ -1531,7 +1536,7 @@ function mostrarInfoBien(data) {
     if (modal && typeof modal.showModal === 'function') {
         modal.showModal();
     }
-}
+}       
 
 
 // Mostrar datos en confirmación

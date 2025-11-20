@@ -168,9 +168,9 @@
             <tr>
                 <th class="header">Código</th>
                 <th class="header">Nombre</th>
-                <th class="header">Modelo</th>
-                <th class="header">Marca</th>
+                <th class="header">Categoría</th>
                 <th class="header">Clasificación</th>
+                <th class="header">Marca</th>
                 <th class="header">Imagen</th>
                 <th class="header">Acciones</th>
             </tr>

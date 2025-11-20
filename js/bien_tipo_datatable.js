@@ -40,7 +40,7 @@ window.addEventListener('load', function () {
                 d.accion = 'leer_todos';
                 d.estado = estadoActual;
                 d.categoria_id = document.getElementById('categoria_filtro')?.value || '';
-                d.clasificacion_id = document.getElementById('clasificacion')?.value || '';
+                d.clasificacion_id = document.getElementById('clasificacion_filtro')?.value || '';
             },
             dataSrc: 'data',
             error: function (xhr, status, error) {
@@ -49,12 +49,12 @@ window.addEventListener('load', function () {
             }
         },
         columns: [
-            { data: 'bien_codigo' },
-            { data: 'bien_nombre' },
-            { data: 'bien_modelo' },
-            { data: 'marca_nombre' },
-            { data: 'clasificacion_nombre' },
-            {
+            { data: 'bien_tipo_codigo' },       // Código
+            { data: 'bien_nombre' },            // Nombre
+            { data: 'categoria_nombre' },       // Categoría
+            { data: 'clasificacion_nombre' },   // Clasificación
+            { data: 'marca_nombre' },           // Marca
+            {                                   // Imagen
                 data: 'bien_imagen',
                 render: function (data) {
                     if (!data || data.trim() === '') return '';
@@ -66,20 +66,20 @@ window.addEventListener('load', function () {
                 },
                 orderable: false
             },
-            {
+            {                                   // Acciones
                 data: null,
                 render: function (row) {
-                    const estado = parseInt(row.estado_id);
+                    const estado = parseInt(row.bien_estado); // usa bien_estado de la tabla bien_tipo
                     let botones = '';
 
                     if (usuarioRol === 3) {
                         if (estado === 1) {
                             botones += `
                                 <div class="acciones">
-                                    <div class="icon-action" data-modal-target="new_bien" title="Actualizar">
+                                    <div class="icon-action" data-modal-target="new_bien_tipo" title="Actualizar">
                                         <img src="img/icons/actualizar.png" alt="Actualizar">
                                     </div>
-                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
+                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
                                         <img src="img/icons/info.png" alt="Info">
                                     </div>
                                     <div class="icon-action btn_eliminar" data-id="${row.bien_tipo_id}" title="Eliminar">
@@ -90,7 +90,7 @@ window.addEventListener('load', function () {
                         } else {
                             botones += `
                                 <div class="acciones">
-                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
+                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
                                         <img src="img/icons/info.png" alt="Info">
                                     </div>
                                     <div class="icon-action btn_recuperar" data-id="${row.bien_tipo_id}" title="Recuperar">
@@ -102,7 +102,7 @@ window.addEventListener('load', function () {
                     } else {
                         botones += `
                             <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-modal-target="info_bien" data-id="${row.bien_tipo_id}" title="Info">
+                                <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
                                 </div>
                             </div>
@@ -131,9 +131,10 @@ window.addEventListener('load', function () {
                 next: "▶"
             }
         },
-        lengthMenu: [ [5, 10, 15, 20, 30], [5, 10, 15, 20, 30] ],
+        lengthMenu: [[5, 10, 15, 20, 30], [5, 10, 15, 20, 30]],
         pageLength: 15,
     });
+
 
     const categoriaFiltro = document.getElementById('categoria_filtro');
     if (categoriaFiltro) {

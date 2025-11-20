@@ -4,11 +4,11 @@ require_once 'bien_tipo.php';
 $bien_tipo = new bien_tipo();
 
 function validarBienTipo($datos, $modo = 'crear', $id = null) {
-    $bien_tipo_tipo = new bien_tipo();
+    $bien_tipo = new bien_tipo();
     $erroresFormato = [];
 
     // Campos obligatorios
-    $camposObligatorios = ['bien_tipo_codigo', 'bien_nombre'];
+    $camposObligatorios = ['bien_tipo_codigo', 'bien_nombre', 'categoria_id', 'clasificacion_id'];
     $camposFaltantes = [];
 
     foreach ($camposObligatorios as $campo) {
@@ -63,27 +63,27 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
 
     // Validación de duplicados
     $erroresDuplicados = [];
-    $original = ($modo === 'actualizar' && $id) ? $bien_tipo_tipo->leer_por_id($id) : [];
+    $original = ($modo === 'actualizar' && $id) ? $bien_tipo->leer_por_id($id) : [];
 
-    if ($modo === 'crear' && $bien_tipo_tipo->existeCodigo($datos['bien_tipo_codigo'])) {
+    if ($modo === 'crear' && $bien_tipo->existeCodigo($datos['bien_tipo_codigo'])) {
         $erroresDuplicados['bien_tipo_codigo'] = 'Código ya registrado';
     }
 
     if ($modo === 'actualizar' &&
         isset($original['bien_tipo_codigo']) &&
         $datos['bien_tipo_codigo'] !== $original['bien_tipo_codigo'] &&
-        $bien_tipo_tipo->existeCodigo($datos['bien_tipo_codigo'], $id)) {
+        $bien_tipo->existeCodigo($datos['bien_tipo_codigo'], $id)) {
         $erroresDuplicados['bien_tipo_codigo'] = 'Código ya registrado';
     }
 
-    if ($modo === 'crear' && $bien_tipo_tipo->existeNombre($datos['bien_nombre'])) {
+    if ($modo === 'crear' && $bien_tipo->existeNombre($datos['bien_nombre'])) {
         $erroresDuplicados['bien_nombre'] = 'Nombre ya registrado';
     }
 
     if ($modo === 'actualizar' &&
         isset($original['bien_nombre']) &&
         $datos['bien_nombre'] !== $original['bien_nombre'] &&
-        $bien_tipo_tipo->existeNombre($datos['bien_nombre'], $id)) {
+        $bien_tipo->existeNombre($datos['bien_nombre'], $id)) {
         $erroresDuplicados['bien_nombre'] = 'Nombre ya registrado';
     }
 
