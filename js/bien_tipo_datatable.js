@@ -6,7 +6,6 @@ window.addEventListener('load', function () {
 
     let estadoActual = 1;
     const toggleBtn = document.getElementById('toggleEstado');
-    const usuarioRol = parseInt(document.getElementById('usuario')?.dataset.id || '0');
 
     if (toggleBtn) {
         toggleBtn.textContent = 'Deshabilitados';
@@ -71,8 +70,6 @@ window.addEventListener('load', function () {
                 render: function (row) {
                     const estado = parseInt(row.bien_estado); // usa bien_estado de la tabla bien_tipo
                     let botones = '';
-
-                    if (usuarioRol === 3) {
                         if (estado === 1) {
                             botones += `
                                 <div class="acciones">
@@ -99,16 +96,6 @@ window.addEventListener('load', function () {
                                 </div>
                             `;
                         }
-                    } else {
-                        botones += `
-                            <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
-                                </div>
-                            </div>
-                        `;
-                    }
-
                     return botones;
                 },
                 orderable: false

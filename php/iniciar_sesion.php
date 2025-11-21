@@ -12,14 +12,21 @@ if (!empty($_POST["enviar"])) {
 
         if ($datos) {
             if (password_verify($clave, $datos->usuario_clave)) {
-                $_SESSION["id"] = $datos->usuario_id;
-                $_SESSION["nombre"] = $datos->usuario_nombre;
-                $_SESSION["apellido"] = $datos->usuario_apellido;
-                $_SESSION["rol"] = $datos->rol_id;
-                $_SESSION["nombre_rol"] = $datos->rol_nombre;
-                $_SESSION["usuario_foto"] = $datos->usuario_foto;
-                header("Location: index.php?vista=inicio");
-                exit();
+                // Validar estado del usuario
+                if ($datos->usuario_estado == 1) {
+                    // Usuario habilitado → crear sesión
+                    $_SESSION["id"] = $datos->usuario_id;
+                    $_SESSION["nombre"] = $datos->usuario_nombre;
+                    $_SESSION["apellido"] = $datos->usuario_apellido;
+                    $_SESSION["rol"] = $datos->rol_id;
+                    $_SESSION["nombre_rol"] = $datos->rol_nombre;
+                    $_SESSION["usuario_foto"] = $datos->usuario_foto;
+                    header("Location: index.php?vista=inicio");
+                    exit();
+                } else {
+                    // Usuario inactivo
+                    $error = "Tu usuario está inactivo, contacta al administrador para habilitarlo";
+                }
             } else {
                 $error = "La contraseña es incorrecta, intente nuevamente";
             }
@@ -29,4 +36,5 @@ if (!empty($_POST["enviar"])) {
     }
 }
 ?>
+
 
