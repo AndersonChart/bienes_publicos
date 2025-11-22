@@ -27,7 +27,7 @@ function activarEdicionPerfil() {
 
     if (!btn || !modal || !btnCerrar || !form || !inputFoto || !previewFoto || !errorContainer) return;
 
-    // Previsualizar imagen
+    // Previsualizar nueva imagen seleccionada
     inputFoto.addEventListener('change', function () {
         const archivo = this.files[0];
         if (archivo) {
@@ -41,7 +41,7 @@ function activarEdicionPerfil() {
         }
     });
 
-    // Abrir modal al hacer clic en el avatar
+    // Abrir modal y cargar datos del usuario en sesión
     btn.addEventListener('click', () => {
         fetch('php/usuario_ajax.php', {
             method: 'POST',
@@ -63,13 +63,18 @@ function activarEdicionPerfil() {
                 document.getElementById('nac_perfil').value = u.usuario_nac;
                 document.getElementById('nombre_usuario_perfil').value = u.usuario_usuario;
 
-                const foto = u.usuario_foto || 'img/icons/perfil.png';
+                // Mostrar foto actual en el preview
+                const foto = u.usuario_foto && u.usuario_foto.trim() !== '' 
+                    ? u.usuario_foto 
+                    : 'img/icons/perfil.png';
                 previewFoto.src = foto + '?t=' + new Date().getTime();
+                previewFoto.style.display = 'block';
                 icono.style.opacity = '0';
 
+                // Actualizar avatar del header
                 const avatarHeader = document.getElementById('foto_usuario_header');
                 if (avatarHeader) avatarHeader.src = foto;
-                
+
                 errorContainer.innerHTML = '';
                 errorContainer.style.display = 'none';
                 modal.showModal();
@@ -77,12 +82,12 @@ function activarEdicionPerfil() {
         });
     });
 
-    // Cerrar modal al presionar X
+    // Cerrar modal
     btnCerrar.addEventListener('click', () => {
         modal.close();
     });
 
-    // Enviar formulario y cerrar modal si fue exitoso
+    // Enviar formulario
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -107,38 +112,48 @@ function activarEdicionPerfil() {
             if (data.error) {
                 errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
                 errorContainer.style.display = 'block';
-
-                if (data.campos && Array.isArray(data.campos)) {
-                    data.campos.forEach((campo, index) => {
-                        let input;
-                        if (campo === 'usuario_cedula') {
-                            input = document.getElementById('numero_cedula_perfil');
-                        } else if (campo === 'usuario_foto') {
-                            input = inputFoto;
-                        } else {
-                            input = form.querySelector(`[name="${campo}"]`);
-                        }
-
-                        if (input) {
-                            const contenedor = input.closest('.input_text');
-                            if (contenedor) {
-                                contenedor.classList.add('input-error');
-                            } else {
-                                input.classList.add('input-error');
-                            }
-                            if (index === 0) input.focus();
-                        }
-                    });
-                }
+                // marcar campos con error...
             } else if (data.exito) {
                 modal.close();
                 form.reset();
                 previewFoto.src = 'img/icons/perfil.png';
+                previewFoto.style.display = 'none';
                 icono.style.opacity = '1';
 
                 const successModal = document.querySelector('dialog[data-modal="success"]');
                 document.getElementById('success-message').textContent = "Perfil actualizado con éxito";
                 if (successModal?.showModal) successModal.showModal();
+
+                //  Recargar banner con datos actualizados
+                fetch('php/usuario_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'obtener_usuario', id: idUsuarioSesion })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exito && data.usuario) {
+                        const u = data.usuario;
+
+                        // Actualizar nombre y apellido
+                        const usernameBanner = document.querySelector('.inicio-username');
+                        if (usernameBanner) {
+                            usernameBanner.textContent = u.usuario_nombre + " " + u.usuario_apellido;
+                        }
+
+                        // Actualizar rol
+                        const rolBanner = document.querySelector('.inicio-rol');
+                        if (rolBanner) {
+                            rolBanner.textContent = u.nombre_rol;
+                        }
+
+                        // Actualizar foto
+                        const avatarHeader = document.getElementById('foto_usuario_header');
+                        if (avatarHeader) {
+                            const nuevaFoto = u.usuario_foto || 'img/icons/perfil.png';
+                            avatarHeader.src = nuevaFoto + '?t=' + new Date().getTime();
+                        }
+                    }
+                });
             }
         })
         .catch(() => {
@@ -147,8 +162,6 @@ function activarEdicionPerfil() {
         });
     });
 }
-
-
 
 //Para mantener la foto de perfil
 function mantenerFotoUsuarioActualizada() {
@@ -437,7 +450,18 @@ function limpiarFormulario(form) {
     form.querySelectorAll('input[type="hidden"]').forEach(input => {
         input.value = '';
     });
+
+    // Reiniciar selects a su opción por defecto ("Seleccione...")
+    form.querySelectorAll('select').forEach(select => {
+        const defaultOption = select.querySelector('option[disabled][selected]');
+        if (defaultOption) {
+            select.value = defaultOption.value; // vuelve al "Seleccione..."
+        } else {
+            select.selectedIndex = 0; // fallback: primer opción
+        }
+    });
 }
+
 
 //  Función específica del módulo de usuario
 function limpiarInfoUsuario() {
@@ -619,7 +643,61 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarClasificacion();
     cargarMarca();
     mantenerFotoUsuarioActualizada();
+
+    // --- Filtros de inventario ---
+    const filtroCategoria = document.getElementById('categoria_filtro');
+    const filtroClasificacion = document.getElementById('clasificacion_filtro');
+
+    if (filtroCategoria) {
+        filtroCategoria.addEventListener('change', () => {
+            const valor = filtroCategoria.value;
+
+            cargarClasificacion({
+                categoria_id: valor,
+                onComplete: (lista) => {
+                    filtroClasificacion.innerHTML = '';
+                    const todasOption = document.createElement('option');
+                    todasOption.value = '';
+                    todasOption.textContent = 'Todas las clasificaciones';
+                    filtroClasificacion.appendChild(todasOption);
+
+                    lista.forEach(clasificacion => {
+                        const option = document.createElement('option');
+                        option.value = clasificacion.clasificacion_id;
+                        option.textContent = clasificacion.clasificacion_nombre;
+                        filtroClasificacion.appendChild(option);
+                    });
+                }
+            });
+
+            // Recargar tabla con filtro aplicado
+            $('#bienTipoTabla').DataTable().ajax.reload();
+        });
+    }
+
+    if (filtroClasificacion) {
+        filtroClasificacion.addEventListener('change', () => {
+            const clasificacionId = filtroClasificacion.value;
+            if (!clasificacionId) {
+                $('#bienTipoTabla').DataTable().ajax.reload();
+                return;
+            }
+
+            fetch('php/clasificacion_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({ accion: 'obtener_clasificacion', id: clasificacionId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.exito && data.clasificacion) {
+                    filtroCategoria.value = data.clasificacion.categoria_id;
+                }
+                $('#bienTipoTabla').DataTable().ajax.reload();
+            });
+        });
+    }
 });
+
 
 //Al cargar que pueda hacer las siguiente funciones
 window.addEventListener('load', () => {
@@ -1032,7 +1110,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? "Clasificación actualizada con éxito"
                         : "Clasificación registrada con éxito";
 
-                    if (modalFormulario && modalFormulario.open) {
+                    // Solo cerrar el modal si fue una actualización
+                    if (esActualizacion && modalFormulario && modalFormulario.open) {
                         modalFormulario.close();
                     }
 
@@ -1048,6 +1127,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
 
 
 // Mostrar información de clasificación
@@ -1273,8 +1353,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
                 } else if (data.exito) {
-                    const mensaje = marcaId ? "Marca actualizada con éxito" : "Marca registrada con éxito";
-                    modalMarca?.close();
+                    const esActualizacion = !!marcaId;
+                    const mensaje = esActualizacion
+                        ? "Marca actualizada con éxito"
+                        : "Marca registrada con éxito";
+
+                    // Solo cerrar el modal si fue una actualización
+                    if (esActualizacion && modalMarca && modalMarca.open) {
+                        modalMarca.close();
+                    }
+
                     mostrarModalExito(mensaje);
                     limpiarFormularioMarca(formMarca);
                     $('#marcaTabla').DataTable().ajax.reload(null, false);
@@ -1287,6 +1375,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
 
 
 // Mostrar información de marca
@@ -1427,7 +1516,7 @@ function abrirFormularioEdicionBien(id) {
 }
 
 
-// Crear o actualizar
+// Crear o actualizar Bien
 document.addEventListener('DOMContentLoaded', function () {
     const formBien = document.getElementById('form_nuevo_bien');
     const errorContainerBien = document.getElementById('error-container-bien');
@@ -1470,10 +1559,60 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Escuchar cambios en la categoría
     if (selectCategoria) {
-        selectCategoria.addEventListener('change', aplicarDinamicaCategoria);
-        // Ejecutar al cargar por si ya viene seleccionada
-        aplicarDinamicaCategoria();
+        selectCategoria.addEventListener('change', () => {
+            const valor = selectCategoria.value;
+            aplicarDinamicaCategoria();
+
+            // Cargar clasificaciones hijas de la categoría seleccionada
+            cargarClasificacion({
+                categoria_id: valor,
+                onComplete: (lista) => {
+                    const selectClasificacion = formBien.querySelector('[name="clasificacion_id"]');
+                    if (selectClasificacion) {
+                        selectClasificacion.innerHTML = '';
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.disabled = true;
+                        defaultOption.selected = true;
+                        defaultOption.textContent = 'Seleccione una clasificación';
+                        selectClasificacion.appendChild(defaultOption);
+
+                        lista.forEach(clasificacion => {
+                            const option = document.createElement('option');
+                            option.value = clasificacion.clasificacion_id;
+                            option.textContent = clasificacion.clasificacion_nombre;
+                            selectClasificacion.appendChild(option);
+                        });
+                    }
+                }
+            });
+        });
+
+        aplicarDinamicaCategoria(); // Ejecutar al cargar
     }
+
+    // Escuchar cambios en la clasificación
+    const selectClasificacion = formBien?.querySelector('[name="clasificacion_id"]');
+    if (selectClasificacion) {
+        selectClasificacion.addEventListener('change', () => {
+            const clasificacionId = selectClasificacion.value;
+            if (!clasificacionId) return;
+
+            // Consultar la clasificación para obtener su categoría padre
+            fetch('php/clasificacion_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({ accion: 'obtener_clasificacion', id: clasificacionId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.exito && data.clasificacion) {
+                    selectCategoria.value = data.clasificacion.categoria_id;
+                    aplicarDinamicaCategoria();
+                }
+            });
+        });
+    }
+
 
     // Previsualizar imagen de bien
     if (inputFotoBien && previewFotoBien && iconoBien) {
@@ -1516,6 +1655,12 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('accion', accion);
             if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
 
+            // 🔄 Eliminar campos no aplicables si es mobiliario
+            if (selectCategoria && selectCategoria.value === "2") { // ID de Mobiliario
+                formData.delete('bien_modelo');
+                formData.delete('marca_id');
+            }
+
             fetch('php/bien_tipo_ajax.php', {
                 method: 'POST',
                 body: formData
@@ -1539,18 +1684,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
                 } else if (data.exito) {
-                    const mensaje = bienTipoId ? "Bien actualizado con éxito" : "Bien registrado con éxito";
+                    const esActualizacion = !!bienTipoId;
+                    const mensaje = esActualizacion
+                        ? "Bien actualizado con éxito"
+                        : "Bien registrado con éxito";
 
-                    // Cerrar modal de Bienes
                     const modalBien = document.querySelector('dialog[data-modal="new_bien_tipo"]');
-                    if (modalBien && modalBien.open) {
+                    if (esActualizacion && modalBien && modalBien.open) {
                         modalBien.close();
                     }
 
                     mostrarModalExito(mensaje);
                     limpiarFormularioBien(formBien);
 
-                    // Recargar tabla de Bienes
                     $('#bienTipoTabla').DataTable().ajax.reload(null, false);
                 }
             })
@@ -1559,8 +1705,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 errorContainerBien.style.display = 'block';
             });
         });
+
     }
 });
+
 
 
 

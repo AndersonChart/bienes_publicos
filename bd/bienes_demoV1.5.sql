@@ -37,7 +37,10 @@ CREATE TABLE usuario (
 -- Tabla de categorías
 CREATE TABLE categoria (
     categoria_id INT NOT NULL AUTO_INCREMENT,
+    categoria_codigo VARCHAR(20) NOT NULL,
     categoria_nombre VARCHAR(100) NOT NULL,
+    categoria_tipo TINYINT(1) NOT NULL, -- 1. Completo (todos los campos de bienes) 0. basico (no coloca marcas ni modelos)
+    categoria_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (categoria_id)
 );
 
@@ -246,7 +249,7 @@ ALTER TABLE ajuste_bien
     FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
 
 -- Datos de ejemplo
-INSERT INTO categoria (categoria_nombre) VALUES ('Tecnologico'), ('Mobiliario'), ('Otros');
+INSERT INTO categoria (categoria_nombre, categoria_codigo, categoria_tipo) VALUES ('Tecnologico', 'TEC001', 1), ('Mobiliario', 'MOB001', 0);
 INSERT INTO rol (rol_nombre) VALUES ('Administrador'), ('Administrador Principal'), ('Ingeniero');
 INSERT INTO estado (estado_nombre) VALUES ('Disponible'), ('Asignado'), ('Mantenimiento'), ('Desincorporado');
 

@@ -178,7 +178,7 @@ switch ($accion) {
         if ($datos) {
             echo json_encode(['exito' => true, 'clasificacion' => $datos]);
         } else {
-            echo json_encode(['error' => true, 'mensaje' => 'clasificacion no encontrado']);
+            echo json_encode(['error' => true, 'mensaje' => 'Clasificación no encontrada']);
         }
     break;
 

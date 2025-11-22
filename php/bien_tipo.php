@@ -18,29 +18,6 @@ class bien_tipo {
         }
     }
 
-    // Validación de nombre único
-    public function existeNombre($nombre, $excluirId = null) {
-        try {
-            $sql = "SELECT COUNT(*) FROM bien_tipo WHERE bien_nombre = ?";
-            $params = [$nombre];
-
-            if ($excluirId !== null) {
-                $sql .= " AND bien_tipo_id != ?";
-                $params[] = $excluirId;
-            }
-
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
-            $count = $stmt->fetchColumn();
-            error_log("[bien_tipo] existeNombre($nombre) → $count registros");
-            return $count > 0;
-        } catch (Exception $e) {
-            error_log("[bien_tipo] Error en existeNombre: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-
     // Validación de código único
     public function existeCodigo($codigo, $excluirId = null) {
         try {

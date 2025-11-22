@@ -267,11 +267,15 @@ switch ($accion) {
 
         $datos = $usuario->leer_por_id($id);
         if ($datos) {
+            // Solución pacífica: añadir un alias sin tocar la estructura original
+            $datos['nombre_rol'] = $datos['rol_nombre'] ?? null;
+
             echo json_encode(['exito' => true, 'usuario' => $datos]);
         } else {
             echo json_encode(['error' => true, 'mensaje' => 'Usuario no encontrado']);
         }
     break;
+
 
 
     case 'actualizar':

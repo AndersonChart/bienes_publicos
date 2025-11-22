@@ -8,7 +8,7 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
     $erroresFormato = [];
 
     // Campos obligatorios
-    $camposObligatorios = ['bien_tipo_codigo', 'bien_nombre', 'categoria_id', 'clasificacion_id'];
+    $camposObligatorios = ['bien_tipo_codigo', 'categoria_id', 'clasificacion_id'];
     $camposFaltantes = [];
 
     foreach ($camposObligatorios as $campo) {
@@ -74,17 +74,6 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $datos['bien_tipo_codigo'] !== $original['bien_tipo_codigo'] &&
         $bien_tipo->existeCodigo($datos['bien_tipo_codigo'], $id)) {
         $erroresDuplicados['bien_tipo_codigo'] = 'Código ya registrado';
-    }
-
-    if ($modo === 'crear' && $bien_tipo->existeNombre($datos['bien_nombre'])) {
-        $erroresDuplicados['bien_nombre'] = 'Nombre ya registrado';
-    }
-
-    if ($modo === 'actualizar' &&
-        isset($original['bien_nombre']) &&
-        $datos['bien_nombre'] !== $original['bien_nombre'] &&
-        $bien_tipo->existeNombre($datos['bien_nombre'], $id)) {
-        $erroresDuplicados['bien_nombre'] = 'Nombre ya registrado';
     }
 
     if (!empty($erroresDuplicados)) {
