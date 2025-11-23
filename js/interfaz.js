@@ -241,9 +241,11 @@ function cargarCategorias(opciones = {}) {
         body: new URLSearchParams({ accion: 'leer_todas' })
     })
     .then(res => res.json())
-    .then(data => {
+    .then(resp => {
+        const data = resp.data; // <- aquí está el array real
+
         if (!Array.isArray(data)) {
-            console.error('Respuesta inválida al cargar categorías:', data);
+            console.error('Respuesta inválida al cargar categorías:', resp);
             return;
         }
 
@@ -262,7 +264,6 @@ function cargarCategorias(opciones = {}) {
                 select.appendChild(option);
             });
 
-            // Si hay un valor seleccionado
             if (opciones.selected) {
                 select.value = opciones.selected;
             }
@@ -298,6 +299,7 @@ function cargarCategorias(opciones = {}) {
         console.error('Error al cargar categorías:', err);
     });
 }
+
 
 function cargarClasificacion(opciones = {}) {
     const params = new URLSearchParams({ accion: 'leer_todos' });
