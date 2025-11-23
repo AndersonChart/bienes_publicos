@@ -5,8 +5,8 @@
                 <img src="img/icons/inicio.png" alt="Inicio" draggable="false">
             </div>
             </a>
-            <div class="icon " data-menu="bienes">
-                <img src="img/icons/bienes.png" alt="Bienes" draggable="false">
+            <div class="icon " data-menu="articulo">
+                <img src="img/icons/inventario.png" alt="Inventario" draggable="false">
             </div>
             <div class="icon " data-menu="asignaciones">
                 <img src="img/icons/asignacion.png" alt="Asignaciones" draggable="false">
@@ -19,16 +19,17 @@
             </div>
         </div>
         <div class="sub-main">
-            <div class="menu-content" id="bienes">
-                <a href="index.php?vista=listar_bien_tipo">Bienes</a>
+            <div class="menu-content" id="articulo">
+                <a href="index.php?vista=listar_articulo">Inventario</a>
                 <a href="index.php?vista=listar_categoria">Categorías</a>
                 <a href="index.php?vista=listar_clasificacion">Clasificaciones</a>
                 <a href="index.php?vista=listar_marca">Marcas</a>
             </div>
             <div class="menu-content" id="asignaciones">
                 <a href="index.php?vista=listar_etc">Asignaciones</a>
+                <a href="index.php?vista=listar_etc">Cargos</a>
+                <a href="index.php?vista=listar_etc">Personal</a>
                 <a href="index.php?vista=listar_etc">Areas</a>
-                <a href="index.php?vista=listar_etc">Personal</a>    
             </div>
             <div class="menu-content" id="ajustes">                
                 <a href="index.php?vista=listar_etc">Recepción</a>

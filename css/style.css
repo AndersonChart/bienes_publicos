@@ -778,22 +778,22 @@ body {
     object-fit: contain;
 }
 
-#bienTipoTabla .acciones img {
+#articuloTabla .acciones img {
     max-width: 40px;
     max-height: 40px;
     object-fit: cover;
 }
 
-#bienTipoTabla td img {
+#articuloTabla td img {
     width: 100px;
     height: 100px;
     object-fit: cover;
 }
 
-#bienTipoTabla tr:nth-child(even) {
+#articuloTabla tr:nth-child(even) {
     background-color: #ddd;
 }
-#bienTipoTabla tr:nth-child(odd) {
+#articuloTabla tr:nth-child(odd) {
     background-color: #ccc;
 }
 

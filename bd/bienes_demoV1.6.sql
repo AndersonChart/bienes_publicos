@@ -39,7 +39,7 @@ CREATE TABLE categoria (
     categoria_id INT NOT NULL AUTO_INCREMENT,
     categoria_codigo VARCHAR(20) NOT NULL,
     categoria_nombre VARCHAR(100) NOT NULL,
-    categoria_tipo TINYINT(1) NOT NULL, -- 1. Completo (todos los campos de bienes) 0. basico (no coloca marcas ni modelos)
+    categoria_tipo TINYINT(1) NOT NULL, -- 1 = Completo (modelo/marca), 0 = Básico
     categoria_descripcion VARCHAR(200),
     categoria_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (categoria_id)
@@ -56,7 +56,7 @@ CREATE TABLE clasificacion (
     PRIMARY KEY (clasificacion_id)
 );
 
--- Tabla de estados
+-- Tabla de estados (operativos del serial)
 CREATE TABLE estado (
     estado_id INT NOT NULL AUTO_INCREMENT,
     estado_nombre VARCHAR(100) NOT NULL,
@@ -83,27 +83,27 @@ CREATE TABLE marca (
     PRIMARY KEY (marca_id)
 );
 
--- Tabla de tipo de bienes
-CREATE TABLE bien_tipo (
-    bien_tipo_id INT NOT NULL AUTO_INCREMENT,
-    bien_tipo_codigo VARCHAR(20) NOT NULL,
+-- Tabla de tipo de artículos (antes bien_tipo)
+CREATE TABLE articulo (
+    articulo_id INT NOT NULL AUTO_INCREMENT,
+    articulo_codigo VARCHAR(20) NOT NULL,
     clasificacion_id INT NOT NULL,
-    bien_nombre VARCHAR(100) NOT NULL,
-    bien_modelo VARCHAR(100),
+    articulo_nombre VARCHAR(100) NOT NULL,
+    articulo_modelo VARCHAR(100),
     marca_id INT,
-    bien_descripcion VARCHAR(200),
-    bien_estado TINYINT(1) NOT NULL DEFAULT 1,
-    bien_imagen VARCHAR(255),
-    PRIMARY KEY (bien_tipo_id)
+    articulo_descripcion VARCHAR(200),
+    articulo_estado TINYINT(1) NOT NULL DEFAULT 1,
+    articulo_imagen VARCHAR(255),
+    PRIMARY KEY (articulo_id)
 );
 
--- Tabla de bienes
-CREATE TABLE bien (
-    bien_id INT NOT NULL AUTO_INCREMENT,
-    bien_tipo_id INT NOT NULL,
-    bien_serie VARCHAR(100),
+-- Tabla de artículos (serializados/instancias) (antes bien)
+CREATE TABLE articulo_serial (
+    articulo_serial_id INT NOT NULL AUTO_INCREMENT,
+    articulo_id INT NOT NULL,
+    articulo_serial VARCHAR(100),
     estado_id INT DEFAULT 1,
-    PRIMARY KEY (bien_id)
+    PRIMARY KEY (articulo_serial_id)
 );
 
 -- Tabla de cargos
@@ -133,7 +133,7 @@ CREATE TABLE persona (
     PRIMARY KEY (persona_id)
 );
 
--- Tabla de notas de asignacion
+-- Tabla de notas de asignación
 CREATE TABLE asignacion (
     asignacion_id INT NOT NULL AUTO_INCREMENT,
     area_id INT NOT NULL,
@@ -144,12 +144,12 @@ CREATE TABLE asignacion (
     PRIMARY KEY (asignacion_id)
 );
 
--- Tabla de bienes asignados
-CREATE TABLE asignacion_bien (
-    asignacion_bien_id INT NOT NULL AUTO_INCREMENT,
-    bien_id INT NOT NULL,
+-- Tabla de artículos asignados (antes asignacion_bien)
+CREATE TABLE asignacion_articulo (
+    asignacion_articulo_id INT NOT NULL AUTO_INCREMENT,
+    articulo_serial_id INT NOT NULL,
     asignacion_id INT NOT NULL,
-    PRIMARY KEY (asignacion_bien_id)
+    PRIMARY KEY (asignacion_articulo_id)
 );
 
 -- Tabla de recepción/desincorporación
@@ -157,18 +157,17 @@ CREATE TABLE ajuste (
     ajuste_id INT NOT NULL AUTO_INCREMENT,
     ajuste_fecha DATE NOT NULL,
     ajuste_descripcion VARCHAR(200),
-    ajuste_tipo TINYINT(2) NOT NULL, -- 1. Entrada 0. Salida
+    ajuste_tipo TINYINT(2) NOT NULL, -- 1 = Entrada, 0 = Salida
     PRIMARY KEY (ajuste_id)
 );
 
--- Tabla de bienes por recepción/desincorporación
-CREATE TABLE ajuste_bien (
-    ajuste_bien_id INT NOT NULL AUTO_INCREMENT,
-    bien_id INT NOT NULL,
+-- Tabla de artículos por recepción/desincorporación (antes ajuste_bien)
+CREATE TABLE ajuste_articulo (
+    ajuste_articulo_id INT NOT NULL AUTO_INCREMENT,
+    articulo_serial_id INT NOT NULL,
     ajuste_id INT NOT NULL,
-    PRIMARY KEY (ajuste_bien_id)
+    PRIMARY KEY (ajuste_articulo_id)
 );
-
 
 -- Índices y valores únicos
 ALTER TABLE clasificacion ADD UNIQUE (clasificacion_codigo);
@@ -179,71 +178,84 @@ CREATE INDEX idx_usuario_usuario ON usuario(usuario_usuario);
 CREATE INDEX idx_usuario_cedula ON usuario(usuario_cedula);
 CREATE INDEX idx_persona_cedula ON persona(persona_cedula);
 
--- Claves foráneas
--- Usuario → Rol
-ALTER TABLE usuario 
+-- Índices útiles para FKs y filtros
+CREATE INDEX idx_clasificacion_categoria ON clasificacion(categoria_id);
+CREATE INDEX idx_articulo_clasificacion ON articulo(clasificacion_id);
+CREATE INDEX idx_articulo_marca ON articulo(marca_id);
+CREATE INDEX idx_serial_articulo ON articulo_serial(articulo_id);
+CREATE INDEX idx_serial_estado ON articulo_serial(estado_id);
+CREATE INDEX idx_asignacion_area ON asignacion(area_id);
+CREATE INDEX idx_asignacion_persona ON asignacion(persona_id);
+CREATE INDEX idx_asig_articulo_serial ON asignacion_articulo(articulo_serial_id);
+CREATE INDEX idx_asig_articulo_asignacion ON asignacion_articulo(asignacion_id);
+CREATE INDEX idx_ajuste_articulo_serial ON ajuste_articulo(articulo_serial_id);
+CREATE INDEX idx_ajuste_articulo_ajuste ON ajuste_articulo(ajuste_id);
+
+    -- Claves foráneas
+    -- Usuario → Rol
+    ALTER TABLE usuario 
     ADD CONSTRAINT fk_usuario_rol 
     FOREIGN KEY (rol_id) REFERENCES rol(rol_id);
 
--- Clasificación → Categoría
-ALTER TABLE clasificacion 
+    -- Clasificación → Categoría
+    ALTER TABLE clasificacion 
     ADD CONSTRAINT fk_clasificacion_categoria 
     FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
 
--- Bien Tipo → Clasificación
-ALTER TABLE bien_tipo 
-    ADD CONSTRAINT fk_bien_tipo_clasificacion 
+    -- Artículo → Clasificación (antes bien_tipo → clasificacion)
+    ALTER TABLE articulo 
+    ADD CONSTRAINT fk_articulo_clasificacion 
     FOREIGN KEY (clasificacion_id) REFERENCES clasificacion(clasificacion_id);
 
--- Bien Tipo → Marca
-ALTER TABLE bien_tipo 
-    ADD CONSTRAINT fk_bien_tipo_marca 
+    -- Artículo → Marca (antes bien_tipo → marca)
+    ALTER TABLE articulo 
+    ADD CONSTRAINT fk_articulo_marca 
     FOREIGN KEY (marca_id) REFERENCES marca(marca_id);
 
--- Bien → Bien Tipo
-ALTER TABLE bien 
-    ADD CONSTRAINT fk_bien_bien_tipo 
-    FOREIGN KEY (bien_tipo_id) REFERENCES bien_tipo(bien_tipo_id);
+    -- Artículo serial → Artículo (antes bien → bien_tipo)
+    ALTER TABLE articulo_serial 
+    ADD CONSTRAINT fk_articulo_serial_articulo 
+    FOREIGN KEY (articulo_id) REFERENCES articulo(articulo_id);
 
--- Bien → Estado
-ALTER TABLE bien 
-    ADD CONSTRAINT fk_bien_estado 
+    -- Artículo serial → Estado (antes bien → estado)
+    ALTER TABLE articulo_serial 
+    ADD CONSTRAINT fk_articulo_serial_estado 
     FOREIGN KEY (estado_id) REFERENCES estado(estado_id);
 
--- Persona → Cargo
-ALTER TABLE persona 
+    -- Persona → Cargo
+    ALTER TABLE persona 
     ADD CONSTRAINT fk_persona_cargo 
     FOREIGN KEY (cargo_id) REFERENCES cargo(cargo_id);
 
--- Asignación → Área
-ALTER TABLE asignacion 
+    -- Asignación → Área
+    ALTER TABLE asignacion 
     ADD CONSTRAINT fk_asignacion_area 
     FOREIGN KEY (area_id) REFERENCES area(area_id);
 
--- Asignación → Persona
-ALTER TABLE asignacion 
+    -- Asignación → Persona
+    ALTER TABLE asignacion 
     ADD CONSTRAINT fk_asignacion_persona 
     FOREIGN KEY (persona_id) REFERENCES persona(persona_id);
 
--- Asignación Bien → Asignación
-ALTER TABLE asignacion_bien 
-    ADD CONSTRAINT fk_asignacion_bien_asignacion 
+    -- Asignación Artículo → Asignación (antes asignacion_bien)
+    ALTER TABLE asignacion_articulo 
+    ADD CONSTRAINT fk_asignacion_articulo_asignacion 
     FOREIGN KEY (asignacion_id) REFERENCES asignacion(asignacion_id);
 
--- Asignación Bien → Bien
-ALTER TABLE asignacion_bien 
-    ADD CONSTRAINT fk_asignacion_bien_bien 
-    FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
+    -- Asignación Artículo → Artículo serial (antes asignacion_bien → bien)
+    ALTER TABLE asignacion_articulo 
+    ADD CONSTRAINT fk_asignacion_articulo_serial 
+    FOREIGN KEY (articulo_serial_id) REFERENCES articulo_serial(articulo_serial_id);
 
--- Ajuste Bien → Ajuste
-ALTER TABLE ajuste_bien 
-    ADD CONSTRAINT fk_ajuste_bien_ajuste 
+    -- Ajuste Artículo → Ajuste (antes ajuste_bien)
+    ALTER TABLE ajuste_articulo 
+    ADD CONSTRAINT fk_ajuste_articulo_ajuste 
     FOREIGN KEY (ajuste_id) REFERENCES ajuste(ajuste_id);
 
--- Ajuste Bien → Bien
-ALTER TABLE ajuste_bien 
-    ADD CONSTRAINT fk_ajuste_bien_bien 
-    FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
+    -- Ajuste Artículo → Artículo serial (antes ajuste_bien → bien)
+    ALTER TABLE ajuste_articulo 
+    ADD CONSTRAINT fk_ajuste_articulo_serial 
+    FOREIGN KEY (articulo_serial_id) REFERENCES articulo_serial(articulo_serial_id);
 
 -- Datos por defecto
 INSERT INTO categoria (categoria_nombre, categoria_codigo, categoria_tipo) VALUES ('Tecnologico', 'TEC001', 1), ('Mobiliario', 'MOB001', 0);

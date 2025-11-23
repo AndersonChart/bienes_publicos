@@ -438,18 +438,18 @@ function cargarClasificacion(opciones = {}) {
 
 //Dinamicas de Formularios
 
-//Bien
+//Articulo
 
 // Función global: aplicar dinámica según categoria_tipo (0 = Básico, 1 = Completo)
 function aplicarDinamicaCategoria() {
-    const formBien = document.getElementById('form_nuevo_bien');
-    if (!formBien) return;
+    const formArticulo = document.getElementById('form_nuevo_articulo');
+    if (!formArticulo) return;
 
-    const inputModelo = formBien.querySelector('[name="bien_modelo"]');
-    const selectMarca = formBien.querySelector('[name="marca_id"]');
+    const inputModelo = formArticulo.querySelector('[name="articulo_modelo"]');
+    const selectMarca = formArticulo.querySelector('[name="marca_id"]');
 
     // Normalizar el tipo: solo aceptar "0" o "1"
-    const rawTipo = (formBien.dataset.categoriaTipo ?? '').trim();
+    const rawTipo = (formArticulo.dataset.categoriaTipo ?? '').trim();
     const tipo = (rawTipo === '0' || rawTipo === '1') ? rawTipo : '';
 
     const deshabilitar = (el) => {
@@ -500,9 +500,6 @@ function aplicarDinamicaCategoria() {
         }
     }
 }
-
-
-
 
 
 //Función global: Limpiar formularios
@@ -690,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para ajustar columnas según tipo de categoría
         function ajustarColumnasPorCategoria(categoriaId) {
-            const tabla = $('#bienTipoTabla').DataTable();
+            const tabla = $('#articuloTabla').DataTable();
 
             // Busca el tipo de categoría en los datos actuales
             const data = tabla.rows({ page: 'current' }).data();
@@ -775,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Recargar primero, ajustar columnas después
-        $('#bienTipoTabla').DataTable().ajax.reload(() => {
+        $('#articuloTabla').DataTable().ajax.reload(() => {
             ajustarColumnasPorCategoria(valor);
         }, false);
     });
@@ -788,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!clasificacionId) {
                     // Todas las clasificaciones → ajustar según la categoría actual
-                    $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                    $('#articuloTabla').DataTable().ajax.reload(() => {
                         ajustarColumnasPorCategoria(categoriaActual);
                     }, false);
                     return;
@@ -803,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.exito && data.clasificacion) {
                         filtroCategoria.value = data.clasificacion.categoria_id;
                     }
-                    $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                    $('#articuloTabla').DataTable().ajax.reload(() => {
                         ajustarColumnasPorCategoria(
                             data.exito ? data.clasificacion.categoria_id : categoriaActual
                         );
@@ -1770,69 +1767,69 @@ document.getElementById('form_confirmar_marca')?.addEventListener('submit', func
 });
 
 
-/*MODULO BIENES_TIPO*/
+/*MODULO ARTICULOS*/
 
 // Función: formulario de actualizar
-function abrirFormularioEdicionBien(id) {
-    const formBien = document.getElementById('form_nuevo_bien');
-    if (!formBien) return;
+function abrirFormularioEdicionArticulo(id) {
+    const formArticulo = document.getElementById('form_nuevo_articulo');
+    if (!formArticulo) return;
 
-    fetch('php/bien_tipo_ajax.php', {
+    fetch('php/articulo_ajax.php', {
         method: 'POST',
-        body: new URLSearchParams({ accion: 'obtener_bien', id })
+        body: new URLSearchParams({ accion: 'obtener_articulo', id })
     })
     .then(res => res.json())
     .then(data => {
-        if (!data.exito || !data.bien_tipo) return;
+        if (!data.exito || !data.articulo) return;
 
-        const b = data.bien_tipo;
-        console.log('Bien recibido:', b); // Depuración
+        const a = data.articulo;
+        console.log('Artículo recibido:', a); // Depuración
 
         // Cargar categorías primero
         cargarCategorias({
             onComplete: () => {
                 // Marcar categoría en el formulario
-                const categoriaSelect = document.getElementById('categoria_form-bien');
-                if (categoriaSelect) categoriaSelect.value = String(b.categoria_id ?? '');
+                const categoriaSelect = document.getElementById('categoria_form-articulo');
+                if (categoriaSelect) categoriaSelect.value = String(a.categoria_id ?? '');
 
                 // Repoblar clasificaciones SOLO en el formulario
                 cargarClasificacion({
-                    categoria_id: b.categoria_id,
-                    selected: b.clasificacion_id,
-                    scope: 'form',   // 👈 aquí indicas que el selected se aplique solo al formulario
+                    categoria_id: a.categoria_id,
+                    selected: a.clasificacion_id,
+                    scope: 'form',
                     onComplete: () => {
-                        const clasificacionSelect = document.getElementById('clasificacion_form-bien');
-                        if (clasificacionSelect) clasificacionSelect.value = String(b.clasificacion_id);
+                        const clasificacionSelect = document.getElementById('clasificacion_form-articulo');
+                        if (clasificacionSelect) clasificacionSelect.value = String(a.clasificacion_id);
 
                         // Repoblar marcas SOLO en el formulario
                         cargarMarca({
-                            selected: b.marca_id,
+                            selected: a.marca_id,
                             onComplete: () => {
-                                const marcaSelect = document.getElementById('marca_form-bien');
-                                if (marcaSelect) marcaSelect.value = String(b.marca_id ?? '');
+                                const marcaSelect = document.getElementById('marca_form-articulo');
+                                if (marcaSelect) marcaSelect.value = String(a.marca_id ?? '');
 
                                 // Campos base
-                                formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
-                                formBien.querySelector('#bien_tipo_codigo').value = b.bien_tipo_codigo ?? '';
-                                formBien.querySelector('#bien_nombre').value = b.bien_nombre ?? '';
-                                formBien.querySelector('#bien_modelo').value = b.bien_modelo ?? '';
-                                formBien.querySelector('#bien_descripcion').value = b.bien_descripcion ?? '';
+                                formArticulo.querySelector('#articulo_id').value = a.articulo_id;
+                                formArticulo.querySelector('#articulo_codigo').value = a.articulo_codigo ?? '';
+                                formArticulo.querySelector('#articulo_nombre').value = a.articulo_nombre ?? '';
+                                formArticulo.querySelector('#articulo_modelo').value = a.articulo_modelo ?? '';
+                                formArticulo.querySelector('#articulo_descripcion').value = a.articulo_descripcion ?? '';
 
                                 // Imagen
-                                const preview = document.getElementById('preview_foto_bien');
+                                const preview = document.getElementById('preview_foto_articulo');
                                 const icono = document.querySelector('.foto_perfil_icon');
-                                preview.src = (b.bien_imagen && b.bien_imagen.trim() !== '')
-                                    ? b.bien_imagen + '?t=' + Date.now()
+                                preview.src = (a.articulo_imagen && a.articulo_imagen.trim() !== '')
+                                    ? a.articulo_imagen + '?t=' + Date.now()
                                     : 'img/icons/articulo.png';
                                 preview.style.display = 'block';
                                 if (icono) icono.style.opacity = '0';
 
                                 // Dinámica desde backend
-                                formBien.dataset.categoriaTipo = String(b.categoria_tipo ?? '');
+                                formArticulo.dataset.categoriaTipo = String(a.categoria_tipo ?? '');
                                 aplicarDinamicaCategoria();
 
                                 // Abrir modal
-                                const modal = document.querySelector('[data-modal="new_bien_tipo"]');
+                                const modal = document.querySelector('[data-modal="new_articulo"]');
                                 if (modal?.showModal) modal.showModal();
                             }
                         });
@@ -1841,20 +1838,19 @@ function abrirFormularioEdicionBien(id) {
             }
         });
     })
-    .catch(err => console.error('Error al obtener bien:', err));
+    .catch(err => console.error('Error al obtener artículo:', err));
 }
-    
 
-// Crear o actualizar Bien
+// Crear o actualizar Artículo
 document.addEventListener('DOMContentLoaded', function () {
-    const formBien = document.getElementById('form_nuevo_bien');
-    const errorContainerBien = document.getElementById('error-container-bien');
-    const inputFotoBien = document.getElementById('foto_bien');
-    const previewFotoBien = document.getElementById('preview_foto_bien');
-    const iconoBien = formBien?.querySelector('.foto_perfil_icon');
+    const formArticulo = document.getElementById('form_nuevo_articulo');
+    const errorContainerArticulo = document.getElementById('error-container-articulo');
+    const inputFotoArticulo = document.getElementById('foto_articulo');
+    const previewFotoArticulo = document.getElementById('preview_foto_articulo');
+    const iconoArticulo = formArticulo?.querySelector('.foto_perfil_icon');
 
-    const selectCategoria = document.getElementById('categoria_form-bien');
-    const selectClasificacion = document.getElementById('clasificacion_form-bien');
+    const selectCategoria = document.getElementById('categoria_form-articulo');
+    const selectClasificacion = document.getElementById('clasificacion_form-articulo');
 
     // Listener de categoría dentro del formulario
     if (selectCategoria) {
@@ -1864,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Repoblar clasificaciones hijas SOLO en el formulario
             cargarClasificacion({
                 categoria_id: categoriaId,
-                scope: 'form',   // 👈 importante: solo aplica al formulario
+                scope: 'form',
                 onComplete: (lista) => {
                     if (selectClasificacion) {
                         selectClasificacion.innerHTML = '';
@@ -1892,13 +1888,13 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(res => res.json())
             .then(data => {
-                formBien.dataset.categoriaTipo = data.exito && data.categoria
+                formArticulo.dataset.categoriaTipo = data.exito && data.categoria
                     ? String(data.categoria.categoria_tipo ?? '')
                     : "";
                 aplicarDinamicaCategoria();
             })
             .catch(() => {
-                formBien.dataset.categoriaTipo = "";
+                formArticulo.dataset.categoriaTipo = "";
                 aplicarDinamicaCategoria();
             });
         });
@@ -1920,7 +1916,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const categoriaId = data.clasificacion.categoria_id;
                     if (selectCategoria) selectCategoria.value = String(categoriaId ?? '');
 
-                    formBien.dataset.categoriaTipo = String(data.clasificacion.categoria_tipo ?? '');
+                    formArticulo.dataset.categoriaTipo = String(data.clasificacion.categoria_tipo ?? '');
                     aplicarDinamicaCategoria();
                 }
             });
@@ -1928,15 +1924,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Previsualizar imagen
-    if (inputFotoBien && previewFotoBien && iconoBien) {
-        inputFotoBien.addEventListener('change', function () {
+    if (inputFotoArticulo && previewFotoArticulo && iconoArticulo) {
+        inputFotoArticulo.addEventListener('change', function () {
             const archivo = this.files[0];
             if (archivo) {
                 const lector = new FileReader();
                 lector.onload = function (e) {
-                    previewFotoBien.src = e.target.result;
-                    previewFotoBien.style.display = 'block';
-                    iconoBien.style.opacity = '0';
+                    previewFotoArticulo.src = e.target.result;
+                    previewFotoArticulo.style.display = 'block';
+                    iconoArticulo.style.opacity = '0';
                 };
                 lector.readAsDataURL(archivo);
             }
@@ -1944,37 +1940,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Abrir modal nuevo
-    const btnNuevo = document.querySelector('[data-modal-target="new_bien_tipo"]');
+    const btnNuevo = document.querySelector('[data-modal-target="new_articulo"]');
     if (btnNuevo) {
         btnNuevo.addEventListener('click', () => {
-            const modal = document.querySelector('[data-modal="new_bien_tipo"]');
-            limpiarFormulario(formBien);
+            const modal = document.querySelector('[data-modal="new_articulo"]');
+            limpiarFormulario(formArticulo);
             if (modal?.showModal) modal.showModal();
 
-            cargarCategorias();      
-            cargarClasificacion({ scope: 'form' });   // 👈 solo repuebla el formulario
+            cargarCategorias();
+            cargarClasificacion({ scope: 'form' });
             cargarMarca();
 
-            formBien.dataset.categoriaTipo = "";
+            formArticulo.dataset.categoriaTipo = "";
             aplicarDinamicaCategoria();
         });
     }
 
     // Envío del formulario
-    if (formBien) {
-        formBien.addEventListener('submit', function (e) {
+    if (formArticulo) {
+        formArticulo.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const bienTipoId = document.getElementById('bien_tipo_id').value;
-            const formData = new FormData(formBien);
-            const accion = bienTipoId ? 'actualizar' : 'crear';
+            const articuloId = document.getElementById('articulo_id').value;
+            const formData = new FormData(formArticulo);
+            const accion = articuloId ? 'actualizar' : 'crear';
 
             formData.append('accion', accion);
-            if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
+            if (articuloId) formData.append('articulo_id', articuloId);
 
             // Eliminar campos no aplicables si la categoría es Básica
-            if (formBien.dataset.categoriaTipo === "0") {
-                formData.delete('bien_modelo');
+            if (formArticulo.dataset.categoriaTipo === "0") {
+                formData.delete('articulo_modelo');
                 formData.delete('marca_id');
             }
 
@@ -1986,22 +1982,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log(key, value);
             }
 
-            fetch('php/bien_tipo_ajax.php', {
+            fetch('php/articulo_ajax.php', {
                 method: 'POST',
                 body: formData
             })
             .then(res => res.json())
             .then(data => {
-                errorContainerBien.innerHTML = '';
-                errorContainerBien.style.display = 'none';
+                errorContainerArticulo.innerHTML = '';
+                errorContainerArticulo.style.display = 'none';
 
                 if (data.error) {
-                    errorContainerBien.innerHTML = `<p>${data.mensaje}</p>`;
-                    errorContainerBien.style.display = 'block';
+                    errorContainerArticulo.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainerArticulo.style.display = 'block';
 
                     if (data.campos && Array.isArray(data.campos)) {
                         data.campos.forEach((campo, index) => {
-                            const input = formBien.querySelector(`[name="${campo}"]`);
+                            const input = formArticulo.querySelector(`[name="${campo}"]`);
                             if (input) {
                                 input.classList.add('input-error');
                                 if (index === 0) input.focus();
@@ -2009,40 +2005,39 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
                 } else if (data.exito) {
-                    const esActualizacion = !!bienTipoId;
+                    const esActualizacion = !!articuloId;
                     const mensaje = esActualizacion
-                        ? "Bien actualizado con éxito"
-                        : "Bien registrado con éxito";
+                        ? "Artículo actualizado con éxito"
+                        : "Artículo registrado con éxito";
 
-                    const modalBien = document.querySelector('dialog[data-modal="new_bien_tipo"]');
-                    if (esActualizacion && modalBien && modalBien.open) {
-                        modalBien.close();
+                    const modalArticulo = document.querySelector('dialog[data-modal="new_articulo"]');
+                    if (esActualizacion && modalArticulo && modalArticulo.open) {
+                        modalArticulo.close();
                     }
 
                     mostrarModalExito(mensaje);
-                    limpiarFormulario(formBien);
+                    limpiarFormulario(formArticulo);
 
-                    $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+                    $('#articuloTabla').DataTable().ajax.reload(null, false);
                 }
             })
             .catch(err => {
                 console.error('Error en fetch:', err);
-                errorContainerBien.innerHTML = 'Hubo un error con el servidor';
-                errorContainerBien.style.display = 'block';
+                errorContainerArticulo.innerHTML = 'Hubo un error con el servidor';
+                errorContainerArticulo.style.display = 'block';
             });
         });
     }
 });
 
-
-// Mostrar información detallada de un bien
-function mostrarInfoBien(data) {
-    document.getElementById('info_codigo').textContent = data.bien_tipo_codigo || '';
-    document.getElementById('info_nombre').textContent = data.bien_nombre || '';
+// Mostrar información detallada de un artículo
+function mostrarInfoArticulo(data) {
+    document.getElementById('info_codigo').textContent = data.articulo_codigo || '';
+    document.getElementById('info_nombre').textContent = data.articulo_nombre || '';
     document.getElementById('info_categoria').textContent = data.categoria_nombre || '';
     document.getElementById('info_clasificacion').textContent = data.clasificacion_nombre || '';
-    document.getElementById('info_descripcion').textContent = data.bien_descripcion || '';
-    document.getElementById('info_imagen').src = (data.bien_imagen?.trim() !== '') ? data.bien_imagen : 'img/icons/articulo.png';
+    document.getElementById('info_descripcion').textContent = data.articulo_descripcion || '';
+    document.getElementById('info_imagen').src = (data.articulo_imagen?.trim() !== '') ? data.articulo_imagen : 'img/icons/articulo.png';
 
     // Condicional para marca y modelo según categoria_tipo (0 = Básico, 1 = Completo)
     const liMarca = document.getElementById('li_info_marca');
@@ -2056,71 +2051,72 @@ function mostrarInfoBien(data) {
         document.getElementById('info_marca').textContent = data.marca_nombre;
     }
 
-    if (categoriaTipo === 0 || !data.bien_modelo || data.bien_modelo.trim() === '') {
+    if (categoriaTipo === 0 || !data.articulo_modelo || data.articulo_modelo.trim() === '') {
         liModelo.style.display = 'none';
     } else {
         liModelo.style.display = 'list-item';
-        document.getElementById('info_modelo').textContent = data.bien_modelo;
+        document.getElementById('info_modelo').textContent = data.articulo_modelo;
     }
 
-    const modal = document.querySelector('dialog[data-modal="info_bien_tipo"]');
+    const modal = document.querySelector('dialog[data-modal="info_articulo"]');
     if (modal?.showModal) modal.showModal();
 }
 
 // Mostrar datos en confirmación (eliminar o recuperar)
-function mostrarConfirmacionBien(data, modo = 'eliminar') {
+function mostrarConfirmacionArticulo(data, modo = 'eliminar') {
     if (modo === 'eliminar') {
-        document.getElementById('delete_codigo_bien').textContent = data.bien_tipo_codigo || '';
-        document.getElementById('delete_nombre_bien').textContent = data.bien_nombre || '';
-        document.getElementById('delete_categoria_bien').textContent = data.categoria_nombre || '';
-        document.getElementById('delete_clasificacion_bien').textContent = data.clasificacion_nombre || '';
-        document.getElementById('delete_imagen_bien').src = (data.bien_imagen?.trim() !== '') 
-            ? data.bien_imagen + '?t=' + Date.now() 
+        document.getElementById('delete_codigo_articulo').textContent = data.articulo_codigo || '';
+        document.getElementById('delete_nombre_articulo').textContent = data.articulo_nombre || '';
+        document.getElementById('delete_categoria_articulo').textContent = data.categoria_nombre || '';
+        document.getElementById('delete_clasificacion_articulo').textContent = data.clasificacion_nombre || '';
+        document.getElementById('delete_imagen_articulo').src = (data.articulo_imagen?.trim() !== '') 
+            ? data.articulo_imagen + '?t=' + Date.now() 
             : 'img/icons/articulo.png';
 
-        const formBien = document.getElementById('form_delete_bien');
-        formBien.dataset.bienTipoId = data.bien_tipo_id;
-        formBien.dataset.modo = modo;
+        const formArticulo = document.getElementById('form_delete_articulo');
+        formArticulo.dataset.articuloId = data.articulo_id;
+        formArticulo.dataset.modo = modo;
 
-        const modal = document.querySelector('dialog[data-modal="eliminar_bien"]');
+        const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
         if (modal?.showModal) modal.showModal();
     } else if (modo === 'recuperar') {
-        document.getElementById('confirmar_codigo_bien').textContent = data.bien_tipo_codigo || '';
-        document.getElementById('confirmar_nombre_bien').textContent = data.bien_nombre || '';
-        document.getElementById('confirmar_categoria_bien').textContent = data.categoria_nombre || '';
-        document.getElementById('confirmar_clasificacion_bien').textContent = data.clasificacion_nombre || '';
-        document.getElementById('confirmar_imagen_bien').src = (data.bien_imagen?.trim() !== '') 
-            ? data.bien_imagen + '?t=' + Date.now() 
+        document.getElementById('confirmar_codigo_articulo').textContent = data.articulo_codigo || '';
+        document.getElementById('confirmar_nombre_articulo').textContent = data.articulo_nombre || '';
+        document.getElementById('confirmar_categoria_articulo').textContent = data.categoria_nombre || '';
+        document.getElementById('confirmar_clasificacion_articulo').textContent = data.clasificacion_nombre || '';
+        document.getElementById('confirmar_imagen_articulo').src = (data.articulo_imagen?.trim() !== '') 
+            ? data.articulo_imagen + '?t=' + Date.now() 
             : 'img/icons/articulo.png';
 
-        const formBien = document.getElementById('form_confirmar_bien');
-        formBien.dataset.bienTipoId = data.bien_tipo_id;
-        formBien.dataset.modo = modo;
+        const formArticulo = document.getElementById('form_confirmar_articulo');
+        formArticulo.dataset.articuloId = data.articulo_id;
+        formArticulo.dataset.modo = modo;
 
-        const modal = document.querySelector('dialog[data-modal="confirmar_bien"]');
+        const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
         if (modal?.showModal) modal.showModal();
     }
 }
 
+
 // Eliminar
-document.getElementById('form_delete_bien').addEventListener('submit', function (e) {
+document.getElementById('form_delete_articulo').addEventListener('submit', function (e) {
     e.preventDefault();
 
-    const id = this.dataset.bienTipoId;
+    const id = this.dataset.articuloId;
     if (!id) return;
 
-    fetch('php/bien_tipo_ajax.php', {
+    fetch('php/articulo_ajax.php', {
         method: 'POST',
-        body: new URLSearchParams({ accion: 'deshabilitar_bien', id })
+        body: new URLSearchParams({ accion: 'deshabilitar_articulo', id })
     })
     .then(res => res.json())
     .then(data => {
         if (data.exito) {
-            const modal = document.querySelector('dialog[data-modal="eliminar_bien"]');
+            const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
             if (modal?.open) modal.close();
 
-            mostrarModalExito(data.mensaje || 'Bien deshabilitado');
-            $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+            mostrarModalExito(data.mensaje || 'Artículo deshabilitado');
+            $('#articuloTabla').DataTable().ajax.reload(null, false);
         }
     })
     .catch(() => {
@@ -2128,26 +2124,26 @@ document.getElementById('form_delete_bien').addEventListener('submit', function 
     });
 });
 
-
-document.getElementById('form_confirmar_bien').addEventListener('submit', function (e) {
+// Recuperar
+document.getElementById('form_confirmar_articulo').addEventListener('submit', function (e) {
     e.preventDefault();
 
-    const id = this.dataset.bienTipoId;
+    const id = this.dataset.articuloId;
     if (!id) return;
 
-    fetch('php/bien_tipo_ajax.php', {
+    fetch('php/articulo_ajax.php', {
         method: 'POST',
-        body: new URLSearchParams({ accion: 'recuperar_bien', id })
+        body: new URLSearchParams({ accion: 'recuperar_articulo', id })
     })
     .then(res => res.json())
     .then(data => {
         if (data.exito) {
-            const modal = document.querySelector('dialog[data-modal="confirmar_bien"]');
+            const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
             if (modal?.open) modal.close();
 
-            mostrarModalExito(data.mensaje || 'Bien recuperado');
+            mostrarModalExito(data.mensaje || 'Artículo recuperado');
             estadoActual = 1;
-            $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+            $('#articuloTabla').DataTable().ajax.reload(null, false);
         }
     })
     .catch(() => {
@@ -2155,9 +2151,11 @@ document.getElementById('form_confirmar_bien').addEventListener('submit', functi
     });
 });
 
+// Actualizar tabla al cambiar filtros
 document.addEventListener('change', function (e) {
     if (e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro')) {
-        $('#bienTipoTabla').DataTable().ajax.reload(null, false);
+        $('#articuloTabla').DataTable().ajax.reload(null, false);
     }
 });
+
 
