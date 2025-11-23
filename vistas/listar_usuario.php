@@ -15,33 +15,32 @@
         </form>
 
         <h2 class="modal_title">Registro de Usuario</h2>
-        <p class="condition">Opcional</p>
         <form id="form_nuevo_usuario" method="POST" autocomplete="off" class="user_container">
             
             <input type="hidden" name="usuario_id" id="usuario_id">
         
             <div class="input_block_content">
-                <label for="nombre" class="input_label">Nombre</label>
+                <label for="nombre" class="input_label">Nombre*</label>
                 <input type="text" id="nombre" name="usuario_nombre" class="input_text" autofocus>
             </div>
 
             <div class="input_block_content">
-                <label for="apellido" class="input_label">Apellido</label>
+                <label for="apellido" class="input_label">Apellido*</label>
                 <input type="text" id="apellido" name="usuario_apellido" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="correo" class="input_label">Correo electrónico</label>
+                <label for="correo" class="input_label">Correo electrónico*</label>
                 <input type="text" id="correo" name="usuario_correo" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="telefono" class="input_label input-condition">Teléfono</label>
+                <label for="telefono" class="input_label">Teléfono</label>
                 <input type="text" maxlength="11" id="telefono" name="usuario_telefono" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="cedula" class="input_label">Cédula</label>
+                <label for="cedula" class="input_label">Cédula*</label>
                 <div class="input_text">
                     <select name="tipo_cedula" id="tipo_cedula" class="input_select input_select-cedula">
                     <option value="V">V</option>
@@ -52,7 +51,7 @@
             </div>
 
             <div class="input_block_content">
-                <label for="sexo" class="input_label">Sexo</label>
+                <label for="sexo" class="input_label">Sexo*</label>
                 <select name="usuario_sexo" id="sexo" class="input_text input_select">
                     <option value="" selected disabled></option>
                     <option value="0">M</option>
@@ -61,23 +60,23 @@
             </div>
 
             <div class="input_block_content">
-                <label for="direccion" class="input_label input-condition">Dirección</label>
+                <label for="direccion" class="input_label">Dirección</label>
                 <input type="text" maxlength="100" name="usuario_direccion" id="direccion" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="nac" class="input_label">Fecha de nacimiento</label>
+                <label for="nac" class="input_label">Fecha de nacimiento*</label>
                 <input type="date" name="usuario_nac" id="nac" class="input_text input_date">
             </div>
 
             <h2 class="modal_subtitle">Credenciales</h2>
 
             <div class="input_block_content">
-                <label for="nombre_usuario" class="input_label">Nombre de Usuario</label>
+                <label for="nombre_usuario" class="input_label">Nombre de Usuario*</label>
                 <input type="text" id="nombre_usuario" name="usuario_usuario" class="input_text">
             </div>
             <div class="input_block_content">
-                <label for="foto" class="input_label input-condition">Foto de Perfil</label>
+                <label for="foto" class="input_label">Foto de Perfil</label>
                 <div class="foto_perfil_container">
                     <input type="file" id="foto" name="usuario_foto" class="input_file" accept=".jpg,.jpeg,.png">
                     <div class="foto_perfil_wrapper" onclick="document.getElementById('foto').click()">
@@ -90,7 +89,7 @@
             <?php if ($_SESSION["rol"] == 3){ ?>
             
             <div class="input_block_content">
-                <label for="password" class="input_label">Contraseña</label>
+                <label for="password" class="input_label">Contraseña*</label>
                 <div class="input_text">
                     <input type="password" name="usuario_clave" class="input_password" >
                     <div class="eye-icon" onclick="togglePassword()"></div>
@@ -98,7 +97,7 @@
             </div>
 
             <div class="input_block_content">
-                <label for="password_repeat" class="input_label">Repetir Contraseña</label>
+                <label for="password_repeat" class="input_label">Repetir Contraseña*</label>
                 <div class="input_text">
                     <input type="password" name="repetir_clave" class="input_password">
                     <div class="eye-icon" onclick="togglePassword()"></div>
@@ -114,7 +113,7 @@
             <?php }else{ ?>
 
             <div class="input_block_content">
-                <label for="password" class="input_label">Contraseña</label>
+                <label for="password" class="input_label">Contraseña*</label>
                 <div class="input_text">
                     <input type="password" name="usuario_clave" class="input_password" >
                     <div class="eye-icon" onclick="togglePassword()"></div>
@@ -122,7 +121,7 @@
             </div>
 
             <div class="input_block_content">
-                <label for="password_repeat" class="input_label">Repetir Contraseña</label>
+                <label for="password_repeat" class="input_label">Repetir Contraseña*</label>
                 <div class="input_text">
                     <input type="password" name="repetir_clave" class="input_password">
                     <div class="eye-icon" onclick="togglePassword()"></div>

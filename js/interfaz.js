@@ -261,6 +261,11 @@ function cargarCategorias(opciones = {}) {
                 option.textContent = cat.categoria_nombre;
                 select.appendChild(option);
             });
+
+            // Si hay un valor seleccionado
+            if (opciones.selected) {
+                select.value = opciones.selected;
+            }
         });
 
         // Selects para formularios
@@ -275,10 +280,14 @@ function cargarCategorias(opciones = {}) {
 
             data.forEach(cat => {
                 const option = document.createElement('option');
-                option.value = cat.categoria_id;
+                option.value = String(cat.categoria_id);
                 option.textContent = cat.categoria_nombre;
                 select.appendChild(option);
             });
+
+            if (opciones.selected) {
+                select.value = opciones.selected;
+            }
         });
 
         if (typeof opciones.onComplete === 'function') {
@@ -306,12 +315,7 @@ function cargarClasificacion(opciones = {}) {
     .then(data => {
         const lista = Array.isArray(data.data) ? data.data : [];
 
-        if (lista.length === 0) {
-            console.warn('No se recibieron clasificaciones válidas:', data);
-            return;
-        }
-
-        // Selects para filtros (ej. en la parte superior de la vista)
+        // Selects para filtros
         document.querySelectorAll('select.clasificacion_filtro').forEach(select => {
             select.innerHTML = '';
             const todasOption = document.createElement('option');
@@ -325,9 +329,13 @@ function cargarClasificacion(opciones = {}) {
                 option.textContent = clasificacion.clasificacion_nombre;
                 select.appendChild(option);
             });
+
+            if (opciones.selected) {
+                select.value = opciones.selected;
+            }
         });
 
-        // Selects para formularios (ej. dentro de modales)
+        // Selects para formularios
         document.querySelectorAll('select.clasificacion_form').forEach(select => {
             select.innerHTML = '';
             const defaultOption = document.createElement('option');
@@ -343,9 +351,12 @@ function cargarClasificacion(opciones = {}) {
                 option.textContent = clasificacion.clasificacion_nombre;
                 select.appendChild(option);
             });
+
+            if (opciones.selected) {
+                select.value = opciones.selected;
+            }
         });
 
-        // Callback opcional
         if (typeof opciones.onComplete === 'function') {
             opciones.onComplete(lista);
         }
@@ -354,6 +365,7 @@ function cargarClasificacion(opciones = {}) {
         console.error('Error al cargar clasificación:', err);
     });
 }
+
 
 function cargarMarca(opciones = {}) {
     const params = new URLSearchParams({ accion: 'leer_todos' });
@@ -414,6 +426,11 @@ function cargarMarca(opciones = {}) {
         console.error('Error al cargar marca:', err);
     });
 }
+
+//Dinamicas de Formularios
+
+//Bien
+
 
 
 
@@ -504,51 +521,6 @@ function limpiarFormularioMarca() {
         idInput.value = '';
     }
 }
-
-function limpiarFormularioBien() {
-    const form = document.getElementById('form_nuevo_bien');
-    if (!form) return;
-
-    // Resetear campos del formulario
-    form.reset();
-
-    // Quitar clases de error visual
-    form.querySelectorAll('.input-error').forEach(el => {
-        el.classList.remove('input-error');
-    });
-
-    // Limpiar contenedor de error específico
-    const errorContainer = document.getElementById('error-container-clasificacion');
-    if (errorContainer) {
-        errorContainer.innerHTML = '';
-        errorContainer.style.display = 'none';
-    }
-
-    // Limpiar imagen de previsualización
-    const preview = document.getElementById('preview_foto');
-    if (preview) {
-        preview.removeAttribute('src');
-        preview.style.display = 'none';
-    }
-
-    // Restaurar ícono visual
-    const icono = form.querySelector('.foto_perfil_icon');
-    if (icono) {
-        icono.style.opacity = '1';
-    }
-
-    // Limpiar campos ocultos tipo ID
-    const idInput = document.getElementById('bien_tipo_id');
-    if (idInput) {
-        idInput.value = '';
-    }
-
-    // Restaurar selects al estado inicial
-    form.querySelectorAll('select').forEach(select => {
-        select.selectedIndex = 0;
-    });
-}
-
 
 
 
@@ -648,38 +620,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const filtroCategoria = document.getElementById('categoria_filtro');
     const filtroClasificacion = document.getElementById('clasificacion_filtro');
 
+    // Función para ajustar columnas según categoría
+    function ajustarColumnasPorCategoria(categoriaId) {
+        const tabla = $('#bienTipoTabla').DataTable();
+        if (categoriaId == 2) { // Mobiliario
+            tabla.column(4).visible(false); // Modelo
+            tabla.column(5).visible(false); // Marca
+        } else {
+            tabla.column(4).visible(true);
+            tabla.column(5).visible(true);
+        }
+    }
+
     if (filtroCategoria) {
         filtroCategoria.addEventListener('change', () => {
             const valor = filtroCategoria.value;
 
-            cargarClasificacion({
-                categoria_id: valor,
-                onComplete: (lista) => {
-                    filtroClasificacion.innerHTML = '';
-                    const todasOption = document.createElement('option');
-                    todasOption.value = '';
-                    todasOption.textContent = 'Todas las clasificaciones';
-                    filtroClasificacion.appendChild(todasOption);
+            if (valor !== '') {
+                // Clasificaciones de una categoría específica
+                cargarClasificacion({
+                    categoria_id: valor,
+                    onComplete: (lista) => {
+                        filtroClasificacion.innerHTML = '';
+                        const todasOption = document.createElement('option');
+                        todasOption.value = '';
+                        todasOption.textContent = 'Todas las clasificaciones';
+                        filtroClasificacion.appendChild(todasOption);
 
-                    lista.forEach(clasificacion => {
-                        const option = document.createElement('option');
-                        option.value = clasificacion.clasificacion_id;
-                        option.textContent = clasificacion.clasificacion_nombre;
-                        filtroClasificacion.appendChild(option);
-                    });
-                }
-            });
+                        lista.forEach(clasificacion => {
+                            const option = document.createElement('option');
+                            option.value = clasificacion.clasificacion_id;
+                            option.textContent = clasificacion.clasificacion_nombre;
+                            filtroClasificacion.appendChild(option);
+                        });
+                    }
+                });
+            } else {
+                // Todas las categorías → cargar todas las clasificaciones
+                cargarClasificacion({
+                    onComplete: (lista) => {
+                        filtroClasificacion.innerHTML = '';
+                        const todasOption = document.createElement('option');
+                        todasOption.value = '';
+                        todasOption.textContent = 'Todas las clasificaciones';
+                        filtroClasificacion.appendChild(todasOption);
 
-            // Recargar tabla con filtro aplicado
-            $('#bienTipoTabla').DataTable().ajax.reload();
+                        lista.forEach(clasificacion => {
+                            const option = document.createElement('option');
+                            option.value = clasificacion.clasificacion_id;
+                            option.textContent = clasificacion.clasificacion_nombre;
+                            filtroClasificacion.appendChild(option);
+                        });
+                    }
+                });
+            }
+
+            // Recargar primero, ajustar columnas después
+            $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                ajustarColumnasPorCategoria(valor);
+            }, false);
         });
     }
 
     if (filtroClasificacion) {
         filtroClasificacion.addEventListener('change', () => {
             const clasificacionId = filtroClasificacion.value;
+            const categoriaActual = filtroCategoria.value || 0;
+
             if (!clasificacionId) {
-                $('#bienTipoTabla').DataTable().ajax.reload();
+                // Todas las clasificaciones → ajustar según la categoría actual
+                $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                    ajustarColumnasPorCategoria(categoriaActual);
+                }, false);
                 return;
             }
 
@@ -692,10 +704,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.exito && data.clasificacion) {
                     filtroCategoria.value = data.clasificacion.categoria_id;
                 }
-                $('#bienTipoTabla').DataTable().ajax.reload();
+                $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                    ajustarColumnasPorCategoria(
+                        data.exito ? data.clasificacion.categoria_id : categoriaActual
+                    );
+                }, false);
             });
         });
     }
+
 });
 
 
@@ -1376,8 +1393,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-
-
 // Mostrar información de marca
 function mostrarInfoMarca(data) {
     document.getElementById('info_codigo_marca').textContent = data.marca_codigo || '';
@@ -1459,6 +1474,40 @@ document.getElementById('form_confirmar_marca')?.addEventListener('submit', func
 
 /*MODULO BIENES_TIPO*/
 
+function aplicarDinamicaCategoria() {
+    const formBien = document.getElementById('form_nuevo_bien');
+    // Usa el mismo selector que en abrirFormularioEdicionBien
+    const selectCategoria = formBien?.querySelector('#categoria_form-bien');
+    const inputModelo = formBien?.querySelector('#bien_modelo');
+    const selectMarca = formBien?.querySelector('#marca_form-bien');
+
+    if (!selectCategoria) return;
+    const valor = selectCategoria.value;
+
+    if (valor === "2") { // Mobiliario
+        if (inputModelo) {
+            inputModelo.value = "";
+            inputModelo.disabled = true;
+            inputModelo.style.opacity = "0.5";
+        }
+        if (selectMarca) {
+            selectMarca.value = "";
+            selectMarca.disabled = true;
+            selectMarca.style.opacity = "0.5";
+        }
+    } else {
+        if (inputModelo) {
+            inputModelo.disabled = false;
+            inputModelo.style.opacity = "1";
+        }
+        if (selectMarca) {
+            selectMarca.disabled = false;
+            selectMarca.style.opacity = "1";
+        }
+    }
+}
+
+
 // Función: formulario de actualizar
 function abrirFormularioEdicionBien(id) {
     const formBien = document.getElementById('form_nuevo_bien');
@@ -1475,15 +1524,21 @@ function abrirFormularioEdicionBien(id) {
         const b = data.bien_tipo;
 
         cargarCategorias({
-            selected: b.categoria_id,
             onComplete: () => {
+                const categoriaSelect = formBien.querySelector('#categoria_form-bien');
+                if (categoriaSelect) categoriaSelect.value = b.categoria_id;
+
                 cargarClasificacion({
-                    selected: b.clasificacion_id,
                     categoria_id: b.categoria_id,
                     onComplete: () => {
+                        const clasificacionSelect = formBien.querySelector('#clasificacion_form-bien');
+                        if (clasificacionSelect) clasificacionSelect.value = b.clasificacion_id;
+
                         cargarMarca({
-                            selected: b.marca_id,
                             onComplete: () => {
+                                const marcaSelect = formBien.querySelector('#marca_form-bien');
+                                if (marcaSelect) marcaSelect.value = b.marca_id;
+
                                 formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
                                 formBien.querySelector('#bien_tipo_codigo').value = b.bien_tipo_codigo;
                                 formBien.querySelector('#bien_nombre').value = b.bien_nombre;
@@ -1492,16 +1547,14 @@ function abrirFormularioEdicionBien(id) {
 
                                 const preview = document.getElementById('preview_foto_bien');
                                 const icono = document.querySelector('.foto_perfil_icon');
+                                preview.src = b.bien_imagen && b.bien_imagen.trim() !== '' 
+                                    ? b.bien_imagen + '?t=' + new Date().getTime() 
+                                    : 'img/icons/articulo.png';
+                                preview.style.display = 'block';
+                                icono.style.opacity = '0';
 
-                                if (b.bien_imagen && b.bien_imagen.trim() !== '') {
-                                    preview.src = b.bien_imagen + '?t=' + new Date().getTime();
-                                    preview.style.display = 'block';
-                                    icono.style.opacity = '0';
-                                } else {
-                                    preview.src = '';
-                                    preview.style.display = 'none';
-                                    icono.style.opacity = '1';
-                                }
+                                // Aplicar dinámica según categoría cargada
+                                aplicarDinamicaCategoria();
 
                                 const modal = document.querySelector('[data-modal="new_bien_tipo"]');
                                 if (modal?.showModal) modal.showModal();
@@ -1514,7 +1567,6 @@ function abrirFormularioEdicionBien(id) {
     })
     .catch(err => console.error('Error al obtener bien:', err));
 }
-
 
 // Crear o actualizar Bien
 document.addEventListener('DOMContentLoaded', function () {
@@ -1635,7 +1687,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnNuevo) {
         btnNuevo.addEventListener('click', () => {
             const modal = document.querySelector('[data-modal="new_bien_tipo"]');
-            limpiarFormularioBien(formBien);
+            limpiarFormulario(formBien);
             if (modal?.showModal) modal.showModal();
             cargarCategorias();
             cargarClasificacion();
@@ -1655,7 +1707,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('accion', accion);
             if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
 
-            // 🔄 Eliminar campos no aplicables si es mobiliario
+            //  Eliminar campos no aplicables si es mobiliario
             if (selectCategoria && selectCategoria.value === "2") { // ID de Mobiliario
                 formData.delete('bien_modelo');
                 formData.delete('marca_id');
@@ -1695,7 +1747,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     mostrarModalExito(mensaje);
-                    limpiarFormularioBien(formBien);
+                    limpiarFormulario(formBien);
 
                     $('#bienTipoTabla').DataTable().ajax.reload(null, false);
                 }
@@ -1710,24 +1762,39 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
-
-
 // Mostrar información
 function mostrarInfoBien(data) {
     document.getElementById('info_codigo').textContent = data.bien_tipo_codigo || '';
     document.getElementById('info_nombre').textContent = data.bien_nombre || '';
-    document.getElementById('info_modelo').textContent = data.bien_modelo || '';
-    document.getElementById('info_marca').textContent = data.marca_nombre || '';
+    document.getElementById('info_categoria').textContent = data.categoria_nombre || '';
     document.getElementById('info_clasificacion').textContent = data.clasificacion_nombre || '';
     document.getElementById('info_descripcion').textContent = data.bien_descripcion || '';
     document.getElementById('info_imagen').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen : '';
 
-    const modal = document.querySelector('dialog[data-modal="info_bien"]');
+    // Condicional para marca y modelo
+    const liMarca = document.getElementById('li_info_marca');
+    const liModelo = document.getElementById('li_info_modelo');
+
+    if (!data.marca_nombre || data.marca_nombre.trim() === '' || data.categoria_id == 2) {
+        liMarca.style.display = 'none';
+    } else {
+        liMarca.style.display = 'list-item';
+        document.getElementById('info_marca').textContent = data.marca_nombre;
+    }
+
+    if (!data.bien_modelo || data.bien_modelo.trim() === '' || data.categoria_id == 2) {
+        liModelo.style.display = 'none';
+    } else {
+        liModelo.style.display = 'list-item';
+        document.getElementById('info_modelo').textContent = data.bien_modelo;
+    }
+
+    const modal = document.querySelector('dialog[data-modal="info_bien_tipo"]');
     if (modal && typeof modal.showModal === 'function') {
         modal.showModal();
     }
 }
+
 
 
 // Mostrar datos en confirmación
@@ -1735,6 +1802,7 @@ function mostrarConfirmacionBien(data, modo = 'eliminar') {
     if (modo === 'eliminar') {
         document.getElementById('delete_codigo_bien').textContent = data.bien_tipo_codigo || '';
         document.getElementById('delete_nombre_bien').textContent = data.bien_nombre || '';
+        document.getElementById('delete_categoria_bien').textContent = data.categoria_nombre || '';
         document.getElementById('delete_clasificacion_bien').textContent = data.clasificacion_nombre || '';
         document.getElementById('delete_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
 
@@ -1747,6 +1815,7 @@ function mostrarConfirmacionBien(data, modo = 'eliminar') {
     } else if (modo === 'recuperar') {
         document.getElementById('confirmar_codigo_bien').textContent = data.bien_tipo_codigo || '';
         document.getElementById('confirmar_nombre_bien').textContent = data.bien_nombre || '';
+        document.getElementById('confirmar_categoria_bien').textContent = data.categoria_nombre || '';
         document.getElementById('confirmar_clasificacion_bien').textContent = data.clasificacion_nombre || '';
         document.getElementById('confirmar_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
 
@@ -1758,8 +1827,6 @@ function mostrarConfirmacionBien(data, modo = 'eliminar') {
         if (modal?.showModal) modal.showModal();
     }
 }
-
-
 
 // Eliminar
 document.getElementById('form_delete_bien').addEventListener('submit', function (e) {

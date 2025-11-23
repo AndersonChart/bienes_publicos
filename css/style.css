@@ -641,6 +641,93 @@ body {
     overflow: auto;   
 }
 
+/* Contenedor superior */
+/* Contenedor superior */
+.container_table_box .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* Botones Excel y PDF */
+.dt-buttons .dt-button {
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    margin-right: 8px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Excel verde */
+.dt-buttons .buttons-excel {
+    background-color: #217346; /* verde Excel */
+}
+.dt-buttons .buttons-excel:hover {
+    background-color: #1a5c37;
+}
+
+/* PDF rojo */
+.dt-buttons .buttons-pdf {
+    background-color: #d93025; /* rojo PDF */
+}
+.dt-buttons .buttons-pdf:hover {
+    background-color: #b1271d;
+}
+
+/* Buscador */
+.dt-search label {
+    font-weight: bold;
+    margin-right: 6px;
+    color: #004080; /* azul de tu interfaz */
+}
+
+.dt-search input.dt-input {
+    border: 1px solid #004080;
+    border-radius: 4px;
+    padding: 6px 10px;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+}
+.dt-search input.dt-input:focus {
+    box-shadow: 0 0 5px rgba(0, 64, 128, 0.5);
+}
+
+/* Selector de cantidad (Mostrar X registros) */
+.dt-length select.dt-input {
+    border: 1px solid #004080;
+    border-radius: 4px;
+    padding: 4px 8px;
+    background-color: #f0f8ff;
+    color: #004080;
+    font-weight: 500;
+}
+
+/* Paginación */
+.dt-paging button.dt-paging-button {
+    border: 1px solid #004080;
+    border-radius: 4px;
+    margin: 0 2px;
+    padding: 4px 8px;
+    background-color: #fff;
+    color: #004080;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.dt-paging button.dt-paging-button:hover:not(.disabled) {
+    background-color: #004080;
+    color: #fff;
+}
+.dt-paging button.current {
+    background-color: #004080;
+    color: #fff;
+    font-weight: bold;
+}
+
+
 #usuarioTabla tr:nth-child(even) {
     background-color: #ddd;
 }
@@ -694,6 +781,12 @@ body {
 #bienTipoTabla .acciones img {
     max-width: 40px;
     max-height: 40px;
+    object-fit: cover;
+}
+
+#bienTipoTabla td img {
+    width: 100px;
+    height: 100px;
     object-fit: cover;
 }
 
@@ -1176,14 +1269,6 @@ body {
     font-weight: bold;
     margin-bottom: 8px;
     font-size: 18px;
-}
-
-.input-condition {
-    color: #333;
-}
-
-.input-description {
-    
 }
 
 .input_text {

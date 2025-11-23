@@ -23,53 +23,52 @@
 <dialog data-modal="new_bien_tipo" class="modal modal_new-bien_tipo">
     <form method="dialog"><button class="modal__close">X</button></form>
     <h2 class="modal_title">Registro de Bien</h2>
-    <p class="condition">Opcional</p>
     <form id="form_nuevo_bien" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container">
         <input type="hidden" name="bien_tipo_id" id="bien_tipo_id">
 
         <div class="input_block_content">
-            <label for="bien_tipo_codigo" class="input_label">Código</label>
+            <label for="bien_tipo_codigo" class="input_label">Código*</label>
             <input type="text" maxlength="20" name="bien_tipo_codigo" class="input_text" id="bien_tipo_codigo" autofocus>
         </div>
 
         <div class="input_block_content">
-            <label for="bien_nombre" class="input_label">Nombre</label>
+            <label for="bien_nombre" class="input_label">Nombre*</label>
             <input type="text" id="bien_nombre" name="bien_nombre" class="input_text">
         </div>
 
         <div class="input_block_content">
-            <label for="categoria_form-bien" class="input_label">Categoría</label>
+            <label for="categoria_form-bien" class="input_label">Categoría*</label>
             <select name="categoria_id" id="categoria_form-bien" class="input_text input_select categoria_form">
                 <option value="" selected disabled>Seleccione una categoría</option>
             </select>
         </div>
 
         <div class="input_block_content">
-            <label for="clasificacion" class="input_label">Clasificación</label>
-            <select name="clasificacion_id" id="clasificacion" class="input_text input_select clasificacion_form">
+            <label for="clasificacion_form-bien" class="input_label">Clasificación*</label>
+            <select name="clasificacion_id" id="clasificacion_form-bien" class="input_text input_select clasificacion_form">
                 <option value="" selected disabled>Seleccione una clasificación</option>
             </select>
         </div>
 
         <div class="input_block_content">
-            <label for="modelo" class="input_label input-condition">Modelo</label>
-            <input type="text" id="bien_modelo" name="bien_modelo" class="input_text">
-        </div>
-
-        <div class="input_block_content">
-            <label for="marca" class="input_label">Marca</label>
-            <select name="marca_id" id="marca" class="input_text input_select marca_form">
+            <label for="marca_form-bien" class="input_label">Marca</label>
+            <select name="marca_id" id="marca_form-bien" class="input_text input_select marca_form">
                 <option value="" selected disabled>Seleccione una marca</option>
             </select>
         </div>
 
         <div class="input_block_content">
-            <label for="descripcion" class="input_label input-condition">Descripción</label>
+            <label for="modelo" class="input_label ">Modelo</label>
+            <input type="text" id="bien_modelo" name="bien_modelo" class="input_text">
+        </div>
+
+        <div class="input_block_content">
+            <label for="descripcion" class="input_label ">Descripción</label>
             <input type="text" id="bien_descripcion" name="bien_descripcion" class="input_text">
         </div>
 
         <div class="input_block_content">
-            <label for="foto" class="input_label input-condition">Imagen</label>
+            <label for="foto" class="input_label ">Imagen</label>
             <div class="foto_perfil_container">
                 <input type="file" id="foto_bien" name="bien_imagen" class="input_file" accept=".jpg,.jpeg,.png">
                 <div class="foto_imagen_wrapper" onclick="document.getElementById('foto_bien').click()">
@@ -85,7 +84,7 @@
 </dialog>
 
 <!-- Modal: Información -->
-<dialog data-modal="info_bien" class="modal modal_info">
+<dialog data-modal="info_bien_tipo" class="modal modal_info">
     <div class="modal_header-info">
         <form method="dialog"><button class="modal__close">X</button></form>
         <h2 class="modal_title modal_title-info">Información del bien</h2>
@@ -99,8 +98,14 @@
             <li><strong class="info_subtitle">Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
             <li><strong class="info_subtitle">Categoría:</strong> <span class="info_data" id="info_categoria"></span></li>
             <li><strong class="info_subtitle">Clasificación:</strong> <span class="info_data" id="info_clasificacion"></span></li>
-            <li><strong class="info_subtitle">Marca:</strong> <span class="info_data" id="info_marca"></span></li>
-            <li><strong class="info_subtitle">Modelo:</strong> <span class="info_data" id="info_modelo"></span></li>
+            <li id="li_info_marca">
+            <strong class="info_subtitle">Marca:</strong> 
+            <span class="info_data" id="info_marca"></span>
+            </li>
+            <li id="li_info_modelo">
+            <strong class="info_subtitle">Modelo:</strong> 
+            <span class="info_data" id="info_modelo"></span>
+            </li>
             <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_descripcion"></span></li>
         </ul>
     </div>
@@ -119,15 +124,16 @@
 <!-- Modal: Confirmar eliminación -->
 <dialog data-modal="eliminar_bien" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de deshabilitar <br> este bien?</h2>
+        <h2 class="modal_title">¿Estás seguro de deshabilitar este bien? <br>podría ocasionar problemas</h2>
     </div>
     <div class="img_info">
-        <img id="delete_imagen" class="foto_info imagen_info">
+        <img id="delete_imagen_bien" class="foto_info imagen_info">
     </div>
     <div class="delete_container">
-        <span class="delete_data-title" id="delete_codigo"></span>
-        <span class="delete_data" id="delete_nombre"></span>
-        <span class="delete_data" id="delete_clasificacion"></span>
+        <span class="delete_data-title" id="delete_codigo_bien"></span>
+        <span class="delete_data" id="delete_nombre_bien"></span>
+        <span class="delete_data" id="delete_categoria_bien"></span>
+        <span class="delete_data" id="delete_clasificacion_bien"></span>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog"><button class="modal__close modal__close-confirm">Cancelar</button></form>
@@ -140,15 +146,16 @@
 <!-- Modal: Confirmar recuperación -->
 <dialog data-modal="confirmar_bien" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de recuperar <br> este bien?</h2>
+        <h2 class="modal_title">¿Estás seguro de recuperar este bien?</h2>
     </div>
     <div class="img_info">
-        <img id="confirmar_imagen" class="foto_info imagen_info">
+        <img id="confirmar_imagen_bien" class="foto_info imagen_info">
     </div>
     <div class="delete_container">
-        <span class="delete_data-title" id="confirmar_codigo"></span>
-        <span class="delete_data" id="confirmar_nombre"></span>
-        <span class="delete_data" id="confirmar_clasificacion"></span>
+        <span class="delete_data-title" id="confirmar_codigo_bien"></span>
+        <span class="delete_data" id="confirmar_nombre_bien"></span>
+        <span class="delete_data" id="confirmar_categoria_bien"></span>
+        <span class="delete_data" id="confirmar_clasificacion_bien"></span>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog"><button class="modal__close modal__close-confirm">Cancelar</button></form>
@@ -164,13 +171,14 @@
     <table id="bienTipoTabla" class="display" style="width:100%">
         <thead>
             <tr>
-                <th colspan="7" class="title">Bienes</th>
+                <th colspan="8" class="title">Artículos</th>
             </tr>
             <tr>
                 <th class="header">Código</th>
                 <th class="header">Nombre</th>
                 <th class="header">Categoría</th>
                 <th class="header">Clasificación</th>
+                <th class="header">Modelo</th>
                 <th class="header">Marca</th>
                 <th class="header">Imagen</th>
                 <th class="header">Acciones</th>

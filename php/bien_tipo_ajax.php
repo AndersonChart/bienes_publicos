@@ -6,15 +6,20 @@ $bien_tipo = new bien_tipo();
 function validarBienTipo($datos, $modo = 'crear', $id = null) {
     $bien_tipo = new bien_tipo();
     $erroresFormato = [];
-
-    // Campos obligatorios
-    $camposObligatorios = ['bien_tipo_codigo', 'categoria_id', 'clasificacion_id'];
     $camposFaltantes = [];
 
-    foreach ($camposObligatorios as $campo) {
-        if (trim($datos[$campo]) === '') {
-            $camposFaltantes[] = $campo;
-        }
+    // Campos obligatorios comunes
+    if (trim((string)$datos['bien_tipo_codigo']) === '') {
+        $camposFaltantes[] = 'bien_tipo_codigo';
+    }
+    if (trim((string)$datos['bien_nombre']) === '') {
+        $camposFaltantes[] = 'bien_nombre';
+    }
+    if (empty($datos['categoria_id']) || !ctype_digit((string)$datos['categoria_id'])) {
+        $camposFaltantes[] = 'categoria_id';
+    }
+    if (empty($datos['clasificacion_id']) || !ctype_digit((string)$datos['clasificacion_id'])) {
+        $camposFaltantes[] = 'clasificacion_id';
     }
 
     if (!empty($camposFaltantes)) {
@@ -31,8 +36,19 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
     }
 
     if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,100}$/u', $datos['bien_nombre'])) {
-        $erroresFormato['bien_nombre'] = 'El nombre tiene máximo 100 caracteres';
+        $erroresFormato['bien_nombre'] = 'El nombre debe tener máximo 100 caracteres y solo letras, números y espacios';
     }
+
+    // Validación condicional de marca y modelo
+    if ($datos['categoria_id'] != 2) { // Tecnológico u otras categorías
+        if (trim((string)$datos['bien_modelo']) === '') {
+            $erroresFormato['bien_modelo'] = 'El modelo es obligatorio para esta categoría';
+        }
+        if ($datos['marca_id'] === null || trim((string)$datos['marca_id']) === '') {
+            $erroresFormato['marca_id'] = 'La marca es obligatoria para esta categoría';
+        }
+    }
+    // Si es Mobiliario (id=2), se permiten vacíos y no se valida
 
     // Validación de imagen (solo si se sube)
     if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
@@ -58,7 +74,7 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
 
     // Sanitizar datos
     foreach ($datos as $clave => $valor) {
-        $datos[$clave] = trim($valor);
+        $datos[$clave] = trim((string)$valor);
     }
 
     // Validación de duplicados
@@ -96,8 +112,8 @@ switch ($accion) {
     case 'leer_todos':
         try {
             $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
-            $categoriaId = $_POST['categoria_id'] ?? null;
-            $clasificacionId = $_POST['clasificacion_id'] ?? null;
+            $categoriaId = isset($_POST['categoria_id']) ? $_POST['categoria_id'] : '';
+            $clasificacionId = isset($_POST['clasificacion_id']) ? $_POST['clasificacion_id'] : '';
 
             $registros = $bien_tipo->leer_por_estado($estado, $categoriaId, $clasificacionId);
             echo json_encode(['data' => $registros]);
@@ -118,15 +134,22 @@ switch ($accion) {
 
             $datos = [
                 'bien_tipo_codigo' => $_POST['bien_tipo_codigo'] ?? '',
-                'categoria_id' => $_POST['categoria_id'] ?? '',
+                'categoria_id'     => $_POST['categoria_id'] ?? '',
                 'clasificacion_id' => $_POST['clasificacion_id'] ?? '',
-                'bien_nombre' => $_POST['bien_nombre'] ?? '',
-                'bien_modelo' => $_POST['bien_modelo'] ?? '',
-                'marca_id' => $_POST['marca_id'] ?? '',
+                'bien_nombre'      => $_POST['bien_nombre'] ?? '',
                 'bien_descripcion' => $_POST['bien_descripcion'] ?? '',
-                'bien_estado' => 1,
-                'bien_imagen' => ''
+                'bien_estado'      => 1,
+                'bien_imagen'      => ''
             ];
+
+            // Ajuste según categoría
+            if (!empty($_POST['categoria_id']) && $_POST['categoria_id'] != 2) {
+                $datos['bien_modelo'] = $_POST['bien_modelo'] ?? '';
+                $datos['marca_id']    = !empty($_POST['marca_id']) ? $_POST['marca_id'] : null;
+            } else {
+                $datos['bien_modelo'] = '';   // VARCHAR → cadena vacía
+                $datos['marca_id']    = null; // INT → null
+            }
 
             $validacion = validarBienTipo($datos, 'crear');
             if (isset($validacion['error'])) {
@@ -134,6 +157,7 @@ switch ($accion) {
                 exit;
             }
 
+            // Procesar imagen si se sube
             if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
                 $nombreLimpio = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($datos['bien_nombre']));
                 $extension = pathinfo($_FILES['bien_imagen']['name'], PATHINFO_EXTENSION);
@@ -143,7 +167,11 @@ switch ($accion) {
                 $rutaRelativa = 'img/bienes/' . $nombreArchivo;
                 move_uploaded_file($_FILES['bien_imagen']['tmp_name'], $directorio . $nombreArchivo);
                 $datos['bien_imagen'] = $rutaRelativa;
+            } else {
+                // Imagen por defecto
+                $datos['bien_imagen'] = 'img/icons/articulo.png';
             }
+
 
             $resultado = $bien_tipo->crear(
                 $datos['bien_tipo_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
@@ -164,18 +192,7 @@ switch ($accion) {
             ]);
         }
     break;
-
-    case 'obtener_bien':
-        header('Content-Type: application/json');
-        $id = $_POST['id'] ?? '';
-        if (!$id) {
-            echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
-            exit;
-        }
-        $datos = $bien_tipo->leer_por_id($id);
-        echo json_encode($datos ? ['exito' => true, 'bien' => $datos] : ['error' => true, 'mensaje' => 'Bien no encontrado']);
-    break;
-
+    
     case 'actualizar':
         try {
             header('Content-Type: application/json');
@@ -187,15 +204,22 @@ switch ($accion) {
 
             $datos = [
                 'bien_tipo_codigo' => $_POST['bien_tipo_codigo'] ?? '',
-                'categoria_id' => $_POST['categoria_id'] ?? '',
+                'categoria_id'     => $_POST['categoria_id'] ?? '',
                 'clasificacion_id' => $_POST['clasificacion_id'] ?? '',
-                'bien_nombre' => $_POST['bien_nombre'] ?? '',
-                'bien_modelo' => $_POST['bien_modelo'] ?? '',
-                'marca_id' => $_POST['marca_id'] ?? '',
+                'bien_nombre'      => $_POST['bien_nombre'] ?? '',
                 'bien_descripcion' => $_POST['bien_descripcion'] ?? '',
-                'bien_estado' => 1,
-                'bien_imagen' => ''
+                'bien_estado'      => 1,
+                'bien_imagen'      => ''
             ];
+
+            // 🔄 Ajuste según categoría (igual que en crear)
+            if (!empty($_POST['categoria_id']) && $_POST['categoria_id'] != 2) {
+                $datos['bien_modelo'] = $_POST['bien_modelo'] ?? '';
+                $datos['marca_id']    = !empty($_POST['marca_id']) ? $_POST['marca_id'] : null;
+            } else {
+                $datos['bien_modelo'] = '';   // VARCHAR → cadena vacía
+                $datos['marca_id']    = null; // INT → null
+            }
 
             $validacion = validarBienTipo($datos, 'actualizar', $id);
             if (isset($validacion['error'])) {
@@ -206,10 +230,13 @@ switch ($accion) {
             $actual = $bien_tipo->leer_por_id($id);
             if (!$actual) throw new Exception("No se encontró el bien con ID $id");
 
+            // Procesar imagen
             if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
                 if (!empty($actual['bien_imagen'])) {
                     $rutaAnterior = '../' . $actual['bien_imagen'];
-                    if (file_exists($rutaAnterior)) unlink($rutaAnterior);
+                    if (strpos($actual['bien_imagen'], 'img/icons/') !== 0 && file_exists($rutaAnterior)) {
+                        unlink($rutaAnterior);
+                    }
                 }
                 $nombreLimpio = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($datos['bien_nombre']));
                 $extension = pathinfo($_FILES['bien_imagen']['name'], PATHINFO_EXTENSION);
@@ -220,7 +247,9 @@ switch ($accion) {
                 move_uploaded_file($_FILES['bien_imagen']['tmp_name'], $directorio . $nombreArchivo);
                 $datos['bien_imagen'] = $rutaRelativa;
             } else {
-                $datos['bien_imagen'] = $actual['bien_imagen'];
+                $datos['bien_imagen'] = !empty($actual['bien_imagen'])
+                    ? $actual['bien_imagen']
+                    : 'img/icons/articulo.png';
             }
 
             $resultado = $bien_tipo->actualizar(
@@ -243,6 +272,17 @@ switch ($accion) {
             ]);
         }
     break;
+
+    case 'obtener_bien':
+        header('Content-Type: application/json');
+        $id = $_POST['id'] ?? '';
+        if (!$id) {
+            echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
+            exit;
+        }
+        $datos = $bien_tipo->leer_por_id($id);
+        echo json_encode($datos ? ['exito' => true, 'bien_tipo' => $datos] : ['error' => true, 'mensaje' => 'Bien no encontrado']);
+    break; 
 
     case 'deshabilitar_bien':
         try {

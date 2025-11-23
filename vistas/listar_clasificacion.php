@@ -25,28 +25,27 @@
         </form>
 
         <h2 class="modal_title">Registro de Clasificación</h2>
-        <p class="condition">Opcional</p>
         <form id="form_nueva_clasificacion" method="POST" autocomplete="off" class="user_container">
             
         <input type="hidden" name="clasificacion_id" id="clasificacion_id">
             
             <div class="input_block_content">
-                <label for="codigo" class="input_label">Código</label>
+                <label for="codigo" class="input_label">Código*</label>
                 <input type="text" maxlength="20" name="clasificacion_codigo" class="input_text" id="codigo" autofocus>
             </div>
 
             <div class="input_block_content">
-                <label for="nombre" class="input_label">Nombre</label>
+                <label for="nombre" class="input_label">Nombre*</label>
                 <input type="text" id="nombre" name="clasificacion_nombre" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="descripcion" class="input_label input-condition">descripcion</label>
+                <label for="descripcion" class="input_label ">descripcion</label>
                 <input type="text" id="descripcion" name="clasificacion_descripcion" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="categoria_form" class="input_label">Categoría</label>
+                <label for="categoria_form" class="input_label">Categoría*</label>
                 <select name="categoria_id" id="categoria_form" class="input_text input_select categoria_form">
                     <option value="" selected disabled>Seleccione una categoría</option>
                 </select>
@@ -90,7 +89,7 @@
     <!-- Confirmación de eliminar -->
     <dialog data-modal="eliminar_clasificacion" class="modal modal_confirmar">
         <div class="modal_header-confirmar">
-            <h2 class="modal_title">¿Estás seguro de deshabilitar <br> esta clasificación?</h2>
+            <h2 class="modal_title">¿Estás seguro de deshabilitar esta clasificación? <br>podría ocasionar problemas</h2>
         </div>
         <div class="delete_container">
             <span class="delete_data-title" id="delete_codigo"></span>

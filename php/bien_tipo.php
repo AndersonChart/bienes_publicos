@@ -73,45 +73,7 @@ class bien_tipo {
     }
 
     // Leer bienes por estado lógico
-public function leer_por_estado($estado = 1, $categoriaId = null, $clasificacionId = null) {
-    try {
-        $sql = "SELECT  bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
-                        bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
-                        c.categoria_nombre, cl.clasificacion_nombre, m.marca_nombre
-                FROM bien_tipo bt
-                LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
-                LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
-                LEFT JOIN marca m ON bt.marca_id = m.marca_id
-                WHERE bt.bien_estado = ?";
-        $params = [$estado];
-
-        if ($categoriaId !== null && $categoriaId !== '') {
-            $sql .= " AND bt.categoria_id = ?";
-            $params[] = $categoriaId;
-        }
-
-        if ($clasificacionId !== null && $clasificacionId !== '') {
-            $sql .= " AND bt.clasificacion_id = ?";
-            $params[] = $clasificacionId;
-        }
-
-        error_log("[bien_tipo] leer_por_estado() SQL: $sql | Params: " . json_encode($params));
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        error_log("[bien_tipo] leer_por_estado() → " . count($result) . " registros");
-        return $result;
-    } catch (Exception $e) {
-        error_log("[bien_tipo] Error en leer_por_estado: " . $e->getMessage());
-        throw $e;
-    }
-}
-
-
-    // Leer bien_tipo por ID
-    public function leer_por_id($id) {
+    public function leer_por_estado($estado = 1, $categoriaId = '', $clasificacionId = '') {
         try {
             $sql = "SELECT bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
                         bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
@@ -120,7 +82,43 @@ public function leer_por_estado($estado = 1, $categoriaId = null, $clasificacion
                     LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
                     LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
                     LEFT JOIN marca m ON bt.marca_id = m.marca_id
-                    WHERE bt.bien_tipo_id = ?";
+                    WHERE bt.bien_estado = ?";
+            $params = [$estado];
+
+            if ($categoriaId !== '') {
+                $sql .= " AND bt.categoria_id = ?";
+                $params[] = $categoriaId;
+            }
+
+            if ($clasificacionId !== '') {
+                $sql .= " AND bt.clasificacion_id = ?";
+                $params[] = $clasificacionId;
+            }
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+    // Leer bien_tipo por ID
+    public function leer_por_id($id) {
+        try {
+            $sql = "SELECT  bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
+                            bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
+                            bt.categoria_id, c.categoria_nombre,
+                            bt.clasificacion_id, cl.clasificacion_nombre,
+                            bt.marca_id, m.marca_nombre
+                    FROM bien_tipo bt
+                    LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
+                    LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
+                    LEFT JOIN marca m ON bt.marca_id = m.marca_id
+                    WHERE bt.bien_tipo_id = ?
+";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);

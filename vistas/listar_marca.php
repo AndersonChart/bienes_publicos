@@ -14,23 +14,22 @@
     </form>
 
     <h2 class="modal_title">Registro de Marca</h2>
-    <p class="condition">Opcional</p>
     <form id="form_nueva_marca" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container">
         
         <input type="hidden" name="marca_id" id="marca_id">
         
         <div class="input_block_content">
-            <label for="codigo_marca" class="input_label">Código</label>
+            <label for="codigo_marca" class="input_label">Código*</label>
             <input type="text" maxlength="20" name="marca_codigo" class="input_text" id="codigo_marca" autofocus>
         </div>
 
         <div class="input_block_content">
-            <label for="nombre_marca" class="input_label">Nombre</label>
+            <label for="nombre_marca" class="input_label">Nombre*</label>
             <input type="text" id="nombre_marca" name="marca_nombre" class="input_text">
         </div>
 
         <div class="input_block_content">
-            <label for="foto_marca" class="input_label input-condition">Imagen</label>
+            <label for="foto_marca" class="input_label ">Imagen</label>
             <div class="foto_perfil_container">
                 <input type="file" id="foto_marca" name="marca_imagen" class="input_file" accept=".jpg,.jpeg,.png">
                 <div class="foto_imagen_wrapper" onclick="document.getElementById('foto_marca').click()">
@@ -79,7 +78,7 @@
 <!-- Modal: Confirmar eliminación -->
 <dialog data-modal="eliminar_marca" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de deshabilitar <br> esta marca?</h2>
+        <h2 class="modal_title">¿Estás seguro de deshabilitar esta marca? <br>podría ocasionar problemas</h2>
     </div>
     <div class="img_info">
         <img id="delete_imagen_marca" class="foto_info imagen_info">

@@ -22,8 +22,6 @@
 
             <input type="submit" value="Iniciar" name="enviar" class="login_submit">
 
-            <a href="index.php?vista=login_registro" class="login_link">No tengo cuenta</a>
-
         </fieldset>
     </form>
 

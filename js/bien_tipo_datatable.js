@@ -48,13 +48,13 @@ window.addEventListener('load', function () {
             }
         },
         columns: [
-            { data: 'bien_tipo_codigo' },       // Código
-            { data: 'bien_nombre' },            // Nombre
-            { data: 'categoria_nombre' },       // Categoría
-            { data: 'clasificacion_nombre' },   // Clasificación
-            { data: 'marca_nombre' },           // Marca
-            {                                   // Imagen
-                data: 'bien_imagen',
+            { data: 'bien_tipo_codigo', title: 'Código' },
+            { data: 'bien_nombre', title: 'Nombre' },
+            { data: 'categoria_nombre', title: 'Categoría' },
+            { data: 'clasificacion_nombre', title: 'Clasificación' },
+            { data: 'bien_modelo', title: 'Modelo' }, // índice 4
+            { data: 'marca_nombre', title: 'Marca' }, // índice 5
+            { data: 'bien_imagen', title: 'Imagen',
                 render: function (data) {
                     if (!data || data.trim() === '') return '';
                     return `
@@ -65,37 +65,36 @@ window.addEventListener('load', function () {
                 },
                 orderable: false
             },
-            {                                   // Acciones
-                data: null,
+            { data: null, title: 'Acciones',
                 render: function (row) {
-                    const estado = parseInt(row.bien_estado); // usa bien_estado de la tabla bien_tipo
+                    const estado = parseInt(row.bien_estado);
                     let botones = '';
-                        if (estado === 1) {
-                            botones += `
-                                <div class="acciones">
-                                    <div class="icon-action" data-modal-target="new_bien_tipo" title="Actualizar">
-                                        <img src="img/icons/actualizar.png" alt="Actualizar">
-                                    </div>
-                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
-                                        <img src="img/icons/info.png" alt="Info">
-                                    </div>
-                                    <div class="icon-action btn_eliminar" data-id="${row.bien_tipo_id}" title="Eliminar">
-                                        <img src="img/icons/eliminar.png" alt="Eliminar">
-                                    </div>
+                    if (estado === 1) {
+                        botones += `
+                            <div class="acciones">
+                                <div class="icon-action" data-modal-target="new_bien_tipo" title="Actualizar">
+                                    <img src="img/icons/actualizar.png" alt="Actualizar">
                                 </div>
-                            `;
-                        } else {
-                            botones += `
-                                <div class="acciones">
-                                    <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
-                                        <img src="img/icons/info.png" alt="Info">
-                                    </div>
-                                    <div class="icon-action btn_recuperar" data-id="${row.bien_tipo_id}" title="Recuperar">
-                                        <img src="img/icons/recuperar.png" alt="Recuperar">
-                                    </div>
+                                <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
+                                    <img src="img/icons/info.png" alt="Info">
                                 </div>
-                            `;
-                        }
+                                <div class="icon-action btn_eliminar" data-id="${row.bien_tipo_id}" title="Eliminar">
+                                    <img src="img/icons/eliminar.png" alt="Eliminar">
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        botones += `
+                            <div class="acciones">
+                                <div class="icon-action btn_ver_info" data-modal-target="info_bien_tipo" data-id="${row.bien_tipo_id}" title="Info">
+                                    <img src="img/icons/info.png" alt="Info">
+                                </div>
+                                <div class="icon-action btn_recuperar" data-id="${row.bien_tipo_id}" title="Recuperar">
+                                    <img src="img/icons/recuperar.png" alt="Recuperar">
+                                </div>
+                            </div>
+                        `;
+                    }
                     return botones;
                 },
                 orderable: false
@@ -120,23 +119,50 @@ window.addEventListener('load', function () {
         },
         lengthMenu: [[5, 10, 15, 20, 30], [5, 10, 15, 20, 30]],
         pageLength: 15,
+
+        // Ajustar columnas después de cada draw
+        drawCallback: function(settings) {
+            const api = this.api();
+            const data = api.rows({ page: 'current' }).data();
+            if (data.length > 0) {
+                if (data[0].categoria_id == 2) {
+                    api.column(4).visible(false); // Modelo
+                    api.column(5).visible(false); // Marca
+                } else {
+                    api.column(4).visible(true);
+                    api.column(5).visible(true);
+                }
+            }
+        }
     });
 
-
+    // Filtros: recargan la tabla con parámetros actuales
     const categoriaFiltro = document.getElementById('categoria_filtro');
     if (categoriaFiltro) {
         categoriaFiltro.addEventListener('change', () => {
+            // Resetear clasificaciones si se elige "Todas las categorías"
+            if (categoriaFiltro.value === '') {
+                const clasificacionFiltro = document.getElementById('clasificacion_filtro');
+                if (clasificacionFiltro) {
+                    clasificacionFiltro.innerHTML = '';
+                    const todasOption = document.createElement('option');
+                    todasOption.value = '';
+                    todasOption.textContent = 'Todas las clasificaciones';
+                    clasificacionFiltro.appendChild(todasOption);
+                }
+            }
             tabla.ajax.reload(null, false);
         });
     }
 
-    const clasificacionFiltro = document.getElementById('clasificacion');
+    const clasificacionFiltro = document.getElementById('clasificacion_filtro');
     if (clasificacionFiltro) {
         clasificacionFiltro.addEventListener('change', () => {
             tabla.ajax.reload(null, false);
         });
     }
 
+    // Eventos de acción
     $('#bienTipoTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
         if (fila && fila.bien_tipo_id) {
@@ -154,8 +180,8 @@ window.addEventListener('load', function () {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito && data.bien) {
-                mostrarInfoBien(data.bien);
+            if (data.exito && data.bien_tipo) {
+                mostrarInfoBien(data.bien_tipo);
             }
         });
     });
@@ -170,11 +196,12 @@ window.addEventListener('load', function () {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito && data.bien) {
-                mostrarConfirmacionBien(data.bien, 'eliminar');
+            if (data.exito && data.bien_tipo) {
+                mostrarConfirmacionBien(data.bien_tipo, 'eliminar');
             }
         });
     });
+
 
     $('#bienTipoTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
@@ -186,10 +213,9 @@ window.addEventListener('load', function () {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito && data.bien) {
-                mostrarConfirmacionBien(data.bien, 'recuperar');
+            if (data.exito && data.bien_tipo) {
+                mostrarConfirmacionBien(data.bien_tipo, 'recuperar');
             }
         });
     });
 });
-

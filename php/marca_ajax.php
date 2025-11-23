@@ -142,12 +142,20 @@ switch ($accion) {
                 $nombreLimpio = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($datos['marca_nombre']));
                 $extension = pathinfo($_FILES['marca_imagen']['name'], PATHINFO_EXTENSION);
                 $nombreArchivo = $nombreLimpio . '_' . uniqid() . '.' . $extension;
+
                 $directorio = '../img/marcas/';
-                if (!is_dir($directorio)) mkdir($directorio, 0755, true);
+                if (!is_dir($directorio)) {
+                    mkdir($directorio, 0755, true);
+                }
+
                 $rutaRelativa = 'img/marcas/' . $nombreArchivo;
                 move_uploaded_file($_FILES['marca_imagen']['tmp_name'], $directorio . $nombreArchivo);
                 $datos['marca_imagen'] = $rutaRelativa;
+            } else {
+                // Imagen por defecto para marcas
+                $datos['marca_imagen'] = 'img/icons/marca.png';
             }
+
 
             $estado = 1;
             $resultado = $marca->crear($datos['marca_codigo'], $datos['marca_nombre'], $datos['marca_imagen'], $estado);
@@ -204,18 +212,29 @@ switch ($accion) {
             if (isset($_FILES['marca_imagen']) && $_FILES['marca_imagen']['error'] === UPLOAD_ERR_OK) {
                 if (!empty($actual['marca_imagen'])) {
                     $rutaAnterior = '../' . $actual['marca_imagen'];
-                    if (file_exists($rutaAnterior)) unlink($rutaAnterior);
+                    // Evitar eliminar si pertenece a la carpeta de iconos
+                    if (strpos($actual['marca_imagen'], 'img/icons/') !== 0 && file_exists($rutaAnterior)) {
+                        unlink($rutaAnterior);
+                    }
                 }
+
                 $nombreLimpio = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($datos['marca_nombre']));
                 $extension = pathinfo($_FILES['marca_imagen']['name'], PATHINFO_EXTENSION);
                 $nombreArchivo = $nombreLimpio . '_' . uniqid() . '.' . $extension;
+
                 $directorio = '../img/marcas/';
                 if (!is_dir($directorio)) mkdir($directorio, 0755, true);
+
                 $rutaRelativa = 'img/marcas/' . $nombreArchivo;
                 move_uploaded_file($_FILES['marca_imagen']['tmp_name'], $directorio . $nombreArchivo);
                 $datos['marca_imagen'] = $rutaRelativa;
             } else {
-                $datos['marca_imagen'] = $actual['marca_imagen'];
+                // Si no se sube nueva imagen, mantener la actual o asignar por defecto
+                if (!empty($actual['marca_imagen'])) {
+                    $datos['marca_imagen'] = $actual['marca_imagen'];
+                } else {
+                    $datos['marca_imagen'] = 'img/icons/marca.png';
+                }
             }
 
             $estado = 1;
