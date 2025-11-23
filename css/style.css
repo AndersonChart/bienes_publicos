@@ -1318,6 +1318,7 @@ body {
     background: transparent;
     width: auto;
     height: 48px;
+    max-width: 100%;
     padding: 10px;
     border-radius: 10px;
     border: 3px #049 solid;

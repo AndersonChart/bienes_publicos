@@ -40,6 +40,7 @@ CREATE TABLE categoria (
     categoria_codigo VARCHAR(20) NOT NULL,
     categoria_nombre VARCHAR(100) NOT NULL,
     categoria_tipo TINYINT(1) NOT NULL, -- 1. Completo (todos los campos de bienes) 0. basico (no coloca marcas ni modelos)
+    categoria_descripcion VARCHAR(200),
     categoria_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (categoria_id)
 );
@@ -86,7 +87,6 @@ CREATE TABLE marca (
 CREATE TABLE bien_tipo (
     bien_tipo_id INT NOT NULL AUTO_INCREMENT,
     bien_tipo_codigo VARCHAR(20) NOT NULL,
-    categoria_id INT NOT NULL,
     clasificacion_id INT NOT NULL,
     bien_nombre VARCHAR(100) NOT NULL,
     bien_modelo VARCHAR(100),
@@ -188,11 +188,6 @@ ALTER TABLE clasificacion
     ADD CONSTRAINT fk_clasificacion_categoria 
     FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
 
--- Bien Tipo → Categoría
-ALTER TABLE bien_tipo 
-    ADD CONSTRAINT fk_bien_tipo_categoria 
-    FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id);
-
 -- Bien Tipo → Clasificación
 ALTER TABLE bien_tipo 
     ADD CONSTRAINT fk_bien_tipo_clasificacion 
@@ -248,7 +243,7 @@ ALTER TABLE ajuste_bien
     ADD CONSTRAINT fk_ajuste_bien_bien 
     FOREIGN KEY (bien_id) REFERENCES bien(bien_id);
 
--- Datos de ejemplo
+-- Datos por defecto
 INSERT INTO categoria (categoria_nombre, categoria_codigo, categoria_tipo) VALUES ('Tecnologico', 'TEC001', 1), ('Mobiliario', 'MOB001', 0);
 INSERT INTO rol (rol_nombre) VALUES ('Administrador'), ('Administrador Principal'), ('Ingeniero');
 INSERT INTO estado (estado_nombre) VALUES ('Disponible'), ('Asignado'), ('Mantenimiento'), ('Desincorporado');
@@ -269,7 +264,7 @@ INSERT INTO usuario (
 ('Miguel', 'Rodríguez', 'miguel.rodriguez@gmail.com', '04141230007', 0, 'V-11111107', '2000-07-07', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'miguel07', 1, 'img/icons/perfil.png'),
 ('Sofía', 'Morales', 'sofia.morales@gmail.com', '04141230008', 1, 'V-11111108', '2000-08-08', '', '$2y$10$nX5HEVQrpwMp8cLUKZ88OewI8p8t2rU/SrcrCuuYzCCplsRl9TF2i', 'sofia08', 1, 'img/icons/perfil.png');
 
--- Registros de clasificaciones
+-- Registros de clasificaciones (ajustados)
 INSERT INTO clasificacion (
     clasificacion_codigo,
     clasificacion_nombre,
@@ -277,26 +272,20 @@ INSERT INTO clasificacion (
     clasificacion_descripcion,
     clasificacion_estado
 ) VALUES
-('TEC-A01', 'Laptop HP ProBook', 1, 'Equipo portátil para uso administrativo', 1),
-('TEC-B02', 'Monitor LG 24"', 1, 'Pantalla LED para estaciones de trabajo', 1),
-('TEC-C03', 'Impresora Epson L3250', 1, 'Impresión multifuncional con sistema continuo', 1),
-('TEC-D04', 'Router TP-Link AX1800', 1, 'Red WiFi para oficinas pequeñas', 1),
-('TEC-E05', 'Teclado Logitech K120', 1, '', 1),
+-- TECNOLÓGICO (categoria_id = 1)
+('TEC-A01', 'PORTÁTILES', 1, 'EQUIPOS PORTÁTILES PARA USO ADMINISTRATIVO', 1),
+('TEC-B02', 'MONITORES', 1, 'PANTALLAS PARA ESTACIONES DE TRABAJO', 1),
+('TEC-C03', 'IMPRESORAS', 1, 'EQUIPOS DE IMPRESIÓN MULTIFUNCIONAL', 1),
+('TEC-D04', 'REDES', 1, 'EQUIPOS DE CONECTIVIDAD Y REDES', 1),
+('TEC-E05', 'PERIFÉRICOS', 1, 'TECLADOS, RATONES Y OTROS DISPOSITIVOS', 1),
+('TEC-F16', 'TABLETS', 1, 'DISPOSITIVOS MÓVILES PARA INSPECCIONES', 1),
+('TEC-G17', 'ACCESORIOS DIGITALES', 1, 'CÁMARAS WEB Y OTROS ACCESORIOS', 1),
 
-('MOB-A06', 'Escritorio Ejecutivo', 2, 'Madera laminada con gavetas', 1),
-('MOB-B07', 'Silla Ergonómica', 2, 'Respaldo ajustable y ruedas giratorias', 1),
-('MOB-C08', 'Archivador Metálico', 2, '3 gavetas con cerradura', 1),
-('MOB-D09', 'Mesa de Reunión Ovalada', 2, '', 1),
-('MOB-E10', 'Estantería Modular', 2, 'Ideal para almacenamiento de documentos', 1),
-
-('OTR-A11', 'Extintor de CO2', 3, 'Equipo de seguridad contra incendios', 1),
-('OTR-B12', 'Reloj de Pared', 3, '', 1),
-('OTR-C13', 'Dispensador de Agua', 3, 'Sistema de enfriamiento y calentamiento', 1),
-('OTR-D14', 'Caja de Herramientas', 3, 'Contiene destornilladores, llaves y martillo', 1),
-('OTR-E15', 'Botiquín de Primeros Auxilios', 3, '', 1),
-
-('TEC-F16', 'Tablet Samsung Galaxy Tab A', 1, 'Uso para inspecciones móviles', 1),
-('TEC-G17', 'Cámara Web Logitech C920', 1, '', 1),
-('MOB-F18', 'Panel Divisor de Oficina', 2, 'Separador acústico de espacios', 1),
-('MOB-G19', 'Lámpara de Escritorio LED', 2, '', 1),
-('OTR-F20', 'Pizarrón Acrílico Blanco', 3, 'Uso en salas de capacitación', 1);
+-- MOBILIARIO (categoria_id = 2)
+('MOB-A06', 'ESCRITORIOS', 2, 'MOBILIARIO PARA ESTACIONES DE TRABAJO', 1),
+('MOB-B07', 'SILLAS', 2, 'MOBILIARIO ERGONÓMICO PARA OFICINA', 1),
+('MOB-C08', 'ARCHIVADORES', 2, 'MOBILIARIO PARA ALMACENAMIENTO DE DOCUMENTOS', 1),
+('MOB-D09', 'MESAS DE REUNIÓN', 2, 'MOBILIARIO PARA SALAS DE REUNIÓN', 1),
+('MOB-E10', 'ESTANTERÍAS', 2, 'MOBILIARIO PARA ORGANIZACIÓN DE DOCUMENTOS', 1),
+('MOB-F18', 'DIVISORES DE OFICINA', 2, 'MOBILIARIO PARA SEPARACIÓN DE ESPACIOS', 1),
+('MOB-G19', 'ILUMINACIÓN DE OFICINA', 2, 'MOBILIARIO DE APOYO EN ILUMINACIÓN', 1);

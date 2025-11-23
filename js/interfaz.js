@@ -1030,6 +1030,208 @@ document.getElementById('form_confirmar_usuario')?.addEventListener('submit', fu
     });
 });
 
+/* SUBMÓDULO CATEGORÍA */
+
+// Función: abrir formulario de edición de categoría
+function abrirFormularioEdicionCategoria(id) {
+    const form = document.getElementById('form_nueva_categoria');
+    if (!form) return;
+
+    fetch('php/categoria_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_categoria', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.exito || !data.categoria) return;
+
+        const c = data.categoria;
+
+        form.categoria_id.value = c.categoria_id;
+        form.categoria_codigo.value = c.categoria_codigo;
+        form.categoria_nombre.value = c.categoria_nombre;
+        form.categoria_descripcion.value = c.categoria_descripcion;
+        form.categoria_tipo.value = c.categoria_tipo; // 0 o 1
+
+        const modal = document.querySelector('[data-modal="new_categoria"]');
+        if (modal?.showModal) modal.showModal();
+    })
+    .catch(err => {
+        console.error('Error al obtener categoría:', err);
+    });
+}
+
+// Crear o actualizar categoría
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('form_nueva_categoria');
+    const errorContainer = document.getElementById('error-container-categoria');
+    const btnNuevo = document.querySelector('[data-modal-target="new_categoria"]');
+    const modalFormulario = document.querySelector('dialog[data-modal="new_categoria"]');
+
+    // Abrir modal y limpiar formulario
+    if (btnNuevo && modalFormulario) {
+        btnNuevo.addEventListener('click', () => {
+            if (modalFormulario.showModal) modalFormulario.showModal();
+            limpiarFormulario(form);
+        });
+    }
+
+    // Envío del formulario
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const categoriaId = document.getElementById('categoria_id').value;
+            const formData = new FormData(form);
+            const accion = categoriaId ? 'actualizar' : 'crear';
+
+            formData.append('accion', accion);
+            if (categoriaId) formData.append('categoria_id', categoriaId);
+
+            fetch('php/categoria_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            const input = form.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const esActualizacion = !!categoriaId;
+                    const mensaje = esActualizacion
+                        ? "Categoría actualizada con éxito"
+                        : "Categoría registrada con éxito";
+
+                    if (esActualizacion && modalFormulario && modalFormulario.open) {
+                        modalFormulario.close();
+                    }
+
+                    mostrarModalExito(mensaje);
+                    limpiarFormulario(form);
+                    $('#categoriaTabla').DataTable().ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
+});
+
+// Mostrar información de categoría
+function mostrarInfoCategoria(data) {
+    document.getElementById('info_codigo').textContent = data.categoria_codigo || '';
+    document.getElementById('info_nombre').textContent = data.categoria_nombre || '';
+    document.getElementById('info_descripcion').textContent = data.categoria_descripcion || '';
+    document.getElementById('info_tipo').textContent = data.categoria_tipo == 1 ? 'Completo' : 'Básico';
+
+    const modal = document.querySelector('dialog[data-modal="info_categoria"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+// Mostrar datos en confirmación
+function mostrarConfirmacionCategoria(data, modo = 'eliminar') {
+    if (modo === 'eliminar') {
+        document.getElementById('delete_codigo').textContent = data.categoria_codigo || '';
+        document.getElementById('delete_nombre').textContent = data.categoria_nombre || '';
+        document.getElementById('delete_tipo').textContent = data.categoria_tipo == 1 ? 'Completo' : 'Básico';
+
+        const form = document.getElementById('form_delete_categoria');
+        form.dataset.categoriaId = data.categoria_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="eliminar_categoria"]');
+        if (modal?.showModal) modal.showModal();
+    } else if (modo === 'recuperar') {
+        document.getElementById('confirmar_codigo').textContent = data.categoria_codigo || '';
+        document.getElementById('confirmar_nombre').textContent = data.categoria_nombre || '';
+        document.getElementById('confirmar_tipo').textContent = data.categoria_tipo == 1 ? 'Completo' : 'Básico';
+
+        const form = document.getElementById('form_confirmar_categoria');
+        form.dataset.categoriaId = data.categoria_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="confirmar_categoria"]');
+        if (modal?.showModal) modal.showModal();
+    }
+}
+
+// Eliminar categoría
+document.getElementById('form_delete_categoria')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.categoriaId;
+    if (!id) return;
+
+    fetch('php/categoria_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'deshabilitar_categoria', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="eliminar_categoria"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Categoría deshabilitada');
+            $('#categoriaTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});
+
+// Recuperar categoría
+document.getElementById('form_confirmar_categoria')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.categoriaId;
+    if (!id) return;
+
+    fetch('php/categoria_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_categoria', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="confirmar_categoria"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Categoría recuperada');
+            estadoActual = 1;
+            $('#categoriaTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});
+
+// Filtro de tipo de categoría
+document.addEventListener('change', function (e) {
+    if (e.target.matches('#categoria_tipo_filtro')) {
+        $('#categoriaTabla').DataTable().ajax.reload(null, false);
+    }
+});
 
 
 /* SUBMODULO CLASIFICACION */

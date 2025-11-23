@@ -21,8 +21,9 @@
         <div class="sub-main">
             <div class="menu-content" id="bienes">
                 <a href="index.php?vista=listar_bien_tipo">Bienes</a>
-                <a href="index.php?vista=listar_marca">Marcas</a>
+                <a href="index.php?vista=listar_categoria">Categorías</a>
                 <a href="index.php?vista=listar_clasificacion">Clasificaciones</a>
+                <a href="index.php?vista=listar_marca">Marcas</a>
             </div>
             <div class="menu-content" id="asignaciones">
                 <a href="index.php?vista=listar_etc">Asignaciones</a>
