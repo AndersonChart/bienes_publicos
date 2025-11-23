@@ -125,15 +125,19 @@ window.addEventListener('load', function () {
             const api = this.api();
             const data = api.rows({ page: 'current' }).data();
             if (data.length > 0) {
-                if (data[0].categoria_id == 2) {
+                // Usar categoria_tipo en lugar de categoria_id
+                const tipo = parseInt(data[0].categoria_tipo, 10);
+
+                if (tipo === 0) { // Básico
                     api.column(4).visible(false); // Modelo
                     api.column(5).visible(false); // Marca
-                } else {
+                } else { // Completo
                     api.column(4).visible(true);
                     api.column(5).visible(true);
                 }
             }
         }
+
     });
 
     // Filtros: recargan la tabla con parámetros actuales

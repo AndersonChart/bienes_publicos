@@ -1680,15 +1680,13 @@ document.getElementById('form_confirmar_marca')?.addEventListener('submit', func
 
 function aplicarDinamicaCategoria() {
     const formBien = document.getElementById('form_nuevo_bien');
-    // Usa el mismo selector que en abrirFormularioEdicionBien
-    const selectCategoria = formBien?.querySelector('#categoria_form-bien');
     const inputModelo = formBien?.querySelector('#bien_modelo');
     const selectMarca = formBien?.querySelector('#marca_form-bien');
 
-    if (!selectCategoria) return;
-    const valor = selectCategoria.value;
+    // Leer el tipo de categoría desde dataset
+    const categoriaTipo = formBien?.dataset.categoriaTipo;
 
-    if (valor === "2") { // Mobiliario
+    if (categoriaTipo === "0") { // Básico
         if (inputModelo) {
             inputModelo.value = "";
             inputModelo.disabled = true;
@@ -1699,7 +1697,7 @@ function aplicarDinamicaCategoria() {
             selectMarca.disabled = true;
             selectMarca.style.opacity = "0.5";
         }
-    } else {
+    } else if (categoriaTipo === "1") { // Completo
         if (inputModelo) {
             inputModelo.disabled = false;
             inputModelo.style.opacity = "1";
@@ -1727,39 +1725,50 @@ function abrirFormularioEdicionBien(id) {
 
         const b = data.bien_tipo;
 
+        // Guardar el tipo de la categoría en el formulario (0 = Básico, 1 = Completo)
+        // Debe venir en el JSON del backend (leer_por_id): b.categoria_tipo
+        formBien.dataset.categoriaTipo = String(b.categoria_tipo ?? 0);
+
+        // Cargar selects dependientes en cascada
         cargarCategorias({
+            selected: b.categoria_id,
             onComplete: () => {
                 const categoriaSelect = formBien.querySelector('#categoria_form-bien');
                 if (categoriaSelect) categoriaSelect.value = b.categoria_id;
 
                 cargarClasificacion({
                     categoria_id: b.categoria_id,
+                    selected: b.clasificacion_id,
                     onComplete: () => {
                         const clasificacionSelect = formBien.querySelector('#clasificacion_form-bien');
                         if (clasificacionSelect) clasificacionSelect.value = b.clasificacion_id;
 
                         cargarMarca({
+                            selected: b.marca_id,
                             onComplete: () => {
                                 const marcaSelect = formBien.querySelector('#marca_form-bien');
-                                if (marcaSelect) marcaSelect.value = b.marca_id;
+                                if (marcaSelect) marcaSelect.value = b.marca_id ?? '';
 
+                                // Rellenar campos base
                                 formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
                                 formBien.querySelector('#bien_tipo_codigo').value = b.bien_tipo_codigo;
-                                formBien.querySelector('#bien_nombre').value = b.bien_nombre;
-                                formBien.querySelector('#bien_modelo').value = b.bien_modelo;
-                                formBien.querySelector('#bien_descripcion').value = b.bien_descripcion;
+                                formBien.querySelector('#bien_nombre').value = b.bien_nombre ?? '';
+                                formBien.querySelector('#bien_modelo').value = b.bien_modelo ?? '';
+                                formBien.querySelector('#bien_descripcion').value = b.bien_descripcion ?? '';
 
+                                // Imagen
                                 const preview = document.getElementById('preview_foto_bien');
                                 const icono = document.querySelector('.foto_perfil_icon');
-                                preview.src = b.bien_imagen && b.bien_imagen.trim() !== '' 
-                                    ? b.bien_imagen + '?t=' + new Date().getTime() 
+                                preview.src = (b.bien_imagen && b.bien_imagen.trim() !== '')
+                                    ? b.bien_imagen + '?t=' + Date.now()
                                     : 'img/icons/articulo.png';
                                 preview.style.display = 'block';
-                                icono.style.opacity = '0';
+                                if (icono) icono.style.opacity = '0';
 
-                                // Aplicar dinámica según categoría cargada
+                                // Aplicar dinámica según categoria_tipo (dataset)
                                 aplicarDinamicaCategoria();
 
+                                // Abrir modal
                                 const modal = document.querySelector('[data-modal="new_bien_tipo"]');
                                 if (modal?.showModal) modal.showModal();
                             }
@@ -1771,6 +1780,7 @@ function abrirFormularioEdicionBien(id) {
     })
     .catch(err => console.error('Error al obtener bien:', err));
 }
+
 
 // Crear o actualizar Bien
 document.addEventListener('DOMContentLoaded', function () {
@@ -1785,12 +1795,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputModelo = formBien?.querySelector('[name="bien_modelo"]');
     const selectMarca = formBien?.querySelector('[name="marca_id"]');
 
-    // Función para aplicar la dinámica
+    // Función para aplicar la dinámica según categoria_tipo
     function aplicarDinamicaCategoria() {
-        if (!selectCategoria) return;
-        const valor = selectCategoria.value;
-
-        if (valor === "2") { // Mobiliario
+        const tipo = formBien?.dataset.categoriaTipo; // 0 = Básico, 1 = Completo
+        if (tipo === "0") { // Básico
             if (inputModelo) {
                 inputModelo.value = "";
                 inputModelo.disabled = true;
@@ -1801,7 +1809,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 selectMarca.disabled = true;
                 selectMarca.style.opacity = "0.5";
             }
-        } else {
+        } else if (tipo === "1") { // Completo
             if (inputModelo) {
                 inputModelo.disabled = false;
                 inputModelo.style.opacity = "1";
@@ -1817,7 +1825,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (selectCategoria) {
         selectCategoria.addEventListener('change', () => {
             const valor = selectCategoria.value;
-            aplicarDinamicaCategoria();
+
+            // Consultar la categoría para obtener su tipo
+            fetch('php/categoria_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({ accion: 'obtener_categoria', id: valor })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.exito && data.categoria) {
+                    formBien.dataset.categoriaTipo = String(data.categoria.categoria_tipo);
+                    aplicarDinamicaCategoria();
+                }
+            });
 
             // Cargar clasificaciones hijas de la categoría seleccionada
             cargarClasificacion({
@@ -1843,8 +1863,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
-
-        aplicarDinamicaCategoria(); // Ejecutar al cargar
     }
 
     // Escuchar cambios en la clasificación
@@ -1854,7 +1872,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const clasificacionId = selectClasificacion.value;
             if (!clasificacionId) return;
 
-            // Consultar la clasificación para obtener su categoría padre
             fetch('php/clasificacion_ajax.php', {
                 method: 'POST',
                 body: new URLSearchParams({ accion: 'obtener_clasificacion', id: clasificacionId })
@@ -1863,12 +1880,13 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.exito && data.clasificacion) {
                     selectCategoria.value = data.clasificacion.categoria_id;
+                    // Actualizar tipo de categoría
+                    formBien.dataset.categoriaTipo = String(data.clasificacion.categoria_tipo);
                     aplicarDinamicaCategoria();
                 }
             });
         });
     }
-
 
     // Previsualizar imagen de bien
     if (inputFotoBien && previewFotoBien && iconoBien) {
@@ -1896,6 +1914,8 @@ document.addEventListener('DOMContentLoaded', function () {
             cargarCategorias();
             cargarClasificacion();
             cargarMarca();
+            formBien.dataset.categoriaTipo = "0"; // por defecto Básico
+            aplicarDinamicaCategoria();
         });
     }
 
@@ -1911,8 +1931,8 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('accion', accion);
             if (bienTipoId) formData.append('bien_tipo_id', bienTipoId);
 
-            //  Eliminar campos no aplicables si es mobiliario
-            if (selectCategoria && selectCategoria.value === "2") { // ID de Mobiliario
+            // Eliminar campos no aplicables si la categoría es Básica
+            if (formBien.dataset.categoriaTipo === "0") {
                 formData.delete('bien_modelo');
                 formData.delete('marca_id');
             }
@@ -1961,7 +1981,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 errorContainerBien.style.display = 'block';
             });
         });
-
     }
 });
 
@@ -1973,20 +1992,21 @@ function mostrarInfoBien(data) {
     document.getElementById('info_categoria').textContent = data.categoria_nombre || '';
     document.getElementById('info_clasificacion').textContent = data.clasificacion_nombre || '';
     document.getElementById('info_descripcion').textContent = data.bien_descripcion || '';
-    document.getElementById('info_imagen').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen : '';
+    document.getElementById('info_imagen').src = (data.bien_imagen?.trim() !== '') ? data.bien_imagen : '';
 
-    // Condicional para marca y modelo
+    // Condicional para marca y modelo según categoria_tipo (0 = Básico, 1 = Completo)
     const liMarca = document.getElementById('li_info_marca');
     const liModelo = document.getElementById('li_info_modelo');
+    const categoriaTipo = Number(data.categoria_tipo ?? 0);
 
-    if (!data.marca_nombre || data.marca_nombre.trim() === '' || data.categoria_id == 2) {
+    if (categoriaTipo === 0 || !data.marca_nombre || data.marca_nombre.trim() === '') {
         liMarca.style.display = 'none';
     } else {
         liMarca.style.display = 'list-item';
         document.getElementById('info_marca').textContent = data.marca_nombre;
     }
 
-    if (!data.bien_modelo || data.bien_modelo.trim() === '' || data.categoria_id == 2) {
+    if (categoriaTipo === 0 || !data.bien_modelo || data.bien_modelo.trim() === '') {
         liModelo.style.display = 'none';
     } else {
         liModelo.style.display = 'list-item';
@@ -1998,6 +2018,7 @@ function mostrarInfoBien(data) {
         modal.showModal();
     }
 }
+
 
 
 

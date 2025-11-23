@@ -39,16 +39,20 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $erroresFormato['bien_nombre'] = 'El nombre debe tener máximo 100 caracteres y solo letras, números y espacios';
     }
 
-    // Validación condicional de marca y modelo
-    if ($datos['categoria_id'] != 2) { // Tecnológico u otras categorías
+    // Validación condicional de marca y modelo según categoria_tipo
+    $categoriaObj = new categoria();
+    $categoria = $categoriaObj->leer_por_id($datos['categoria_id']);
+    $categoriaTipo = $categoria ? intval($categoria['categoria_tipo']) : 0;
+
+    if ($categoriaTipo === 1) { // Completo
         if (trim((string)$datos['bien_modelo']) === '') {
-            $erroresFormato['bien_modelo'] = 'El modelo es obligatorio para esta categoría';
+            $erroresFormato['bien_modelo'] = 'El modelo es obligatorio para categorías de tipo Completo';
         }
         if ($datos['marca_id'] === null || trim((string)$datos['marca_id']) === '') {
-            $erroresFormato['marca_id'] = 'La marca es obligatoria para esta categoría';
+            $erroresFormato['marca_id'] = 'La marca es obligatoria para categorías de tipo Completo';
         }
     }
-    // Si es Mobiliario (id=2), se permiten vacíos y no se valida
+    // Si es Básico (0), se permiten vacíos y no se valida
 
     // Validación de imagen (solo si se sube)
     if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
@@ -112,8 +116,8 @@ switch ($accion) {
     case 'leer_todos':
         try {
             $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
-            $categoriaId = isset($_POST['categoria_id']) ? $_POST['categoria_id'] : '';
-            $clasificacionId = isset($_POST['clasificacion_id']) ? $_POST['clasificacion_id'] : '';
+            $categoriaId = $_POST['categoria_id'] ?? '';
+            $clasificacionId = $_POST['clasificacion_id'] ?? '';
 
             $registros = $bien_tipo->leer_por_estado($estado, $categoriaId, $clasificacionId);
             echo json_encode(['data' => $registros]);
@@ -142,13 +146,17 @@ switch ($accion) {
                 'bien_imagen'      => ''
             ];
 
-            // Ajuste según categoría
-            if (!empty($_POST['categoria_id']) && $_POST['categoria_id'] != 2) {
+            // Ajuste según tipo de categoría
+            $categoriaObj = new categoria();
+            $categoria = $categoriaObj->leer_por_id($datos['categoria_id']);
+            $categoriaTipo = $categoria ? intval($categoria['categoria_tipo']) : 0;
+
+            if ($categoriaTipo === 1) { // Completo
                 $datos['bien_modelo'] = $_POST['bien_modelo'] ?? '';
                 $datos['marca_id']    = !empty($_POST['marca_id']) ? $_POST['marca_id'] : null;
-            } else {
-                $datos['bien_modelo'] = '';   // VARCHAR → cadena vacía
-                $datos['marca_id']    = null; // INT → null
+            } else { // Básico
+                $datos['bien_modelo'] = '';
+                $datos['marca_id']    = null;
             }
 
             $validacion = validarBienTipo($datos, 'crear');
@@ -157,7 +165,7 @@ switch ($accion) {
                 exit;
             }
 
-            // Procesar imagen si se sube
+            // Procesar imagen
             if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
                 $nombreLimpio = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($datos['bien_nombre']));
                 $extension = pathinfo($_FILES['bien_imagen']['name'], PATHINFO_EXTENSION);
@@ -168,10 +176,8 @@ switch ($accion) {
                 move_uploaded_file($_FILES['bien_imagen']['tmp_name'], $directorio . $nombreArchivo);
                 $datos['bien_imagen'] = $rutaRelativa;
             } else {
-                // Imagen por defecto
                 $datos['bien_imagen'] = 'img/icons/articulo.png';
             }
-
 
             $resultado = $bien_tipo->crear(
                 $datos['bien_tipo_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
@@ -212,13 +218,17 @@ switch ($accion) {
                 'bien_imagen'      => ''
             ];
 
-            // 🔄 Ajuste según categoría (igual que en crear)
-            if (!empty($_POST['categoria_id']) && $_POST['categoria_id'] != 2) {
+            // Ajuste según tipo de categoría
+            $categoriaObj = new categoria();
+            $categoria = $categoriaObj->leer_por_id($datos['categoria_id']);
+            $categoriaTipo = $categoria ? intval($categoria['categoria_tipo']) : 0;
+
+            if ($categoriaTipo === 1) { // Completo
                 $datos['bien_modelo'] = $_POST['bien_modelo'] ?? '';
                 $datos['marca_id']    = !empty($_POST['marca_id']) ? $_POST['marca_id'] : null;
-            } else {
-                $datos['bien_modelo'] = '';   // VARCHAR → cadena vacía
-                $datos['marca_id']    = null; // INT → null
+            } else { // Básico
+                $datos['bien_modelo'] = '';
+                $datos['marca_id']    = null;
             }
 
             $validacion = validarBienTipo($datos, 'actualizar', $id);
@@ -230,7 +240,7 @@ switch ($accion) {
             $actual = $bien_tipo->leer_por_id($id);
             if (!$actual) throw new Exception("No se encontró el bien con ID $id");
 
-            // Procesar imagen
+            // Procesar imagen (igual que en crear)
             if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
                 if (!empty($actual['bien_imagen'])) {
                     $rutaAnterior = '../' . $actual['bien_imagen'];
@@ -271,7 +281,7 @@ switch ($accion) {
                 'detalle' => $e->getMessage()
             ]);
         }
-    break;
+    break
 
     case 'obtener_bien':
         header('Content-Type: application/json');

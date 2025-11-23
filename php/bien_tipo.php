@@ -76,13 +76,15 @@ class bien_tipo {
     public function leer_por_estado($estado = 1, $categoriaId = '', $clasificacionId = '') {
         try {
             $sql = "SELECT bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
-                        bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
-                        c.categoria_nombre, cl.clasificacion_nombre, m.marca_nombre
-                    FROM bien_tipo bt
-                    LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
-                    LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
-                    LEFT JOIN marca m ON bt.marca_id = m.marca_id
-                    WHERE bt.bien_estado = ?";
+                bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
+                c.categoria_id, c.categoria_nombre, c.categoria_tipo,   -- ← añadir categoria_tipo
+                cl.clasificacion_nombre, m.marca_nombre
+            FROM bien_tipo bt
+            LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
+            LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
+            LEFT JOIN marca m ON bt.marca_id = m.marca_id
+            WHERE bt.bien_estado = ?";
+
             $params = [$estado];
 
             if ($categoriaId !== '') {
@@ -108,17 +110,16 @@ class bien_tipo {
     // Leer bien_tipo por ID
     public function leer_por_id($id) {
         try {
-            $sql = "SELECT  bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
-                            bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
-                            bt.categoria_id, c.categoria_nombre,
-                            bt.clasificacion_id, cl.clasificacion_nombre,
-                            bt.marca_id, m.marca_nombre
+            $sql = "SELECT bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
+                        bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
+                        bt.categoria_id, c.categoria_nombre, c.categoria_tipo,   -- ← añadimos categoria_tipo
+                        bt.clasificacion_id, cl.clasificacion_nombre,
+                        bt.marca_id, m.marca_nombre
                     FROM bien_tipo bt
                     LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
                     LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
                     LEFT JOIN marca m ON bt.marca_id = m.marca_id
-                    WHERE bt.bien_tipo_id = ?
-";
+                    WHERE bt.bien_tipo_id = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -129,6 +130,7 @@ class bien_tipo {
             throw $e;
         }
     }
+
 
 
     // Actualizar bien_tipo

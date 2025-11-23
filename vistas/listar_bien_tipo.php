@@ -50,17 +50,18 @@
             </select>
         </div>
 
-        <div class="input_block_content">
+        <div class="input_block_content campo-completo" id="bloque_marca">
             <label for="marca_form-bien" class="input_label">Marca</label>
             <select name="marca_id" id="marca_form-bien" class="input_text input_select marca_form">
                 <option value="" selected disabled>Seleccione una marca</option>
             </select>
         </div>
 
-        <div class="input_block_content">
+        <div class="input_block_content campo-completo" id="bloque_modelo">
             <label for="modelo" class="input_label ">Modelo</label>
             <input type="text" id="bien_modelo" name="bien_modelo" class="input_text">
         </div>
+
 
         <div class="input_block_content">
             <label for="descripcion" class="input_label ">Descripción</label>
