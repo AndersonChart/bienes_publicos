@@ -235,6 +235,66 @@ function cargarRol(opciones = {}) {
     });
 }
 
+function cargarMarca(opciones = {}) {
+    const params = new URLSearchParams({ accion: 'leer_todos' });
+
+    fetch('php/marca_ajax.php', {
+        method: 'POST',
+        body: params
+    })
+    .then(res => res.json())
+    .then(data => {
+        const lista = Array.isArray(data.data) ? data.data : [];
+
+        if (lista.length === 0) {
+            console.warn('No se recibieron marcas válidas:', data);
+            return;
+        }
+
+        // Selects para filtros (ej. en la parte superior de la vista)
+        document.querySelectorAll('select.marca_filtro').forEach(select => {
+            select.innerHTML = '';
+            const todasOption = document.createElement('option');
+            todasOption.value = '';
+            todasOption.textContent = 'Todas las marcas';
+            select.appendChild(todasOption);
+
+            lista.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca.marca_id;
+                option.textContent = marca.marca_nombre;
+                select.appendChild(option);
+            });
+        });
+
+        // Selects para formularios (ej. dentro de modales)
+        document.querySelectorAll('select.marca_form').forEach(select => {
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.textContent = 'Seleccione una marca';
+            select.appendChild(defaultOption);
+
+            lista.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca.marca_id;
+                option.textContent = marca.marca_nombre;
+                select.appendChild(option);
+            });
+        });
+
+        // Callback opcional
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(lista);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar marca:', err);
+    });
+}
+
 function cargarCategorias(opciones = {}) {
     fetch('php/categoria_ajax.php', {
         method: 'POST',
@@ -369,69 +429,73 @@ function cargarClasificacion(opciones = {}) {
 }
 
 
-function cargarMarca(opciones = {}) {
-    const params = new URLSearchParams({ accion: 'leer_todos' });
 
-    fetch('php/marca_ajax.php', {
-        method: 'POST',
-        body: params
-    })
-    .then(res => res.json())
-    .then(data => {
-        const lista = Array.isArray(data.data) ? data.data : [];
-
-        if (lista.length === 0) {
-            console.warn('No se recibieron marcas válidas:', data);
-            return;
-        }
-
-        // Selects para filtros (ej. en la parte superior de la vista)
-        document.querySelectorAll('select.marca_filtro').forEach(select => {
-            select.innerHTML = '';
-            const todasOption = document.createElement('option');
-            todasOption.value = '';
-            todasOption.textContent = 'Todas las marcas';
-            select.appendChild(todasOption);
-
-            lista.forEach(marca => {
-                const option = document.createElement('option');
-                option.value = marca.marca_id;
-                option.textContent = marca.marca_nombre;
-                select.appendChild(option);
-            });
-        });
-
-        // Selects para formularios (ej. dentro de modales)
-        document.querySelectorAll('select.marca_form').forEach(select => {
-            select.innerHTML = '';
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            defaultOption.textContent = 'Seleccione una marca';
-            select.appendChild(defaultOption);
-
-            lista.forEach(marca => {
-                const option = document.createElement('option');
-                option.value = marca.marca_id;
-                option.textContent = marca.marca_nombre;
-                select.appendChild(option);
-            });
-        });
-
-        // Callback opcional
-        if (typeof opciones.onComplete === 'function') {
-            opciones.onComplete(lista);
-        }
-    })
-    .catch(err => {
-        console.error('Error al cargar marca:', err);
-    });
-}
 
 //Dinamicas de Formularios
 
 //Bien
+
+// Función global: aplicar dinámica según categoria_tipo (0 = Básico, 1 = Completo)
+function aplicarDinamicaCategoria() {
+    const formBien = document.getElementById('form_nuevo_bien');
+    if (!formBien) return;
+
+    const inputModelo = formBien.querySelector('[name="bien_modelo"]');
+    const selectMarca = formBien.querySelector('[name="marca_id"]');
+
+    // Normalizar el tipo: solo aceptar "0" o "1"
+    const rawTipo = (formBien.dataset.categoriaTipo ?? '').trim();
+    const tipo = (rawTipo === '0' || rawTipo === '1') ? rawTipo : '';
+
+    const deshabilitar = (el) => {
+        if (!el) return;
+        el.disabled = true;
+        el.classList.add('is-disabled');
+        el.style.opacity = '0.5';
+    };
+    const habilitar = (el) => {
+        if (!el) return;
+        el.disabled = false;
+        el.classList.remove('is-disabled');
+        el.style.opacity = '1';
+    };
+    const borrarValor = (el) => {
+        if (!el) return;
+        el.value = '';
+    };
+
+    if (tipo === '0') {
+        // Básico: modelo y marca no aplican
+        if (inputModelo) {
+            borrarValor(inputModelo);
+            deshabilitar(inputModelo);
+        }
+        if (selectMarca) {
+            borrarValor(selectMarca);
+            deshabilitar(selectMarca);
+            selectMarca.dispatchEvent(new Event('change'));
+        }
+    } else if (tipo === '1') {
+        // Completo: ambos habilitados
+        if (inputModelo) {
+            habilitar(inputModelo);
+        }
+        if (selectMarca) {
+            habilitar(selectMarca);
+            selectMarca.dispatchEvent(new Event('change'));
+        }
+    } else {
+        // Sin tipo (no hay clasificación válida): habilitar sin requerir
+        if (inputModelo) {
+            habilitar(inputModelo);
+        }
+        if (selectMarca) {
+            habilitar(selectMarca);
+            selectMarca.dispatchEvent(new Event('change'));
+        }
+    }
+}
+
 
 
 
@@ -617,6 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarClasificacion();
     cargarMarca();
     mantenerFotoUsuarioActualizada();
+    aplicarDinamicaCategoria()
 
     // --- Filtros de inventario ---
     const filtroCategoria = document.getElementById('categoria_filtro');
@@ -1678,38 +1743,6 @@ document.getElementById('form_confirmar_marca')?.addEventListener('submit', func
 
 /*MODULO BIENES_TIPO*/
 
-function aplicarDinamicaCategoria() {
-    const formBien = document.getElementById('form_nuevo_bien');
-    const inputModelo = formBien?.querySelector('#bien_modelo');
-    const selectMarca = formBien?.querySelector('#marca_form-bien');
-
-    // Leer el tipo de categoría desde dataset
-    const categoriaTipo = formBien?.dataset.categoriaTipo;
-
-    if (categoriaTipo === "0") { // Básico
-        if (inputModelo) {
-            inputModelo.value = "";
-            inputModelo.disabled = true;
-            inputModelo.style.opacity = "0.5";
-        }
-        if (selectMarca) {
-            selectMarca.value = "";
-            selectMarca.disabled = true;
-            selectMarca.style.opacity = "0.5";
-        }
-    } else if (categoriaTipo === "1") { // Completo
-        if (inputModelo) {
-            inputModelo.disabled = false;
-            inputModelo.style.opacity = "1";
-        }
-        if (selectMarca) {
-            selectMarca.disabled = false;
-            selectMarca.style.opacity = "1";
-        }
-    }
-}
-
-
 // Función: formulario de actualizar
 function abrirFormularioEdicionBien(id) {
     const formBien = document.getElementById('form_nuevo_bien');
@@ -1724,34 +1757,33 @@ function abrirFormularioEdicionBien(id) {
         if (!data.exito || !data.bien_tipo) return;
 
         const b = data.bien_tipo;
+        console.log('Bien recibido:', b); // Depuración
 
-        // Guardar el tipo de la categoría en el formulario (0 = Básico, 1 = Completo)
-        // Debe venir en el JSON del backend (leer_por_id): b.categoria_tipo
-        formBien.dataset.categoriaTipo = String(b.categoria_tipo ?? 0);
-
-        // Cargar selects dependientes en cascada
+        // Cargar categorías primero
         cargarCategorias({
-            selected: b.categoria_id,
             onComplete: () => {
-                const categoriaSelect = formBien.querySelector('#categoria_form-bien');
-                if (categoriaSelect) categoriaSelect.value = b.categoria_id;
+                // Marcar categoría
+                const categoriaSelect = document.getElementById('categoria_form-bien');
+                if (categoriaSelect) categoriaSelect.value = String(b.categoria_id ?? '');
 
+                // Repoblar clasificaciones de esa categoría
                 cargarClasificacion({
                     categoria_id: b.categoria_id,
                     selected: b.clasificacion_id,
                     onComplete: () => {
-                        const clasificacionSelect = formBien.querySelector('#clasificacion_form-bien');
-                        if (clasificacionSelect) clasificacionSelect.value = b.clasificacion_id;
+                        const clasificacionSelect = document.getElementById('clasificacion_form-bien');
+                        if (clasificacionSelect) clasificacionSelect.value = String(b.clasificacion_id);
 
+                        // Repoblar marcas
                         cargarMarca({
                             selected: b.marca_id,
                             onComplete: () => {
-                                const marcaSelect = formBien.querySelector('#marca_form-bien');
-                                if (marcaSelect) marcaSelect.value = b.marca_id ?? '';
+                                const marcaSelect = document.getElementById('marca_form-bien');
+                                if (marcaSelect) marcaSelect.value = String(b.marca_id ?? '');
 
-                                // Rellenar campos base
+                                // Campos base
                                 formBien.querySelector('#bien_tipo_id').value = b.bien_tipo_id;
-                                formBien.querySelector('#bien_tipo_codigo').value = b.bien_tipo_codigo;
+                                formBien.querySelector('#bien_tipo_codigo').value = b.bien_tipo_codigo ?? '';
                                 formBien.querySelector('#bien_nombre').value = b.bien_nombre ?? '';
                                 formBien.querySelector('#bien_modelo').value = b.bien_modelo ?? '';
                                 formBien.querySelector('#bien_descripcion').value = b.bien_descripcion ?? '';
@@ -1765,7 +1797,8 @@ function abrirFormularioEdicionBien(id) {
                                 preview.style.display = 'block';
                                 if (icono) icono.style.opacity = '0';
 
-                                // Aplicar dinámica según categoria_tipo (dataset)
+                                // Dinámica desde backend
+                                formBien.dataset.categoriaTipo = String(b.categoria_tipo ?? '');
                                 aplicarDinamicaCategoria();
 
                                 // Abrir modal
@@ -1782,6 +1815,8 @@ function abrirFormularioEdicionBien(id) {
 }
 
 
+
+
 // Crear o actualizar Bien
 document.addEventListener('DOMContentLoaded', function () {
     const formBien = document.getElementById('form_nuevo_bien');
@@ -1790,83 +1825,60 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewFotoBien = document.getElementById('preview_foto_bien');
     const iconoBien = formBien?.querySelector('.foto_perfil_icon');
 
-    // Campos que quieres controlar dinámicamente
-    const selectCategoria = formBien?.querySelector('[name="categoria_id"]');
-    const inputModelo = formBien?.querySelector('[name="bien_modelo"]');
-    const selectMarca = formBien?.querySelector('[name="marca_id"]');
+    const selectCategoria = document.getElementById('categoria_form-bien');
+    const selectClasificacion = document.getElementById('clasificacion_form-bien');
 
-    // Función para aplicar la dinámica según categoria_tipo
-    function aplicarDinamicaCategoria() {
-        const tipo = formBien?.dataset.categoriaTipo; // 0 = Básico, 1 = Completo
-        if (tipo === "0") { // Básico
-            if (inputModelo) {
-                inputModelo.value = "";
-                inputModelo.disabled = true;
-                inputModelo.style.opacity = "0.5";
-            }
-            if (selectMarca) {
-                selectMarca.value = "";
-                selectMarca.disabled = true;
-                selectMarca.style.opacity = "0.5";
-            }
-        } else if (tipo === "1") { // Completo
-            if (inputModelo) {
-                inputModelo.disabled = false;
-                inputModelo.style.opacity = "1";
-            }
-            if (selectMarca) {
-                selectMarca.disabled = false;
-                selectMarca.style.opacity = "1";
-            }
-        }
-    }
-
-    // Escuchar cambios en la categoría
+    // Listener de categoría
     if (selectCategoria) {
         selectCategoria.addEventListener('change', () => {
-            const valor = selectCategoria.value;
+            const categoriaId = selectCategoria.value;
 
-            // Consultar la categoría para obtener su tipo
-            fetch('php/categoria_ajax.php', {
-                method: 'POST',
-                body: new URLSearchParams({ accion: 'obtener_categoria', id: valor })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.exito && data.categoria) {
-                    formBien.dataset.categoriaTipo = String(data.categoria.categoria_tipo);
-                    aplicarDinamicaCategoria();
-                }
-            });
-
-            // Cargar clasificaciones hijas de la categoría seleccionada
+            // Repoblar clasificaciones hijas de la categoría
             cargarClasificacion({
-                categoria_id: valor,
+                categoria_id: categoriaId,
                 onComplete: (lista) => {
-                    const selectClasificacion = formBien.querySelector('[name="clasificacion_id"]');
                     if (selectClasificacion) {
                         selectClasificacion.innerHTML = '';
-                        const defaultOption = document.createElement('option');
-                        defaultOption.value = '';
-                        defaultOption.disabled = true;
-                        defaultOption.selected = true;
-                        defaultOption.textContent = 'Seleccione una clasificación';
-                        selectClasificacion.appendChild(defaultOption);
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.disabled = true;
+                        opt.selected = true;
+                        opt.textContent = 'Seleccione una clasificación';
+                        selectClasificacion.appendChild(opt);
 
-                        lista.forEach(clasificacion => {
-                            const option = document.createElement('option');
-                            option.value = clasificacion.clasificacion_id;
-                            option.textContent = clasificacion.clasificacion_nombre;
-                            selectClasificacion.appendChild(option);
+                        lista.forEach(cl => {
+                            const op = document.createElement('option');
+                            op.value = cl.clasificacion_id;
+                            op.textContent = cl.clasificacion_nombre;
+                            selectClasificacion.appendChild(op);
                         });
                     }
                 }
             });
+
+            // Consultar tipo de categoría para aplicar dinámica
+            fetch('php/categoria_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({ accion: 'obtener_categoria', id: categoriaId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.exito && data.categoria) {
+                    formBien.dataset.categoriaTipo = String(data.categoria.categoria_tipo ?? '');
+                    aplicarDinamicaCategoria();
+                } else {
+                    formBien.dataset.categoriaTipo = "";
+                    aplicarDinamicaCategoria();
+                }
+            })
+            .catch(() => {
+                formBien.dataset.categoriaTipo = "";
+                aplicarDinamicaCategoria();
+            });
         });
     }
 
-    // Escuchar cambios en la clasificación
-    const selectClasificacion = formBien?.querySelector('[name="clasificacion_id"]');
+    // Listener de clasificación
     if (selectClasificacion) {
         selectClasificacion.addEventListener('change', () => {
             const clasificacionId = selectClasificacion.value;
@@ -1879,16 +1891,17 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => res.json())
             .then(data => {
                 if (data.exito && data.clasificacion) {
-                    selectCategoria.value = data.clasificacion.categoria_id;
-                    // Actualizar tipo de categoría
-                    formBien.dataset.categoriaTipo = String(data.clasificacion.categoria_tipo);
+                    const categoriaId = data.clasificacion.categoria_id;
+                    if (selectCategoria) selectCategoria.value = String(categoriaId ?? '');
+
+                    formBien.dataset.categoriaTipo = String(data.clasificacion.categoria_tipo ?? '');
                     aplicarDinamicaCategoria();
                 }
             });
         });
     }
 
-    // Previsualizar imagen de bien
+    // Previsualizar imagen
     if (inputFotoBien && previewFotoBien && iconoBien) {
         inputFotoBien.addEventListener('change', function () {
             const archivo = this.files[0];
@@ -1904,22 +1917,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Abrir modal
+    // Abrir modal nuevo
     const btnNuevo = document.querySelector('[data-modal-target="new_bien_tipo"]');
     if (btnNuevo) {
         btnNuevo.addEventListener('click', () => {
             const modal = document.querySelector('[data-modal="new_bien_tipo"]');
             limpiarFormulario(formBien);
             if (modal?.showModal) modal.showModal();
-            cargarCategorias();
-            cargarClasificacion();
+
+            cargarCategorias();      // no se toca
+            cargarClasificacion();   // sin categoria_id → todas o vacío
             cargarMarca();
-            formBien.dataset.categoriaTipo = "0"; // por defecto Básico
+
+            formBien.dataset.categoriaTipo = "";
             aplicarDinamicaCategoria();
         });
     }
 
-    // Envío del formulario de Bienes
+    // Envío del formulario
     if (formBien) {
         formBien.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -1935,6 +1950,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (formBien.dataset.categoriaTipo === "0") {
                 formData.delete('bien_modelo');
                 formData.delete('marca_id');
+            }
+
+            // No enviar categoria_id al backend
+            formData.delete('categoria_id');
+
+            // Depuración opcional
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
             }
 
             fetch('php/bien_tipo_ajax.php', {
@@ -1976,23 +1999,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('#bienTipoTabla').DataTable().ajax.reload(null, false);
                 }
             })
-            .catch(() => {
+            .catch(err => {
+                console.error('Error en fetch:', err);
                 errorContainerBien.innerHTML = 'Hubo un error con el servidor';
                 errorContainerBien.style.display = 'block';
             });
         });
     }
+
 });
 
-
-// Mostrar información
+// Mostrar información detallada de un bien
 function mostrarInfoBien(data) {
     document.getElementById('info_codigo').textContent = data.bien_tipo_codigo || '';
     document.getElementById('info_nombre').textContent = data.bien_nombre || '';
     document.getElementById('info_categoria').textContent = data.categoria_nombre || '';
     document.getElementById('info_clasificacion').textContent = data.clasificacion_nombre || '';
     document.getElementById('info_descripcion').textContent = data.bien_descripcion || '';
-    document.getElementById('info_imagen').src = (data.bien_imagen?.trim() !== '') ? data.bien_imagen : '';
+    document.getElementById('info_imagen').src = (data.bien_imagen?.trim() !== '') ? data.bien_imagen : 'img/icons/articulo.png';
 
     // Condicional para marca y modelo según categoria_tipo (0 = Básico, 1 = Completo)
     const liMarca = document.getElementById('li_info_marca');
@@ -2014,22 +2038,19 @@ function mostrarInfoBien(data) {
     }
 
     const modal = document.querySelector('dialog[data-modal="info_bien_tipo"]');
-    if (modal && typeof modal.showModal === 'function') {
-        modal.showModal();
-    }
+    if (modal?.showModal) modal.showModal();
 }
 
-
-
-
-// Mostrar datos en confirmación
+// Mostrar datos en confirmación (eliminar o recuperar)
 function mostrarConfirmacionBien(data, modo = 'eliminar') {
     if (modo === 'eliminar') {
         document.getElementById('delete_codigo_bien').textContent = data.bien_tipo_codigo || '';
         document.getElementById('delete_nombre_bien').textContent = data.bien_nombre || '';
         document.getElementById('delete_categoria_bien').textContent = data.categoria_nombre || '';
         document.getElementById('delete_clasificacion_bien').textContent = data.clasificacion_nombre || '';
-        document.getElementById('delete_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
+        document.getElementById('delete_imagen_bien').src = (data.bien_imagen?.trim() !== '') 
+            ? data.bien_imagen + '?t=' + Date.now() 
+            : 'img/icons/articulo.png';
 
         const formBien = document.getElementById('form_delete_bien');
         formBien.dataset.bienTipoId = data.bien_tipo_id;
@@ -2042,7 +2063,9 @@ function mostrarConfirmacionBien(data, modo = 'eliminar') {
         document.getElementById('confirmar_nombre_bien').textContent = data.bien_nombre || '';
         document.getElementById('confirmar_categoria_bien').textContent = data.categoria_nombre || '';
         document.getElementById('confirmar_clasificacion_bien').textContent = data.clasificacion_nombre || '';
-        document.getElementById('confirmar_imagen_bien').src = data.bien_imagen?.trim() !== '' ? data.bien_imagen + '?t=' + new Date().getTime() : '';
+        document.getElementById('confirmar_imagen_bien').src = (data.bien_imagen?.trim() !== '') 
+            ? data.bien_imagen + '?t=' + Date.now() 
+            : 'img/icons/articulo.png';
 
         const formBien = document.getElementById('form_confirmar_bien');
         formBien.dataset.bienTipoId = data.bien_tipo_id;
@@ -2111,4 +2134,3 @@ document.addEventListener('change', function (e) {
         $('#bienTipoTabla').DataTable().ajax.reload(null, false);
     }
 });
-

@@ -125,28 +125,32 @@ window.addEventListener('load', function () {
             const api = this.api();
             const data = api.rows({ page: 'current' }).data();
             if (data.length > 0) {
-                // Usar categoria_tipo en lugar de categoria_id
-                const tipo = parseInt(data[0].categoria_tipo, 10);
+                const todasBasicas = data.every(row => parseInt(row.categoria_tipo, 10) === 0);
+                const todasCompletas = data.every(row => parseInt(row.categoria_tipo, 10) === 1);
 
-                if (tipo === 0) { // Básico
+                if (todasBasicas) {
                     api.column(4).visible(false); // Modelo
                     api.column(5).visible(false); // Marca
-                } else { // Completo
+                } else if (todasCompletas) {
+                    api.column(4).visible(true);
+                    api.column(5).visible(true);
+                } else {
+                    // Mezcla: mostrar columnas pero dejar celdas vacías si no aplica
                     api.column(4).visible(true);
                     api.column(5).visible(true);
                 }
             }
         }
-
     });
 
-    // Filtros: recargan la tabla con parámetros actuales
+    // Filtros dinámicos
     const categoriaFiltro = document.getElementById('categoria_filtro');
+    const clasificacionFiltro = document.getElementById('clasificacion_filtro');
+
     if (categoriaFiltro) {
         categoriaFiltro.addEventListener('change', () => {
-            // Resetear clasificaciones si se elige "Todas las categorías"
             if (categoriaFiltro.value === '') {
-                const clasificacionFiltro = document.getElementById('clasificacion_filtro');
+                // Resetear clasificaciones
                 if (clasificacionFiltro) {
                     clasificacionFiltro.innerHTML = '';
                     const todasOption = document.createElement('option');
@@ -154,12 +158,34 @@ window.addEventListener('load', function () {
                     todasOption.textContent = 'Todas las clasificaciones';
                     clasificacionFiltro.appendChild(todasOption);
                 }
+            } else {
+                // Repoblar clasificaciones de la categoría seleccionada
+                fetch('php/clasificacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'leer_por_categoria', categoria_id: categoriaFiltro.value })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (clasificacionFiltro) {
+                        clasificacionFiltro.innerHTML = '';
+                        const todasOption = document.createElement('option');
+                        todasOption.value = '';
+                        todasOption.textContent = 'Todas las clasificaciones';
+                        clasificacionFiltro.appendChild(todasOption);
+
+                        data.forEach(cl => {
+                            const opt = document.createElement('option');
+                            opt.value = cl.clasificacion_id;
+                            opt.textContent = cl.clasificacion_nombre;
+                            clasificacionFiltro.appendChild(opt);
+                        });
+                    }
+                });
             }
             tabla.ajax.reload(null, false);
         });
     }
 
-    const clasificacionFiltro = document.getElementById('clasificacion_filtro');
     if (clasificacionFiltro) {
         clasificacionFiltro.addEventListener('change', () => {
             tabla.ajax.reload(null, false);
@@ -190,7 +216,7 @@ window.addEventListener('load', function () {
         });
     });
 
-    $('#bienTipoTabla tbody').on('click', '.btn_eliminar', function () {
+        $('#bienTipoTabla tbody').on('click', '.btn_eliminar', function () {
         const id = $(this).data('id');
         if (!id) return;
 
@@ -205,7 +231,6 @@ window.addEventListener('load', function () {
             }
         });
     });
-
 
     $('#bienTipoTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');

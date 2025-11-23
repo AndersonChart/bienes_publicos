@@ -110,6 +110,8 @@ CREATE TABLE bien (
 CREATE TABLE cargo (
     cargo_id INT NOT NULL AUTO_INCREMENT,
     cargo_codigo VARCHAR(20) NOT NULL,
+    cargo_nombre VARCHAR(100) NOT NULL,
+    cargo_descripcion VARCHAR(200),
     cargo_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (cargo_id)
 );

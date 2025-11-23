@@ -1,6 +1,9 @@
 <?php
 require_once '../bd/conexion.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 
 class bien_tipo {
     private $pdo;
@@ -8,7 +11,6 @@ class bien_tipo {
     public function __construct() {
         try {
             $this->pdo = Conexion::conectar();
-            // Depuración: confirmar conexión
             if ($this->pdo) {
                 error_log("[bien_tipo] Conexión establecida correctamente");
             }
@@ -41,18 +43,23 @@ class bien_tipo {
     }
 
     // Crear nuevo bien_tipo
-    public function crear($codigo, $nombre, $modelo, $marcaId, $categoriaId, $clasificacionId, $descripcion, $estadoId, $imagen) {
+    public function crear($codigo, $nombre, $modelo, $marcaId, $clasificacionId, $descripcion, $estadoId, $imagen) {
         try {
+            // Normalizar valores
+            $marcaId = !empty($marcaId) ? (int)$marcaId : null;
+            $clasificacionId = !empty($clasificacionId) ? (int)$clasificacionId : null;
+            $estadoId = (int)$estadoId;
+
             $sql = "INSERT INTO bien_tipo (
                         bien_tipo_codigo, bien_nombre, bien_modelo, marca_id,
-                        categoria_id, clasificacion_id, bien_descripcion,
+                        clasificacion_id, bien_descripcion,
                         bien_estado, bien_imagen
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
 
             $params = [
                 $codigo, $nombre, $modelo, $marcaId,
-                $categoriaId, $clasificacionId, $descripcion,
+                $clasificacionId, $descripcion,
                 $estadoId, $imagen
             ];
 
@@ -72,57 +79,89 @@ class bien_tipo {
         }
     }
 
-    // Leer bienes por estado lógico
+    // Leer bienes por estado lógico y filtros
     public function leer_por_estado($estado = 1, $categoriaId = '', $clasificacionId = '') {
         try {
-            $sql = "SELECT bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
-                bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
-                c.categoria_id, c.categoria_nombre, c.categoria_tipo,   -- ← añadir categoria_tipo
-                cl.clasificacion_nombre, m.marca_nombre
-            FROM bien_tipo bt
-            LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
-            LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
-            LEFT JOIN marca m ON bt.marca_id = m.marca_id
-            WHERE bt.bien_estado = ?";
-
+            $sql = "SELECT 
+                        bt.bien_tipo_id,
+                        bt.bien_tipo_codigo,
+                        bt.bien_nombre,
+                        bt.bien_modelo,
+                        bt.bien_descripcion,
+                        bt.bien_estado,
+                        bt.bien_imagen,
+                        cl.clasificacion_id,
+                        cl.clasificacion_nombre,
+                        cat.categoria_id,
+                        cat.categoria_nombre,
+                        cat.categoria_tipo,
+                        bt.marca_id,
+                        m.marca_nombre
+                    FROM bien_tipo bt
+                    LEFT JOIN clasificacion cl 
+                        ON bt.clasificacion_id = cl.clasificacion_id
+                    LEFT JOIN categoria cat 
+                        ON cl.categoria_id = cat.categoria_id
+                    LEFT JOIN marca m 
+                        ON bt.marca_id = m.marca_id
+                    WHERE bt.bien_estado = ?";
+            
             $params = [$estado];
 
+            // Filtro por categoría si se envía
             if ($categoriaId !== '') {
-                $sql .= " AND bt.categoria_id = ?";
-                $params[] = $categoriaId;
+                $sql .= " AND cl.categoria_id = ?";
+                $params[] = (int)$categoriaId;
             }
 
+            // Filtro por clasificación si se envía
             if ($clasificacionId !== '') {
                 $sql .= " AND bt.clasificacion_id = ?";
-                $params[] = $clasificacionId;
+                $params[] = (int)$clasificacionId;
             }
+
+            $sql .= " ORDER BY bt.bien_nombre ASC";
 
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
+            error_log("[bien_tipo] Error en leer_por_estado: " . $e->getMessage());
             throw $e;
         }
     }
 
-
-
-    // Leer bien_tipo por ID
+    // Leer bien_tipo por ID con su clasificación y categoría
     public function leer_por_id($id) {
         try {
-            $sql = "SELECT bt.bien_tipo_id, bt.bien_tipo_codigo, bt.bien_nombre, bt.bien_modelo,
-                        bt.bien_descripcion, bt.bien_estado, bt.bien_imagen,
-                        bt.categoria_id, c.categoria_nombre, c.categoria_tipo,   -- ← añadimos categoria_tipo
-                        bt.clasificacion_id, cl.clasificacion_nombre,
-                        bt.marca_id, m.marca_nombre
+            $sql = "SELECT 
+                        bt.bien_tipo_id, 
+                        bt.bien_tipo_codigo, 
+                        bt.bien_nombre, 
+                        bt.bien_modelo,
+                        bt.bien_descripcion, 
+                        bt.bien_estado, 
+                        bt.bien_imagen,
+                        bt.clasificacion_id, 
+                        cl.clasificacion_nombre,
+                        cat.categoria_id, 
+                        cat.categoria_nombre, 
+                        cat.categoria_tipo,
+                        bt.marca_id, 
+                        m.marca_nombre
                     FROM bien_tipo bt
-                    LEFT JOIN categoria c ON bt.categoria_id = c.categoria_id
-                    LEFT JOIN clasificacion cl ON bt.clasificacion_id = cl.clasificacion_id
-                    LEFT JOIN marca m ON bt.marca_id = m.marca_id
+                    LEFT JOIN clasificacion cl 
+                        ON bt.clasificacion_id = cl.clasificacion_id
+                    LEFT JOIN categoria cat 
+                        ON cl.categoria_id = cat.categoria_id
+                    LEFT JOIN marca m 
+                        ON bt.marca_id = m.marca_id
                     WHERE bt.bien_tipo_id = ?";
+            
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$id]);
+            $stmt->execute([(int)$id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
             error_log("[bien_tipo] leer_por_id($id) → " . json_encode($result));
             return $result;
         } catch (Exception $e) {
@@ -133,20 +172,27 @@ class bien_tipo {
 
 
 
+
+
     // Actualizar bien_tipo
-    public function actualizar($codigo, $nombre, $modelo, $marcaId, $categoriaId, $clasificacionId, $descripcion, $estadoId, $imagen, $id) {
+    public function actualizar($codigo, $nombre, $modelo, $marcaId, $clasificacionId, $descripcion, $estadoId, $imagen, $id) {
         try {
+            // Normalizar valores
+            $marcaId = !empty($marcaId) ? (int)$marcaId : null;
+            $clasificacionId = !empty($clasificacionId) ? (int)$clasificacionId : null;
+            $estadoId = (int)$estadoId;
+
             $sql = "UPDATE bien_tipo SET
                         bien_tipo_codigo = ?, bien_nombre = ?, bien_modelo = ?, marca_id = ?,
-                        categoria_id = ?, clasificacion_id = ?, bien_descripcion = ?,
+                        clasificacion_id = ?, bien_descripcion = ?,
                         bien_estado = ?, bien_imagen = ?
                     WHERE bien_tipo_id = ?";
             $stmt = $this->pdo->prepare($sql);
 
             $params = [
                 $codigo, $nombre, $modelo, $marcaId,
-                $categoriaId, $clasificacionId, $descripcion,
-                $estadoId, $imagen, $id
+                $clasificacionId, $descripcion,
+                $estadoId, $imagen, (int)$id
             ];
 
             error_log("[bien_tipo] actualizar() con parámetros: " . json_encode($params));
@@ -169,7 +215,7 @@ class bien_tipo {
     public function desincorporar($id) {
         try {
             $stmt = $this->pdo->prepare("UPDATE bien_tipo SET bien_estado = 0 WHERE bien_tipo_id = ?");
-            $ok = $stmt->execute([$id]);
+            $ok = $stmt->execute([(int)$id]);
             error_log("[bien_tipo] desincorporar($id) → " . ($ok ? "OK" : "Fallo"));
             return $ok;
         } catch (Exception $e) {
@@ -182,7 +228,7 @@ class bien_tipo {
     public function recuperar($id) {
         try {
             $stmt = $this->pdo->prepare("UPDATE bien_tipo SET bien_estado = 1 WHERE bien_tipo_id = ?");
-            $ok = $stmt->execute([$id]);
+            $ok = $stmt->execute([(int)$id]);
             error_log("[bien_tipo] recuperar($id) → " . ($ok ? "OK" : "Fallo"));
             return $ok;
         } catch (Exception $e) {
@@ -191,4 +237,5 @@ class bien_tipo {
         }
     }
 }
+
 ?>

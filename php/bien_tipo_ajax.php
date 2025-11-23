@@ -1,6 +1,7 @@
 <?php
 
 require_once 'bien_tipo.php';
+require_once 'clasificacion.php';
 $bien_tipo = new bien_tipo();
 
 function validarBienTipo($datos, $modo = 'crear', $id = null) {
@@ -15,11 +16,20 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
     if (trim((string)$datos['bien_nombre']) === '') {
         $camposFaltantes[] = 'bien_nombre';
     }
-    if (empty($datos['categoria_id']) || !ctype_digit((string)$datos['categoria_id'])) {
-        $camposFaltantes[] = 'categoria_id';
-    }
     if (empty($datos['clasificacion_id']) || !ctype_digit((string)$datos['clasificacion_id'])) {
         $camposFaltantes[] = 'clasificacion_id';
+    }
+
+    // Validación condicional: si la categoría habilita modelo y marca
+    if (isset($datos['categoria_tipo']) && (string)$datos['categoria_tipo'] === '1') {
+        // Modelo obligatorio
+        if (trim((string)$datos['bien_modelo']) === '') {
+            $camposFaltantes[] = 'bien_modelo';
+        }
+        // Marca obligatoria y numérica
+        if (empty($datos['marca_id']) || !ctype_digit((string)$datos['marca_id'])) {
+            $camposFaltantes[] = 'marca_id';
+        }
     }
 
     if (!empty($camposFaltantes)) {
@@ -39,20 +49,12 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $erroresFormato['bien_nombre'] = 'El nombre debe tener máximo 100 caracteres y solo letras, números y espacios';
     }
 
-    // Validación condicional de marca y modelo según categoria_tipo
-    $categoriaObj = new categoria();
-    $categoria = $categoriaObj->leer_por_id($datos['categoria_id']);
-    $categoriaTipo = $categoria ? intval($categoria['categoria_tipo']) : 0;
-
-    if ($categoriaTipo === 1) { // Completo
-        if (trim((string)$datos['bien_modelo']) === '') {
-            $erroresFormato['bien_modelo'] = 'El modelo es obligatorio para categorías de tipo Completo';
-        }
-        if ($datos['marca_id'] === null || trim((string)$datos['marca_id']) === '') {
-            $erroresFormato['marca_id'] = 'La marca es obligatoria para categorías de tipo Completo';
+    // Validar modelo solo si tiene contenido
+    if (trim((string)$datos['bien_modelo']) !== '') {
+        if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s_-]{1,100}$/u', $datos['bien_modelo'])) {
+            $erroresFormato['bien_modelo'] = 'El modelo debe tener máximo 100 caracteres y solo letras, números, espacios, guiones o guiones bajos';
         }
     }
-    // Si es Básico (0), se permiten vacíos y no se valida
 
     // Validación de imagen (solo si se sube)
     if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
@@ -134,11 +136,12 @@ switch ($accion) {
 
     case 'crear':
         try {
-            header('Content-Type: application/json');
+            error_log("[bien_tipo_ajax] Datos recibidos: " . json_encode($_POST));
 
+            header('Content-Type: application/json');
+            
             $datos = [
                 'bien_tipo_codigo' => $_POST['bien_tipo_codigo'] ?? '',
-                'categoria_id'     => $_POST['categoria_id'] ?? '',
                 'clasificacion_id' => $_POST['clasificacion_id'] ?? '',
                 'bien_nombre'      => $_POST['bien_nombre'] ?? '',
                 'bien_descripcion' => $_POST['bien_descripcion'] ?? '',
@@ -146,10 +149,13 @@ switch ($accion) {
                 'bien_imagen'      => ''
             ];
 
-            // Ajuste según tipo de categoría
-            $categoriaObj = new categoria();
-            $categoria = $categoriaObj->leer_por_id($datos['categoria_id']);
-            $categoriaTipo = $categoria ? intval($categoria['categoria_tipo']) : 0;
+            // Obtener tipo de categoría desde la clasificación
+            $clasificacionObj = new clasificacion();
+            $clasificacion = $clasificacionObj->leer_por_id($datos['clasificacion_id']);
+            $categoriaTipo = $clasificacion ? intval($clasificacion['categoria_tipo']) : 0;
+
+            // Guardar en $datos para validación
+            $datos['categoria_tipo'] = $categoriaTipo;
 
             if ($categoriaTipo === 1) { // Completo
                 $datos['bien_modelo'] = $_POST['bien_modelo'] ?? '';
@@ -159,6 +165,9 @@ switch ($accion) {
                 $datos['marca_id']    = null;
             }
 
+
+            // Validar
+            error_log("[bien_tipo_ajax] POST recibido: " . json_encode($_POST));
             $validacion = validarBienTipo($datos, 'crear');
             if (isset($validacion['error'])) {
                 echo json_encode($validacion);
@@ -179,9 +188,13 @@ switch ($accion) {
                 $datos['bien_imagen'] = 'img/icons/articulo.png';
             }
 
+            // Crear instancia de bien_tipo
+            $bien_tipo = new bien_tipo();
+
+            // Llamada al método crear
             $resultado = $bien_tipo->crear(
                 $datos['bien_tipo_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
-                $datos['marca_id'], $datos['categoria_id'], $datos['clasificacion_id'],
+                $datos['marca_id'], $datos['clasificacion_id'],
                 $datos['bien_descripcion'], $datos['bien_estado'], $datos['bien_imagen']
             );
 
@@ -191,13 +204,22 @@ switch ($accion) {
                 'resultado' => $resultado
             ]);
         } catch (Exception $e) {
+            http_response_code(500);
+
+            // Log detallado en el servidor
+            error_log("[bien_tipo_ajax] Error en case 'crear': " . $e->getMessage());
+
             echo json_encode([
                 'error' => true,
                 'mensaje' => 'Error al crear bien',
-                'detalle' => $e->getMessage()
+                'detalle' => $e->getMessage() // este detalle lo ves en el navegador si quieres
             ]);
         }
+
     break;
+
+
+
     
     case 'actualizar':
         try {
@@ -210,7 +232,6 @@ switch ($accion) {
 
             $datos = [
                 'bien_tipo_codigo' => $_POST['bien_tipo_codigo'] ?? '',
-                'categoria_id'     => $_POST['categoria_id'] ?? '',
                 'clasificacion_id' => $_POST['clasificacion_id'] ?? '',
                 'bien_nombre'      => $_POST['bien_nombre'] ?? '',
                 'bien_descripcion' => $_POST['bien_descripcion'] ?? '',
@@ -218,10 +239,10 @@ switch ($accion) {
                 'bien_imagen'      => ''
             ];
 
-            // Ajuste según tipo de categoría
-            $categoriaObj = new categoria();
-            $categoria = $categoriaObj->leer_por_id($datos['categoria_id']);
-            $categoriaTipo = $categoria ? intval($categoria['categoria_tipo']) : 0;
+            // Obtener tipo de categoría desde la clasificación
+            $clasificacionObj = new clasificacion();
+            $clasificacion = $clasificacionObj->leer_por_id($datos['clasificacion_id']);
+            $categoriaTipo = $clasificacion ? intval($clasificacion['categoria_tipo']) : 0;
 
             if ($categoriaTipo === 1) { // Completo
                 $datos['bien_modelo'] = $_POST['bien_modelo'] ?? '';
@@ -231,6 +252,7 @@ switch ($accion) {
                 $datos['marca_id']    = null;
             }
 
+            // Validar
             $validacion = validarBienTipo($datos, 'actualizar', $id);
             if (isset($validacion['error'])) {
                 echo json_encode($validacion);
@@ -262,9 +284,10 @@ switch ($accion) {
                     : 'img/icons/articulo.png';
             }
 
+            // Llamada al método actualizar (sin categoria_id)
             $resultado = $bien_tipo->actualizar(
                 $datos['bien_tipo_codigo'], $datos['bien_nombre'], $datos['bien_modelo'],
-                $datos['marca_id'], $datos['categoria_id'], $datos['clasificacion_id'],
+                $datos['marca_id'], $datos['clasificacion_id'],
                 $datos['bien_descripcion'], $datos['bien_estado'], $datos['bien_imagen'], $id
             );
 
@@ -281,7 +304,8 @@ switch ($accion) {
                 'detalle' => $e->getMessage()
             ]);
         }
-    break
+    break;
+
 
     case 'obtener_bien':
         header('Content-Type: application/json');

@@ -73,15 +73,39 @@ class categoria {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Actualizar registro
+    // Actualizar registro de categoría y sincronizar bienes
     public function actualizar($codigo, $nombre, $tipo, $descripcion, $estado, $id) {
-        $stmt = $this->pdo->prepare(
-            "UPDATE categoria 
-                SET categoria_codigo = ?, categoria_nombre = ?, categoria_tipo = ?, categoria_descripcion = ?, categoria_estado = ? 
+        try {
+            $this->pdo->beginTransaction();
+
+            // Actualizar categoría
+            $stmt = $this->pdo->prepare(
+                "UPDATE categoria 
+                    SET categoria_codigo = ?, categoria_nombre = ?, categoria_tipo = ?, categoria_descripcion = ?, categoria_estado = ? 
                 WHERE categoria_id = ?"
-        );
-        return $stmt->execute([$codigo, $nombre, $tipo, $descripcion, $estado, $id]);
+            );
+            $stmt->execute([$codigo, $nombre, $tipo, $descripcion, $estado, $id]);
+
+            // Si cambia a básico (0), limpiar modelo y marca de todos los bienes ligados
+            if ((int)$tipo === 0) {
+                $sqlBienes = "UPDATE bien_tipo 
+                            SET bien_modelo = '', marca_id = NULL 
+                            WHERE clasificacion_id IN (
+                                SELECT clasificacion_id FROM clasificacion WHERE categoria_id = ?
+                            )";
+                $stmtBienes = $this->pdo->prepare($sqlBienes);
+                $stmtBienes->execute([$id]);
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            error_log("[categoria] Error en actualizar: " . $e->getMessage());
+            throw $e;
+        }
     }
+
 
     // Desincorporar registro
     public function desincorporar($id) {

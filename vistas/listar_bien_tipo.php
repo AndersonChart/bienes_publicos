@@ -36,13 +36,15 @@
             <input type="text" id="bien_nombre" name="bien_nombre" class="input_text">
         </div>
 
+        <!-- Categoría: filtro visual, sin name -->
         <div class="input_block_content">
             <label for="categoria_form-bien" class="input_label">Categoría*</label>
-            <select name="categoria_id" id="categoria_form-bien" class="input_text input_select categoria_form">
+            <select id="categoria_form-bien" class="input_text input_select categoria_form">
                 <option value="" selected disabled>Seleccione una categoría</option>
             </select>
         </div>
 
+        <!-- Clasificación: obligatorio, se envía al backend -->
         <div class="input_block_content">
             <label for="clasificacion_form-bien" class="input_label">Clasificación*</label>
             <select name="clasificacion_id" id="clasificacion_form-bien" class="input_text input_select clasificacion_form">
@@ -51,25 +53,24 @@
         </div>
 
         <div class="input_block_content campo-completo" id="bloque_marca">
-            <label for="marca_form-bien" class="input_label">Marca</label>
+            <label for="marca_form-bien" class="input_label">Marca*</label>
             <select name="marca_id" id="marca_form-bien" class="input_text input_select marca_form">
                 <option value="" selected disabled>Seleccione una marca</option>
             </select>
         </div>
 
         <div class="input_block_content campo-completo" id="bloque_modelo">
-            <label for="modelo" class="input_label ">Modelo</label>
+            <label for="bien_modelo" class="input_label">Modelo*</label>
             <input type="text" id="bien_modelo" name="bien_modelo" class="input_text">
         </div>
 
-
         <div class="input_block_content">
-            <label for="descripcion" class="input_label ">Descripción</label>
+            <label for="bien_descripcion" class="input_label">Descripción</label>
             <input type="text" id="bien_descripcion" name="bien_descripcion" class="input_text">
         </div>
 
         <div class="input_block_content">
-            <label for="foto" class="input_label ">Imagen</label>
+            <label for="foto_bien" class="input_label">Imagen</label>
             <div class="foto_perfil_container">
                 <input type="file" id="foto_bien" name="bien_imagen" class="input_file" accept=".jpg,.jpeg,.png">
                 <div class="foto_imagen_wrapper" onclick="document.getElementById('foto_bien').click()">
