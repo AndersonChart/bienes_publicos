@@ -23,7 +23,6 @@ window.addEventListener('load', function () {
                 toggleBtn.classList.remove('estado-verde');
                 toggleBtn.classList.add('estado-rojo');
             }
-
             tabla.ajax.reload(null, false);
         });
     }
@@ -122,75 +121,48 @@ window.addEventListener('load', function () {
 
         // Ajustar columnas después de cada draw
         drawCallback: function(settings) {
-            const api = this.api();
-            const data = api.rows({ page: 'current' }).data();
-            if (data.length > 0) {
-                const todasBasicas = data.every(row => parseInt(row.categoria_tipo, 10) === 0);
-                const todasCompletas = data.every(row => parseInt(row.categoria_tipo, 10) === 1);
+  const api = this.api();
+  const data = api.rows({ page: 'current' }).data();
 
-                if (todasBasicas) {
-                    api.column(4).visible(false); // Modelo
-                    api.column(5).visible(false); // Marca
-                } else if (todasCompletas) {
-                    api.column(4).visible(true);
-                    api.column(5).visible(true);
-                } else {
-                    // Mezcla: mostrar columnas pero dejar celdas vacías si no aplica
-                    api.column(4).visible(true);
-                    api.column(5).visible(true);
-                }
-            }
+  if (!data || data.length === 0) return;
+
+  // Tipos vistos en la página actual, calculados con respaldo
+  const tipos = [];
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    // Preferir el campo de la fila; si no existe, usar el mapa por categoria_id
+    const tipoFila = row.categoria_tipo;
+    const tipo = (tipoFila !== undefined && tipoFila !== null)
+      ? Number(tipoFila)
+      : Number(categoriaTipoMap[String(row.categoria_id)]);
+    if (!Number.isNaN(tipo)) tipos.push(tipo);
+  }
+
+  if (tipos.length === 0) {
+    // Sin información de tipo: mostrar columnas para no ocultar datos por error
+    api.column(4).visible(true);
+    api.column(5).visible(true);
+    console.warn('Sin categoria_tipo en filas ni mapa: columnas visibles por seguridad');
+    return;
+  }
+
+  const todasBasicas    = tipos.every(t => t === 0);
+  const todasCompletas  = tipos.every(t => t === 1);
+
+  if (todasBasicas) {
+    api.column(4).visible(false); // Modelo
+    api.column(5).visible(false); // Marca
+  } else if (todasCompletas) {
+    api.column(4).visible(true);
+    api.column(5).visible(true);
+  } else {
+    // Mezcla: mostrar columnas; celdas vacías se verán en las filas básicas
+    api.column(4).visible(true);
+    api.column(5).visible(true);
+  }
         }
+
     });
-
-    // Filtros dinámicos
-    const categoriaFiltro = document.getElementById('categoria_filtro');
-    const clasificacionFiltro = document.getElementById('clasificacion_filtro');
-
-    if (categoriaFiltro) {
-        categoriaFiltro.addEventListener('change', () => {
-            if (categoriaFiltro.value === '') {
-                // Resetear clasificaciones
-                if (clasificacionFiltro) {
-                    clasificacionFiltro.innerHTML = '';
-                    const todasOption = document.createElement('option');
-                    todasOption.value = '';
-                    todasOption.textContent = 'Todas las clasificaciones';
-                    clasificacionFiltro.appendChild(todasOption);
-                }
-            } else {
-                // Repoblar clasificaciones de la categoría seleccionada
-                fetch('php/clasificacion_ajax.php', {
-                    method: 'POST',
-                    body: new URLSearchParams({ accion: 'leer_por_categoria', categoria_id: categoriaFiltro.value })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (clasificacionFiltro) {
-                        clasificacionFiltro.innerHTML = '';
-                        const todasOption = document.createElement('option');
-                        todasOption.value = '';
-                        todasOption.textContent = 'Todas las clasificaciones';
-                        clasificacionFiltro.appendChild(todasOption);
-
-                        data.forEach(cl => {
-                            const opt = document.createElement('option');
-                            opt.value = cl.clasificacion_id;
-                            opt.textContent = cl.clasificacion_nombre;
-                            clasificacionFiltro.appendChild(opt);
-                        });
-                    }
-                });
-            }
-            tabla.ajax.reload(null, false);
-        });
-    }
-
-    if (clasificacionFiltro) {
-        clasificacionFiltro.addEventListener('change', () => {
-            tabla.ajax.reload(null, false);
-        });
-    }
 
     // Eventos de acción
     $('#bienTipoTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {

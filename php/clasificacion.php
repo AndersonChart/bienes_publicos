@@ -40,6 +40,16 @@ class clasificacion {
         return $stmt->fetchColumn() > 0;
     }
 
+    public function obtenerCategoriaTipo($clasificacionId) {
+        $sql = "SELECT cat.categoria_tipo
+                FROM clasificacion cl
+                JOIN categoria cat ON cl.categoria_id = cat.categoria_id
+                WHERE cl.clasificacion_id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([(int)$clasificacionId]);
+        return $stmt->fetchColumn(); // devuelve 0 o 1
+    }
+
     // Crear nuevo registro
     public function crear($codigo, $nombre, $categoria, $descripcion, $estado) {
         $stmt = $this->pdo->prepare(

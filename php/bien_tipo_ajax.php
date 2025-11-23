@@ -6,6 +6,7 @@ $bien_tipo = new bien_tipo();
 
 function validarBienTipo($datos, $modo = 'crear', $id = null) {
     $bien_tipo = new bien_tipo();
+    $clasificacion = new clasificacion(); // usar la clase correcta
     $erroresFormato = [];
     $camposFaltantes = [];
 
@@ -20,13 +21,17 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $camposFaltantes[] = 'clasificacion_id';
     }
 
-    // Validación condicional: si la categoría habilita modelo y marca
-    if (isset($datos['categoria_tipo']) && (string)$datos['categoria_tipo'] === '1') {
-        // Modelo obligatorio
+    // Obtener categoria_tipo desde la BD según la clasificación
+    $categoriaTipo = null;
+    if (!empty($datos['clasificacion_id']) && ctype_digit((string)$datos['clasificacion_id'])) {
+        $categoriaTipo = $clasificacion->obtenerCategoriaTipo((int)$datos['clasificacion_id']);
+    }
+
+    // Validación condicional: si la categoría es de tipo completo (1)
+    if ((int)$categoriaTipo === 1) {
         if (trim((string)$datos['bien_modelo']) === '') {
             $camposFaltantes[] = 'bien_modelo';
         }
-        // Marca obligatoria y numérica
         if (empty($datos['marca_id']) || !ctype_digit((string)$datos['marca_id'])) {
             $camposFaltantes[] = 'marca_id';
         }
@@ -49,14 +54,13 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
         $erroresFormato['bien_nombre'] = 'El nombre debe tener máximo 100 caracteres y solo letras, números y espacios';
     }
 
-    // Validar modelo solo si tiene contenido
     if (trim((string)$datos['bien_modelo']) !== '') {
         if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s_-]{1,100}$/u', $datos['bien_modelo'])) {
             $erroresFormato['bien_modelo'] = 'El modelo debe tener máximo 100 caracteres y solo letras, números, espacios, guiones o guiones bajos';
         }
     }
 
-    // Validación de imagen (solo si se sube)
+    // Validación de imagen
     if (isset($_FILES['bien_imagen']) && $_FILES['bien_imagen']['error'] === UPLOAD_ERR_OK) {
         $extension = strtolower(pathinfo($_FILES['bien_imagen']['name'], PATHINFO_EXTENSION));
         $peso = $_FILES['bien_imagen']['size'];
@@ -110,6 +114,8 @@ function validarBienTipo($datos, $modo = 'crear', $id = null) {
 
     return ['valido' => true];
 }
+
+
 
 // Verifica que se haya enviado una acción
 $accion = $_POST['accion'] ?? '';

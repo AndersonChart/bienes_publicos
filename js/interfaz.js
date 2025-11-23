@@ -302,7 +302,7 @@ function cargarCategorias(opciones = {}) {
     })
     .then(res => res.json())
     .then(resp => {
-        const data = resp.data; // <- aquí está el array real
+        const data = resp.data;
 
         if (!Array.isArray(data)) {
             console.error('Respuesta inválida al cargar categorías:', resp);
@@ -324,7 +324,7 @@ function cargarCategorias(opciones = {}) {
                 select.appendChild(option);
             });
 
-            if (opciones.selected) {
+            if (opciones.selected && opciones.scope === 'filtro') {
                 select.value = opciones.selected;
             }
         });
@@ -346,7 +346,7 @@ function cargarCategorias(opciones = {}) {
                 select.appendChild(option);
             });
 
-            if (opciones.selected) {
+            if (opciones.selected && opciones.scope === 'form') {
                 select.value = opciones.selected;
             }
         });
@@ -360,11 +360,9 @@ function cargarCategorias(opciones = {}) {
     });
 }
 
-
 function cargarClasificacion(opciones = {}) {
     const params = new URLSearchParams({ accion: 'leer_todos' });
 
-    // Si se pasa una categoría, se incluye en la petición
     if (opciones.categoria_id) {
         params.append('categoria_id', opciones.categoria_id);
     }
@@ -374,48 +372,57 @@ function cargarClasificacion(opciones = {}) {
         body: params
     })
     .then(res => res.json())
-    .then(data => {
-        const lista = Array.isArray(data.data) ? data.data : [];
+    .then(resp => {
+        const lista = Array.isArray(resp.data) ? resp.data : [];
 
         // Selects para filtros
         document.querySelectorAll('select.clasificacion_filtro').forEach(select => {
-            select.innerHTML = '';
-            const todasOption = document.createElement('option');
-            todasOption.value = '';
-            todasOption.textContent = 'Todas las clasificaciones';
-            select.appendChild(todasOption);
+            if (lista.length > 0) {
+                select.innerHTML = '';
+                const todasOption = document.createElement('option');
+                todasOption.value = '';
+                todasOption.textContent = 'Todas las clasificaciones';
+                select.appendChild(todasOption);
 
-            lista.forEach(clasificacion => {
-                const option = document.createElement('option');
-                option.value = clasificacion.clasificacion_id;
-                option.textContent = clasificacion.clasificacion_nombre;
-                select.appendChild(option);
-            });
+                lista.forEach(clasificacion => {
+                    const option = document.createElement('option');
+                    option.value = clasificacion.clasificacion_id;
+                    option.textContent = clasificacion.clasificacion_nombre;
+                    select.appendChild(option);
+                });
 
-            if (opciones.selected) {
-                select.value = opciones.selected;
+                if (opciones.selected && opciones.scope === 'filtro') {
+                    select.value = opciones.selected;
+                }
+            } else {
+                // No limpiar si no hay resultados
+                console.warn('No se devolvieron clasificaciones para la categoría', opciones.categoria_id);
             }
         });
 
         // Selects para formularios
         document.querySelectorAll('select.clasificacion_form').forEach(select => {
-            select.innerHTML = '';
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            defaultOption.textContent = 'Seleccione una clasificación';
-            select.appendChild(defaultOption);
+            if (lista.length > 0) {
+                select.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = 'Seleccione una clasificación';
+                select.appendChild(defaultOption);
 
-            lista.forEach(clasificacion => {
-                const option = document.createElement('option');
-                option.value = clasificacion.clasificacion_id;
-                option.textContent = clasificacion.clasificacion_nombre;
-                select.appendChild(option);
-            });
+                lista.forEach(clasificacion => {
+                    const option = document.createElement('option');
+                    option.value = clasificacion.clasificacion_id;
+                    option.textContent = clasificacion.clasificacion_nombre;
+                    select.appendChild(option);
+                });
 
-            if (opciones.selected) {
-                select.value = opciones.selected;
+                if (opciones.selected && opciones.scope === 'form') {
+                    select.value = opciones.selected;
+                }
+            } else {
+                console.warn('No se devolvieron clasificaciones para la categoría', opciones.categoria_id);
             }
         });
 
@@ -427,8 +434,6 @@ function cargarClasificacion(opciones = {}) {
         console.error('Error al cargar clasificación:', err);
     });
 }
-
-
 
 
 //Dinamicas de Formularios
@@ -683,31 +688,51 @@ document.addEventListener('DOMContentLoaded', () => {
     mantenerFotoUsuarioActualizada();
     aplicarDinamicaCategoria()
 
+    // Función para ajustar columnas según tipo de categoría
+        function ajustarColumnasPorCategoria(categoriaId) {
+            const tabla = $('#bienTipoTabla').DataTable();
+
+            // Busca el tipo de categoría en los datos actuales
+            const data = tabla.rows({ page: 'current' }).data();
+            if (data.length > 0) {
+                // Si todas son básicas (categoria_tipo = 0)
+                const todasBasicas = data.every(row => parseInt(row.categoria_tipo, 10) === 0);
+                if (todasBasicas) {
+                    tabla.column(4).visible(false); // Modelo
+                    tabla.column(5).visible(false); // Marca
+                    return;
+                }
+
+                // Si todas son completas (categoria_tipo = 1)
+                const todasCompletas = data.every(row => parseInt(row.categoria_tipo, 10) === 1);
+                if (todasCompletas) {
+                    tabla.column(4).visible(true);
+                    tabla.column(5).visible(true);
+                    return;
+                }
+
+                // Mezcla: mostrar columnas pero dejar celdas vacías si no aplica
+                tabla.column(4).visible(true);
+                tabla.column(5).visible(true);
+            }
+        }
     // --- Filtros de inventario ---
     const filtroCategoria = document.getElementById('categoria_filtro');
     const filtroClasificacion = document.getElementById('clasificacion_filtro');
 
-    // Función para ajustar columnas según categoría
-    function ajustarColumnasPorCategoria(categoriaId) {
-        const tabla = $('#bienTipoTabla').DataTable();
-        if (categoriaId == 2) { // Mobiliario
-            tabla.column(4).visible(false); // Modelo
-            tabla.column(5).visible(false); // Marca
-        } else {
-            tabla.column(4).visible(true);
-            tabla.column(5).visible(true);
-        }
-    }
 
-    if (filtroCategoria) {
-        filtroCategoria.addEventListener('change', () => {
-            const valor = filtroCategoria.value;
 
-            if (valor !== '') {
-                // Clasificaciones de una categoría específica
-                cargarClasificacion({
-                    categoria_id: valor,
-                    onComplete: (lista) => {
+        if (filtroCategoria) {
+    filtroCategoria.addEventListener('change', () => {
+        const valor = filtroCategoria.value;
+
+        if (valor !== '') {
+            // Clasificaciones de una categoría específica
+            cargarClasificacion({
+                categoria_id: valor,
+                scope: 'filtro',
+                onComplete: (lista) => {
+                    if (Array.isArray(lista) && lista.length > 0) {
                         filtroClasificacion.innerHTML = '';
                         const todasOption = document.createElement('option');
                         todasOption.value = '';
@@ -720,66 +745,72 @@ document.addEventListener('DOMContentLoaded', () => {
                             option.textContent = clasificacion.clasificacion_nombre;
                             filtroClasificacion.appendChild(option);
                         });
+                    } else {
+                        // Mantener las opciones previas si no hay resultados
+                        console.warn('No se devolvieron clasificaciones para la categoría', valor);
                     }
-                });
-            } else {
-                // Todas las categorías → cargar todas las clasificaciones
-                cargarClasificacion({
-                    onComplete: (lista) => {
-                        filtroClasificacion.innerHTML = '';
-                        const todasOption = document.createElement('option');
-                        todasOption.value = '';
-                        todasOption.textContent = 'Todas las clasificaciones';
-                        filtroClasificacion.appendChild(todasOption);
-
-                        lista.forEach(clasificacion => {
-                            const option = document.createElement('option');
-                            option.value = clasificacion.clasificacion_id;
-                            option.textContent = clasificacion.clasificacion_nombre;
-                            filtroClasificacion.appendChild(option);
-                        });
-                    }
-                });
-            }
-
-            // Recargar primero, ajustar columnas después
-            $('#bienTipoTabla').DataTable().ajax.reload(() => {
-                ajustarColumnasPorCategoria(valor);
-            }, false);
-        });
-    }
-
-    if (filtroClasificacion) {
-        filtroClasificacion.addEventListener('change', () => {
-            const clasificacionId = filtroClasificacion.value;
-            const categoriaActual = filtroCategoria.value || 0;
-
-            if (!clasificacionId) {
-                // Todas las clasificaciones → ajustar según la categoría actual
-                $('#bienTipoTabla').DataTable().ajax.reload(() => {
-                    ajustarColumnasPorCategoria(categoriaActual);
-                }, false);
-                return;
-            }
-
-            fetch('php/clasificacion_ajax.php', {
-                method: 'POST',
-                body: new URLSearchParams({ accion: 'obtener_clasificacion', id: clasificacionId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.exito && data.clasificacion) {
-                    filtroCategoria.value = data.clasificacion.categoria_id;
                 }
-                $('#bienTipoTabla').DataTable().ajax.reload(() => {
-                    ajustarColumnasPorCategoria(
-                        data.exito ? data.clasificacion.categoria_id : categoriaActual
-                    );
-                }, false);
             });
-        });
-    }
+        } else {
+            // Todas las categorías → cargar todas las clasificaciones
+            cargarClasificacion({
+                scope: 'filtro',
+                onComplete: (lista) => {
+                    if (Array.isArray(lista) && lista.length > 0) {
+                        filtroClasificacion.innerHTML = '';
+                        const todasOption = document.createElement('option');
+                        todasOption.value = '';
+                        todasOption.textContent = 'Todas las clasificaciones';
+                        filtroClasificacion.appendChild(todasOption);
 
+                        lista.forEach(clasificacion => {
+                            const option = document.createElement('option');
+                            option.value = clasificacion.clasificacion_id;
+                            option.textContent = clasificacion.clasificacion_nombre;
+                            filtroClasificacion.appendChild(option);
+                        });
+                    }
+                }
+            });
+        }
+
+        // Recargar primero, ajustar columnas después
+        $('#bienTipoTabla').DataTable().ajax.reload(() => {
+            ajustarColumnasPorCategoria(valor);
+        }, false);
+    });
+        }
+
+        if (filtroClasificacion) {
+            filtroClasificacion.addEventListener('change', () => {
+                const clasificacionId = filtroClasificacion.value;
+                const categoriaActual = filtroCategoria.value || 0;
+
+                if (!clasificacionId) {
+                    // Todas las clasificaciones → ajustar según la categoría actual
+                    $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                        ajustarColumnasPorCategoria(categoriaActual);
+                    }, false);
+                    return;
+                }
+
+                fetch('php/clasificacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'obtener_clasificacion', id: clasificacionId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exito && data.clasificacion) {
+                        filtroCategoria.value = data.clasificacion.categoria_id;
+                    }
+                    $('#bienTipoTabla').DataTable().ajax.reload(() => {
+                        ajustarColumnasPorCategoria(
+                            data.exito ? data.clasificacion.categoria_id : categoriaActual
+                        );
+                    }, false);
+                });
+            });
+        }
 });
 
 
@@ -1414,8 +1445,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-
-
 // Mostrar información de clasificación
 function mostrarInfoClasificacion(data) {
     document.getElementById('info_codigo').textContent = data.clasificacion_codigo || '';
@@ -1762,19 +1791,20 @@ function abrirFormularioEdicionBien(id) {
         // Cargar categorías primero
         cargarCategorias({
             onComplete: () => {
-                // Marcar categoría
+                // Marcar categoría en el formulario
                 const categoriaSelect = document.getElementById('categoria_form-bien');
                 if (categoriaSelect) categoriaSelect.value = String(b.categoria_id ?? '');
 
-                // Repoblar clasificaciones de esa categoría
+                // Repoblar clasificaciones SOLO en el formulario
                 cargarClasificacion({
                     categoria_id: b.categoria_id,
                     selected: b.clasificacion_id,
+                    scope: 'form',   // 👈 aquí indicas que el selected se aplique solo al formulario
                     onComplete: () => {
                         const clasificacionSelect = document.getElementById('clasificacion_form-bien');
                         if (clasificacionSelect) clasificacionSelect.value = String(b.clasificacion_id);
 
-                        // Repoblar marcas
+                        // Repoblar marcas SOLO en el formulario
                         cargarMarca({
                             selected: b.marca_id,
                             onComplete: () => {
@@ -1813,9 +1843,7 @@ function abrirFormularioEdicionBien(id) {
     })
     .catch(err => console.error('Error al obtener bien:', err));
 }
-
-
-
+    
 
 // Crear o actualizar Bien
 document.addEventListener('DOMContentLoaded', function () {
@@ -1828,14 +1856,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectCategoria = document.getElementById('categoria_form-bien');
     const selectClasificacion = document.getElementById('clasificacion_form-bien');
 
-    // Listener de categoría
+    // Listener de categoría dentro del formulario
     if (selectCategoria) {
         selectCategoria.addEventListener('change', () => {
             const categoriaId = selectCategoria.value;
 
-            // Repoblar clasificaciones hijas de la categoría
+            // Repoblar clasificaciones hijas SOLO en el formulario
             cargarClasificacion({
                 categoria_id: categoriaId,
+                scope: 'form',   // 👈 importante: solo aplica al formulario
                 onComplete: (lista) => {
                     if (selectClasificacion) {
                         selectClasificacion.innerHTML = '';
@@ -1863,13 +1892,10 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(res => res.json())
             .then(data => {
-                if (data.exito && data.categoria) {
-                    formBien.dataset.categoriaTipo = String(data.categoria.categoria_tipo ?? '');
-                    aplicarDinamicaCategoria();
-                } else {
-                    formBien.dataset.categoriaTipo = "";
-                    aplicarDinamicaCategoria();
-                }
+                formBien.dataset.categoriaTipo = data.exito && data.categoria
+                    ? String(data.categoria.categoria_tipo ?? '')
+                    : "";
+                aplicarDinamicaCategoria();
             })
             .catch(() => {
                 formBien.dataset.categoriaTipo = "";
@@ -1878,7 +1904,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Listener de clasificación
+    // Listener de clasificación dentro del formulario
     if (selectClasificacion) {
         selectClasificacion.addEventListener('change', () => {
             const clasificacionId = selectClasificacion.value;
@@ -1925,8 +1951,8 @@ document.addEventListener('DOMContentLoaded', function () {
             limpiarFormulario(formBien);
             if (modal?.showModal) modal.showModal();
 
-            cargarCategorias();      // no se toca
-            cargarClasificacion();   // sin categoria_id → todas o vacío
+            cargarCategorias();      
+            cargarClasificacion({ scope: 'form' });   // 👈 solo repuebla el formulario
             cargarMarca();
 
             formBien.dataset.categoriaTipo = "";
@@ -2006,8 +2032,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-
 });
+
 
 // Mostrar información detallada de un bien
 function mostrarInfoBien(data) {
@@ -2134,3 +2160,4 @@ document.addEventListener('change', function (e) {
         $('#bienTipoTabla').DataTable().ajax.reload(null, false);
     }
 });
+
