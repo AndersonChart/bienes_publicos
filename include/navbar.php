@@ -29,7 +29,7 @@
                 <a href="index.php?vista=listar_etc">Asignaciones</a>
                 <a href="index.php?vista=listar_etc">Personal</a>
                 <a href="index.php?vista=listar_cargo">Cargos</a>
-                <a href="index.php?vista=listar_etc">Areas</a>
+                <a href="index.php?vista=listar_area">Áreas</a>
             </div>
             <div class="menu-content" id="ajustes">                
                 <a href="index.php?vista=listar_etc">Recepción</a>

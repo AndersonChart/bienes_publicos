@@ -74,7 +74,7 @@
     <!-- Confirmación de eliminar -->
     <dialog data-modal="eliminar_cargo" class="modal modal_confirmar">
         <div class="modal_header-confirmar">
-            <h2 class="modal_title">¿Estás seguro de deshabilitar este cargo?</h2>
+            <h2 class="modal_title">¿Estás seguro de deshabilitar este cargo? <br>podría ocasionar problemas</h2>
         </div>
         <div class="delete_container">
             <span class="delete_data-title" id="delete_codigo"></span>
