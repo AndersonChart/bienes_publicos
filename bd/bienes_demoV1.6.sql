@@ -127,7 +127,7 @@ CREATE TABLE persona (
     persona_cedula VARCHAR(10) NOT NULL,
     persona_sexo TINYINT(1) NOT NULL,
     persona_nac DATE NOT NULL,
-    persona_direccion VARCHAR(100) NOT NULL,
+    persona_direccion VARCHAR(100),
     persona_foto VARCHAR(255),
     persona_estado TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (persona_id)

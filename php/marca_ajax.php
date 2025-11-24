@@ -100,8 +100,6 @@ function validarMarca($datos, $modo = 'crear', $id = null) {
     return ['valido' => true];
 }
 
-
-
 // Verifica que se haya enviado una acción
 $accion = $_POST['accion'] ?? '';
 
