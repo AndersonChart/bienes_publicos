@@ -1767,6 +1767,8 @@ document.getElementById('form_confirmar_marca')?.addEventListener('submit', func
 });
 
 
+
+
 /*MODULO ARTICULOS*/
 
 // Función: formulario de actualizar
@@ -2097,65 +2099,267 @@ function mostrarConfirmacionArticulo(data, modo = 'eliminar') {
     }
 }
 
-
 // Eliminar
-document.getElementById('form_delete_articulo').addEventListener('submit', function (e) {
-    e.preventDefault();
+const formDelete = document.getElementById('form_delete_articulo');
+if (formDelete) {
+    formDelete.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const id = this.dataset.articuloId;
+        if (!id) return;
 
-    const id = this.dataset.articuloId;
-    if (!id) return;
+        fetch('php/articulo_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'deshabilitar_articulo', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
+                if (modal?.open) modal.close();
 
-    fetch('php/articulo_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'deshabilitar_articulo', id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.exito) {
-            const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
-            if (modal?.open) modal.close();
-
-            mostrarModalExito(data.mensaje || 'Artículo deshabilitado');
-            $('#articuloTabla').DataTable().ajax.reload(null, false);
-        }
-    })
-    .catch(() => {
-        console.error('Error de conexión con el servidor');
+                mostrarModalExito(data.mensaje || 'Artículo deshabilitado');
+                if ($('#articuloTabla').length) {
+                    $('#articuloTabla').DataTable().ajax.reload(null, false);
+                }
+            }
+        })
+        .catch(() => console.error('Error de conexión con el servidor'));
     });
-});
+}
 
 // Recuperar
-document.getElementById('form_confirmar_articulo').addEventListener('submit', function (e) {
-    e.preventDefault();
+const formConfirmar = document.getElementById('form_confirmar_articulo');
+if (formConfirmar) {
+    formConfirmar.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const id = this.dataset.articuloId;
+        if (!id) return;
 
-    const id = this.dataset.articuloId;
-    if (!id) return;
+        fetch('php/articulo_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'recuperar_articulo', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
+                if (modal?.open) modal.close();
 
-    fetch('php/articulo_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'recuperar_articulo', id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.exito) {
-            const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
-            if (modal?.open) modal.close();
-
-            mostrarModalExito(data.mensaje || 'Artículo recuperado');
-            estadoActual = 1;
-            $('#articuloTabla').DataTable().ajax.reload(null, false);
-        }
-    })
-    .catch(() => {
-        console.error('Error de conexión con el servidor');
+                mostrarModalExito(data.mensaje || 'Artículo recuperado');
+                if (typeof estadoActual !== 'undefined') {
+                    estadoActual = 1;
+                }
+                if ($('#articuloTabla').length) {
+                    $('#articuloTabla').DataTable().ajax.reload(null, false);
+                }
+            }
+        })
+        .catch(() => console.error('Error de conexión con el servidor'));
     });
-});
+}
 
 // Actualizar tabla al cambiar filtros
 document.addEventListener('change', function (e) {
-    if (e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro')) {
+    if ((e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro'))
+        && $('#articuloTabla').length) {
         $('#articuloTabla').DataTable().ajax.reload(null, false);
     }
 });
 
 
+/*SUBMODULO: CARGOS*/
+
+// Función: abrir formulario de edición de cargo
+function abrirFormularioEdicionCargo(id) {
+    const form = document.getElementById('form_nuevo_cargo');
+    if (!form) return;
+
+    fetch('php/cargo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_cargo', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.exito || !data.cargo) return;
+
+        const c = data.cargo;
+
+        // Asignar valores a los inputs del formulario
+        form.querySelector('#cargo_id').value = c.cargo_id;
+        form.querySelector('[name="cargo_codigo"]').value = c.cargo_codigo;
+        form.querySelector('[name="cargo_nombre"]').value = c.cargo_nombre;
+        form.querySelector('[name="cargo_descripcion"]').value = c.cargo_descripcion;
+
+        const modal = document.querySelector('[data-modal="new_cargo"]');
+        if (modal?.showModal) modal.showModal();
+    })
+    .catch(err => {
+        console.error('Error al obtener cargo:', err);
+    });
+}
+
+// Crear o actualizar cargo
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('form_nuevo_cargo');
+    console.log("Form encontrado:", form);
+    const errorContainer = document.getElementById('error-container-cargo');
+    const btnNuevo = document.querySelector('[data-modal-target="new_cargo"]');
+    const modalFormulario = document.querySelector('dialog[data-modal="new_cargo"]');
+
+    // Abrir modal y limpiar formulario
+    if (btnNuevo && modalFormulario) {
+        btnNuevo.addEventListener('click', () => {
+            if (modalFormulario.showModal) modalFormulario.showModal();
+            limpiarFormulario(form);
+        });
+    }
+
+    // Envío del formulario
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            console.log("Interceptado submit de cargo");
+            e.preventDefault();
+            const cargoId = form.querySelector('#cargo_id').value;
+            const formData = new FormData(form);
+            const accion = cargoId ? 'actualizar' : 'crear';
+
+            formData.append('accion', accion);
+            if (cargoId) formData.append('cargo_id', cargoId);
+
+            fetch('php/cargo_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            const input = form.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const esActualizacion = !!cargoId;
+                    const mensaje = esActualizacion
+                        ? "Cargo actualizado con éxito"
+                        : "Cargo registrado con éxito";
+
+                    // Cerrar modal si fue actualización
+                    if (esActualizacion && modalFormulario && modalFormulario.open) {
+                        modalFormulario.close();
+                    }
+
+                    mostrarModalExito(mensaje);
+                    limpiarFormulario(form);
+                    $('#cargoTabla').DataTable().ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
+});
+
+// Mostrar información de cargo
+function mostrarInfoCargo(data) {
+    document.getElementById('info_codigo').textContent = data.cargo_codigo || '';
+    document.getElementById('info_nombre').textContent = data.cargo_nombre || '';
+    document.getElementById('info_descripcion').textContent = data.cargo_descripcion || '';
+
+    const modal = document.querySelector('dialog[data-modal="info_cargo"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+// Mostrar datos en confirmación de cargo
+function mostrarConfirmacionCargo(data, modo = 'eliminar') {
+    if (modo === 'eliminar') {
+        document.getElementById('delete_codigo').textContent = data.cargo_codigo || '';
+        document.getElementById('delete_nombre').textContent = data.cargo_nombre || '';
+        document.getElementById('delete_descripcion').textContent = data.cargo_descripcion || '';
+
+        const form = document.getElementById('form_delete_cargo');
+        form.dataset.cargoId = data.cargo_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="eliminar_cargo"]');
+        if (modal?.showModal) modal.showModal();
+    } else if (modo === 'recuperar') {
+        document.getElementById('confirmar_codigo').textContent = data.cargo_codigo || '';
+        document.getElementById('confirmar_nombre').textContent = data.cargo_nombre || '';
+        document.getElementById('confirmar_descripcion').textContent = data.cargo_descripcion || '';
+
+        const form = document.getElementById('form_confirmar_cargo');
+        form.dataset.cargoId = data.cargo_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="confirmar_cargo"]');
+        if (modal?.showModal) modal.showModal();
+    }
+}
+
+// Eliminar cargo
+document.getElementById('form_delete_cargo')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.cargoId;
+    if (!id) return;
+
+    fetch('php/cargo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'deshabilitar_cargo', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="eliminar_cargo"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Cargo deshabilitado');
+            $('#cargoTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});
+
+// Recuperar cargo
+document.getElementById('form_confirmar_cargo')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.cargoId;
+    if (!id) return;
+
+    fetch('php/cargo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_cargo', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="confirmar_cargo"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Cargo recuperado');
+            estadoActual = 1;
+            $('#cargoTabla').DataTable().ajax.reload(null, false);
+        }
+    })
+    .catch(() => {
+        console.error('Error de conexión con el servidor');
+    });
+});

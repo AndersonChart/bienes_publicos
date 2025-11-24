@@ -27,8 +27,8 @@
             </div>
             <div class="menu-content" id="asignaciones">
                 <a href="index.php?vista=listar_etc">Asignaciones</a>
-                <a href="index.php?vista=listar_etc">Cargos</a>
                 <a href="index.php?vista=listar_etc">Personal</a>
+                <a href="index.php?vista=listar_cargo">Cargos</a>
                 <a href="index.php?vista=listar_etc">Areas</a>
             </div>
             <div class="menu-content" id="ajustes">                

@@ -1,16 +1,9 @@
 <div id="usuario" data-id="<?php echo $_SESSION["rol"]; ?>"></div>
 <div class="banner_list">
     <div class="filters">
-        <!-- Filtro -->
-        <div class="filters">
-                <label for="categoria" class="input_label">Categoría:</label>
-                <select name="categoria_id" id="categoria_filtro" class="input_text input_select categoria_filtro">
-                    <option value="" selected disabled>Seleccione</option>
-                </select>
-        </div>
     </div>
     <div class="basics-container">
-        <div class="new_user new_user-usuario" data-modal-target="new_clasificacion">+ Nuevo</div>
+        <div class="new_user new_user-usuario" data-modal-target="new_cargo">+ Nuevo</div>
         <?php if ($_SESSION["rol"] == 3): ?>
             <div id="toggleEstado" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
         <?php endif; ?>
@@ -19,50 +12,43 @@
 
 <!-- Ventana Modal -->
     <!-- Formulario registro/actualización -->
-    <dialog data-modal="new_clasificacion" class="modal modal_new-clasificacion">
-        <form method="dialog">
-            <button class="modal__close">X</button>
-        </form>
+    <dialog data-modal="new_cargo" class="modal modal_new-cargo">
+        <!-- Botón de cerrar modal -->
+        <button class="modal__close" type="button">X</button>
 
-        <h2 class="modal_title">Registro de Clasificación</h2>
-        <form id="form_nueva_clasificacion" method="POST" autocomplete="off" class="user_container">
+        <h2 class="modal_title">Registro de cargo</h2>
+        <form id="form_nuevo_cargo" method="POST" autocomplete="off" class="user_container">
             
-        <input type="hidden" name="clasificacion_id" id="clasificacion_id">
+            <input type="hidden" name="cargo_id" id="cargo_id">
             
             <div class="input_block_content">
                 <label for="codigo" class="input_label">Código*</label>
-                <input type="text" maxlength="20" name="clasificacion_codigo" class="input_text" id="codigo" autofocus>
+                <input type="text" maxlength="20" name="cargo_codigo" class="input_text" id="codigo" autofocus>
             </div>
 
             <div class="input_block_content">
-                <label for="nombre" class="input_label">Nombre*</label>
-                <input type="text" id="nombre" name="clasificacion_nombre" class="input_text">
+                <label for="cargo_nombre" class="input_label">Nombre*</label>
+                <input type="text" id="cargo_nombre" name="cargo_nombre" class="input_text">
             </div>
 
             <div class="input_block_content">
-                <label for="descripcion" class="input_label ">Descripción</label>
-                <input type="text" id="descripcion" name="clasificacion_descripcion" class="input_text">
+                <label for="cargo_descripcion" class="input_label">Descripción</label>
+                <input type="text" id="cargo_descripcion" name="cargo_descripcion" class="input_text">
             </div>
 
-            <div class="input_block_content">
-                <label for="categoria_form" class="input_label">Categoría*</label>
-                <select name="categoria_id" id="categoria_form" class="input_text input_select categoria_form">
-                    <option value="" selected disabled>Seleccione una categoría</option>
-                </select>
-            </div>
-
-            <div id="error-container-clasificacion" class="error-container"></div>
-            <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_clasificacion">
+            <div id="error-container-cargo" class="error-container"></div>
+            <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_cargo">
         </form>
     </dialog>
 
+
     <!-- Información de registro -->
-    <dialog data-modal="info_clasificacion" class="modal modal_info">
+    <dialog data-modal="info_cargo" class="modal modal_info">
         <div class="modal_header-info">
             <form method="dialog">
                 <button class="modal__close">X</button>
             </form>
-            <h2 class="modal_title modal_title-info">Información de la clasificación</h2>
+            <h2 class="modal_title modal_title-info">Información del cargo</h2>
         </div>
 
         <!-- Contenedor de datos con scroll si excede -->
@@ -71,7 +57,6 @@
                 <li><strong class="info_subtitle">Código:</strong> <span class="info_data" id="info_codigo"></span></li>
                 <li><strong class="info_subtitle">Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
                 <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_descripcion"></span></li>
-                <li><strong class="info_subtitle">Categoría:</strong> <span class="info_data" id="info_categoria"></span></li>
             </ul>
         </div>
     </dialog>
@@ -87,40 +72,40 @@
     </dialog>
 
     <!-- Confirmación de eliminar -->
-    <dialog data-modal="eliminar_clasificacion" class="modal modal_confirmar">
+    <dialog data-modal="eliminar_cargo" class="modal modal_confirmar">
         <div class="modal_header-confirmar">
-            <h2 class="modal_title">¿Estás seguro de deshabilitar esta clasificación? <br>podría ocasionar problemas</h2>
+            <h2 class="modal_title">¿Estás seguro de deshabilitar este cargo?</h2>
         </div>
         <div class="delete_container">
             <span class="delete_data-title" id="delete_codigo"></span>
             <span class="delete_data" id="delete_nombre"></span>
-            <span class="delete_data" id="delete_categoria"></span>
+            <span class="delete_data" id="delete_descripcion"></span>
         </div>
         <div class="modal_delete-buttons">
             <form method="dialog">
                 <button class="modal__close modal__close-confirm">Cancelar</button>
             </form>
-            <form id="form_delete_clasificacion" method="POST">
+            <form id="form_delete_cargo" method="POST">
                 <input type="submit" value="Aceptar" name="delete" class="register_submit-confirm" id="btn_borrar">
             </form>
         </div>
     </dialog>
 
     <!-- Confirmación de recuperar -->
-    <dialog data-modal="confirmar_clasificacion" class="modal modal_confirmar">
+    <dialog data-modal="confirmar_cargo" class="modal modal_confirmar">
         <div class="modal_header-confirmar">
-            <h2 class="modal_title">¿Estás seguro de recuperar <br> esta clasificación?</h2>
+            <h2 class="modal_title">¿Estás seguro de recuperar este cargo?</h2>
         </div>
         <div class="delete_container">
             <span class="delete_data-title" id="confirmar_codigo"></span>
             <span class="delete_data" id="confirmar_nombre"></span>
-            <span class="delete_data" id="confirmar_categoria"></span>
+            <span class="delete_data" id="confirmar_descripcion"></span>
         </div>
         <div class="modal_delete-buttons">
             <form method="dialog">
                 <button class="modal__close modal__close-confirm">Cancelar</button>
             </form>
-            <form id="form_confirmar_clasificacion" method="POST">
+            <form id="form_confirmar_cargo" method="POST">
                 <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar">
             </form>
         </div>
@@ -129,15 +114,14 @@
 <div class="container_table_box">
     <div class="top"></div> <!-- Aquí se insertan los botones y búsqueda -->
 
-    <table id="clasificacionTabla" class="display" style="width:100%">
+    <table id="cargoTabla" class="display" style="width:100%">
     <thead>
         <tr>
-            <th colspan="5" class="title">Clasificaciones</th>
+            <th colspan="4" class="title">Cargos</th>
         </tr>
         <tr>
             <th class="header">Código</th>
             <th class="header">Nombre</th>
-            <th class="header">Categoría</th>
             <th class="header">Descripción</th>
             <th class="header">Acciones</th>
         </tr>
@@ -148,4 +132,4 @@
 </div>
     
     
-    <script src="js/clasificacion_datatable.js"></script>
+<script src="js/cargo_datatable.js"></script>

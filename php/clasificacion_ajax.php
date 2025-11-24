@@ -32,14 +32,14 @@ function validarclasificacion($datos, $modo = 'crear', $id = null) {
         $erroresFormato['clasificacion_codigo'] = 'El código debe tener máximo 20 caracteres entre letras, números, guiones o guiones bajos';
     }
 
-    // Validación para nombre: letras, espacios y dígitos, hasta 100 caracteres
-    if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,100}$/u', $datos['clasificacion_nombre'])) {
+    // Validación para nombre (cualquier carácter, máximo 100)
+    if (mb_strlen(trim($datos['clasificacion_nombre'])) > 100) {
         $erroresFormato['clasificacion_nombre'] = 'El nombre tiene máximo 100 caracteres';
     }
 
-    // Validación para descripción: letras, espacios y dígitos, hasta 200 caracteres
+    // Validación para descripción (opcional, cualquier carácter, máximo 200)
     if (trim($datos['clasificacion_descripcion']) !== '') {
-        if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,200}$/u', $datos['clasificacion_descripcion'])) {
+        if (mb_strlen($datos['clasificacion_descripcion']) > 200) {
             $erroresFormato['clasificacion_descripcion'] = 'La descripción tiene máximo 200 caracteres';
         }
     }

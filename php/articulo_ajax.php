@@ -50,13 +50,15 @@ function validarArticulo($datos, $modo = 'crear', $id = null) {
         $erroresFormato['articulo_codigo'] = 'El código debe tener máximo 20 caracteres entre letras, números, guiones o guiones bajos';
     }
 
-    if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,100}$/u', $datos['articulo_nombre'])) {
-        $erroresFormato['articulo_nombre'] = 'El nombre debe tener máximo 100 caracteres y solo letras, números y espacios';
+    // Validación para nombre (cualquier carácter, máximo 100)
+    if (mb_strlen(trim($datos['articulo_nombre'])) > 100) {
+        $erroresFormato['articulo_nombre'] = 'El nombre debe tener máximo 100 caracteres';
     }
 
+    // Validación para modelo (opcional, cualquier carácter, máximo 100)
     if (trim((string)$datos['articulo_modelo']) !== '') {
-        if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s_-]{1,100}$/u', $datos['articulo_modelo'])) {
-            $erroresFormato['articulo_modelo'] = 'El modelo debe tener máximo 100 caracteres y solo letras, números, espacios, guiones o guiones bajos';
+        if (mb_strlen($datos['articulo_modelo']) > 100) {
+            $erroresFormato['articulo_modelo'] = 'El modelo debe tener máximo 100 caracteres';
         }
     }
 

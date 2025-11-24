@@ -31,7 +31,7 @@ function validarMarca($datos, $modo = 'crear', $id = null) {
     }
 
     if (!preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{1,100}$/u', $datos['marca_nombre'])) {
-        $erroresFormato['marca_nombre'] = 'El nombre tiene máximo 100 caracteres';
+        $erroresFormato['marca_nombre'] = 'El nombre tiene máximo 100 caracteres con letras y guiones';
     }
 
     // Validación de imagen (solo si se sube)

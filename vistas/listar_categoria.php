@@ -56,7 +56,7 @@
             </div>
 
             <div id="error-container-categoria" class="error-container"></div>
-            <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar">
+            <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_categoria">
         </form>
     </dialog>
 

@@ -742,6 +742,19 @@ body {
     object-fit: cover;
 }
 
+#categoriaTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+
+#categoriaTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#categoriaTabla td {
+    width: 40px;
+    height: 40px;
+}
+
 #clasificacionTabla tr:nth-child(even) {
     background-color: #ddd;
 }
@@ -790,11 +803,24 @@ body {
     object-fit: cover;
 }
 
-#articuloTabla tr:nth-child(even) {
+#cargoTabla tr:nth-child(even) {
     background-color: #ddd;
 }
-#articuloTabla tr:nth-child(odd) {
+#cargoTabla tr:nth-child(odd) {
     background-color: #ccc;
+}
+
+#cargoTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+
+#cargoTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#cargoTabla td {
+    width: 40px;
+    height: 40px;
 }
 
 .header {
