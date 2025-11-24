@@ -435,6 +435,72 @@ function cargarClasificacion(opciones = {}) {
     });
 }
 
+function cargarCargo(opciones = {}) {
+    fetch('php/cargo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todos' })
+    })
+    .then(res => res.json())
+    .then(resp => {
+        const data = resp.data;
+
+        if (!Array.isArray(data)) {
+            console.error('Respuesta inválida al cargar cargos:', resp);
+            return;
+        }
+
+        // Selects para filtros
+        document.querySelectorAll('select.cargo_filtro').forEach(select => {
+            select.innerHTML = '';
+            const todasOption = document.createElement('option');
+            todasOption.value = '';
+            todasOption.textContent = 'Todos los cargos';
+            select.appendChild(todasOption);
+
+            data.forEach(cargo => {
+                const option = document.createElement('option');
+                option.value = cargo.cargo_id;
+                option.textContent = cargo.cargo_nombre;
+                select.appendChild(option);
+            });
+
+            if (opciones.selected && opciones.scope === 'filtro') {
+                select.value = opciones.selected;
+            }
+        });
+
+        // Selects para formularios
+        document.querySelectorAll('select.cargo_form').forEach(select => {
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.textContent = 'Seleccione un cargo';
+            select.appendChild(defaultOption);
+
+            data.forEach(cargo => {
+                const option = document.createElement('option');
+                option.value = String(cargo.cargo_id);
+                option.textContent = cargo.cargo_nombre;
+                select.appendChild(option);
+            });
+
+            if (opciones.selected && opciones.scope === 'form') {
+                select.value = opciones.selected;
+            }
+        });
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar cargos:', err);
+    });
+}
+
+
 
 //Dinamicas de Formularios
 
@@ -682,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarRol();
     cargarClasificacion();
     cargarMarca();
+    cargarCargo();
     mantenerFotoUsuarioActualizada();
     aplicarDinamicaCategoria()
 
@@ -861,9 +928,6 @@ function abrirFormularioEdicionUsuario(id) {
         });
     });
 }
-
-
-
 
 //Crear/actualizar usuario
 document.addEventListener('DOMContentLoaded', function () {
@@ -2201,16 +2265,15 @@ function abrirFormularioEdicionCargo(id) {
 // Crear o actualizar cargo
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('form_nuevo_cargo');
-    console.log("Form encontrado:", form);
     const errorContainer = document.getElementById('error-container-cargo');
     const btnNuevo = document.querySelector('[data-modal-target="new_cargo"]');
     const modalFormulario = document.querySelector('dialog[data-modal="new_cargo"]');
 
     // Abrir modal y limpiar formulario
-    if (btnNuevo && modalFormulario) {
+    if (btnNuevo && modalFormulario && form) {
         btnNuevo.addEventListener('click', () => {
-            if (modalFormulario.showModal) modalFormulario.showModal();
             limpiarFormulario(form);
+            if (modalFormulario?.showModal) modalFormulario.showModal();
         });
     }
 
@@ -2219,7 +2282,8 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', function (e) {
             console.log("Interceptado submit de cargo");
             e.preventDefault();
-            const cargoId = form.querySelector('#cargo_id').value;
+
+            const cargoId = form.querySelector('#cargo_id')?.value || '';
             const formData = new FormData(form);
             const accion = cargoId ? 'actualizar' : 'crear';
 
@@ -2232,6 +2296,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(res => res.json())
             .then(data => {
+                if (!errorContainer) return;
                 errorContainer.innerHTML = '';
                 errorContainer.style.display = 'none';
 
@@ -2255,22 +2320,26 @@ document.addEventListener('DOMContentLoaded', function () {
                         : "Cargo registrado con éxito";
 
                     // Cerrar modal si fue actualización
-                    if (esActualizacion && modalFormulario && modalFormulario.open) {
+                    if (esActualizacion && modalFormulario?.open) {
                         modalFormulario.close();
                     }
 
                     mostrarModalExito(mensaje);
                     limpiarFormulario(form);
-                    $('#cargoTabla').DataTable().ajax.reload(null, false);
+                    if ($('#cargoTabla').length) {
+                        $('#cargoTabla').DataTable().ajax.reload(null, false);
+                    }
                 }
             })
             .catch(() => {
+                if (!errorContainer) return;
                 errorContainer.innerHTML = 'Hubo un error con el servidor';
                 errorContainer.style.display = 'block';
             });
         });
     }
 });
+
 
 // Mostrar información de cargo
 function mostrarInfoCargo(data) {
@@ -2398,7 +2467,6 @@ function abrirFormularioEdicionArea(id) {
 // Crear o actualizar área
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('form_nueva_area');
-    console.log("Form encontrado:", form);
     const errorContainer = document.getElementById('error-container-area');
     const btnNuevo = document.querySelector('[data-modal-target="new_area"]');
     const modalFormulario = document.querySelector('dialog[data-modal="new_area"]');
@@ -2561,3 +2629,262 @@ document.getElementById('form_confirmar_area')?.addEventListener('submit', funct
     });
 });
 
+/*SUBMODULO: PERSONAL*/
+
+// Función: formulario de actualizar personal
+function abrirFormularioEdicionPersona(id) {
+    const form = document.getElementById('form_nuevo_personal');
+    if (!form) return;
+
+    fetch('php/personal_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_persona', persona_id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.exito || !data.persona) return;
+
+        const p = data.persona;
+
+        // Limpiar antes de repoblar
+        limpiarFormulario(form);
+
+        // Poblar cargos y seleccionar el actual
+        cargarCargo({
+            selected: p.cargo_id,
+            scope: 'form',
+            onComplete: () => {
+                form.persona_id.value = p.persona_id;
+                form.persona_nombre.value = p.persona_nombre;
+                form.persona_apellido.value = p.persona_apellido;
+                form.persona_correo.value = p.persona_correo;
+                form.persona_telefono.value = p.persona_telefono;
+                form.persona_direccion.value = p.persona_direccion;
+                form.persona_nac.value = p.persona_nac;
+                form.persona_sexo.value = p.persona_sexo;
+                form.persona_tipo_cedula.value = p.persona_cedula.split('-')[0];
+                document.getElementById('persona_numero_cedula').value = p.persona_cedula.split('-')[1];
+
+                const previewFoto = document.getElementById('preview_persona_foto');
+                const icono = document.querySelector('.foto_perfil_icon');
+                previewFoto.src = p.persona_foto || 'img/icons/personal.png';
+                previewFoto.style.display = 'block';
+                icono.style.opacity = '0';
+
+                const modal = document.querySelector('[data-modal="new_personal"]');
+                if (modal?.showModal) modal.showModal();
+            }
+        });
+    });
+}
+
+// Crear o actualizar personal
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('form_nuevo_personal');
+    const errorContainer = document.getElementById('error-container-persona');
+    const inputFoto = document.getElementById('persona_foto');
+    const previewFoto = document.getElementById('preview_persona_foto');
+    const icono = document.querySelector('.foto_perfil_icon');
+    const btnNuevo = document.querySelector('[data-modal-target="new_personal"]');
+    const modalFormulario = document.querySelector('dialog[data-modal="new_personal"]');
+
+    // Abrir modal y cargar cargos
+    if (btnNuevo && modalFormulario) {
+        btnNuevo.addEventListener('click', () => {
+            if (modalFormulario.showModal) modalFormulario.showModal();
+            cargarCargo({ scope: 'form' }); // poblar el select de cargos
+            limpiarFormulario(form);
+        });
+    }
+
+    // Previsualizar imagen
+    if (inputFoto && previewFoto && icono) {
+        inputFoto.addEventListener('change', function () {
+            const archivo = this.files[0];
+            if (archivo) {
+                const lector = new FileReader();
+                lector.onload = function (e) {
+                    previewFoto.src = e.target.result;
+                    previewFoto.style.display = 'block';
+                    icono.style.opacity = '0';
+                };
+                lector.readAsDataURL(archivo);
+            }
+        });
+    }
+
+    // Envío del formulario
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const tipo = document.getElementById('persona_tipo_cedula').value;
+            const numeroInput = document.getElementById('persona_numero_cedula');
+            const numero = numeroInput.value.trim();
+            const personaId = document.getElementById('persona_id').value;
+
+            const cedulaCompleta = tipo + '-' + numero;
+            const formData = new FormData(form);
+            formData.set('persona_cedula', cedulaCompleta);
+
+            // Acción condicional
+            const accion = personaId ? 'actualizar' : 'crear';
+            formData.append('accion', accion);
+            if (personaId) formData.append('persona_id', personaId);
+
+            fetch('php/personal_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            let input = form.querySelector(`[name="${campo}"]`);
+                            if (campo === 'persona_cedula') input = document.getElementById('persona_numero_cedula');
+                            if (campo === 'persona_foto') input = inputFoto;
+                            if (input) {
+                                const contenedor = input.closest('.input_text');
+                                if (contenedor) {
+                                    contenedor.classList.add('input-error');
+                                } else {
+                                    input.classList.add('input-error');
+                                }
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const esActualizacion = !!personaId;
+                    const mensaje = esActualizacion
+                        ? "Personal actualizado con éxito"
+                        : "Personal registrado con éxito";
+
+                    // Solo cerrar el modal si fue una actualización
+                    if (esActualizacion && modalFormulario && modalFormulario.open) {
+                        modalFormulario.close();
+                    }
+
+                    mostrarModalExito(mensaje);
+                    limpiarFormulario(form);
+                    $('#personaTabla').DataTable().ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
+});
+
+
+// Función INFO PERSONAL
+function mostrarInfoPersona(data) {
+    // Foto de perfil
+    const foto = data.persona_foto && data.persona_foto.trim() !== ''
+        ? data.persona_foto
+        : 'img/icons/personal.png';
+    document.getElementById('foto_persona_info').src = foto;
+
+    // Formatear fecha de nacimiento
+    let fechaFormateada = '';
+    if (data.persona_nac) {
+        const fecha = new Date(data.persona_nac);
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const año = fecha.getFullYear();
+        fechaFormateada = `${dia}-${mes}-${año}`;
+    }
+
+    // Traducir sexo binario
+    const sexo = Number(data.persona_sexo);
+    const sexoTraducido = sexo === 0 ? 'M' : sexo === 1 ? 'F' : '';
+
+    // Datos personales
+    document.getElementById('info_persona_nombre').textContent = data.persona_nombre || '';
+    document.getElementById('info_persona_apellido').textContent = data.persona_apellido || '';
+    document.getElementById('info_persona_correo').textContent = data.persona_correo || '';
+    document.getElementById('info_persona_telefono').textContent = data.persona_telefono || '';
+    document.getElementById('info_persona_cedula').textContent = data.persona_cedula || '';
+    document.getElementById('info_persona_nac').textContent = fechaFormateada;
+    document.getElementById('info_persona_direccion').textContent = data.persona_direccion || '';
+    document.getElementById('info_persona_sexo').textContent = sexoTraducido;
+    document.getElementById('info_persona_cargo').textContent = data.cargo_nombre || '';
+
+    // Mostrar el modal
+    const modal = document.querySelector('dialog[data-modal="info_persona"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+// Función: mostrar datos en confirmación de personal
+function mostrarConfirmacionPersona(data, modo = 'eliminar') {
+    const imgId = modo === 'eliminar' ? 'delete_foto_persona' : 'confirmar_foto_persona';
+    const img = document.getElementById(imgId);
+    img.src = data.persona_foto?.trim() !== '' ? data.persona_foto + '?t=' + new Date().getTime() : 'img/icons/personal.png';
+
+    const nombreId = modo === 'eliminar' ? 'delete_persona_nombre_completo' : 'confirmar_persona_nombre_completo';
+    const cargoId = modo === 'eliminar' ? 'delete_persona_cargo' : 'confirmar_persona_cargo';
+
+    document.getElementById(nombreId).textContent = `${data.persona_nombre || ''} ${data.persona_apellido || ''}`.trim();
+    document.getElementById(cargoId).textContent = data.cargo_nombre || '';
+
+    const formId = modo === 'eliminar' ? 'form_delete_persona' : 'form_confirmar_persona';
+    const modalId = modo === 'eliminar' ? 'eliminar_persona' : 'confirmar_persona';
+
+    const form = document.getElementById(formId);
+    form.dataset.personaId = data.persona_id;
+    form.dataset.modo = modo;
+
+    document.querySelector(`dialog[data-modal="${modalId}"]`)?.showModal();
+}
+
+// Eliminar personal
+document.getElementById('form_delete_persona')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.personaId;
+    if (!id) return;
+
+    fetch('php/personal_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'deshabilitar_persona', persona_id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            document.querySelector('dialog[data-modal="eliminar_persona"]')?.close();
+            mostrarModalExito(data.mensaje || 'Personal deshabilitado');
+            $('#personaTabla').DataTable().ajax.reload(null, false);
+        }
+    });
+});
+
+// Recuperar personal
+document.getElementById('form_confirmar_persona')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.personaId;
+    if (!id) return;
+
+    fetch('php/personal_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar_persona', persona_id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            document.querySelector('dialog[data-modal="confirmar_persona"]')?.close();
+            mostrarModalExito(data.mensaje || 'Personal recuperado');
+            estadoActual = 1;
+            $('#personaTabla').DataTable().ajax.reload(null, false);
+        }
+    });
+});

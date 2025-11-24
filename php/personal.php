@@ -51,10 +51,23 @@ class persona {
         return $stmt->execute([$nombre, $apellido, $cargoId, $correo, $telefono, $cedula, $sexo, $nac, $direccion, $foto, $estado]);
     }
 
-    // Listar por estado
+    // Listar por estado con cargo_id y cargo_nombre
     public function leer_por_estado($estado = 1) {
         $stmt = $this->pdo->prepare("
-            SELECT p.*, c.cargo_nombre 
+            SELECT 
+                p.persona_id,
+                p.persona_nombre,
+                p.persona_apellido,
+                p.persona_cedula,
+                p.persona_correo,
+                p.persona_telefono,
+                p.persona_foto,
+                p.persona_estado,
+                p.persona_nac,
+                p.persona_direccion,
+                p.persona_sexo,
+                p.cargo_id,
+                c.cargo_nombre
             FROM persona p
             JOIN cargo c ON p.cargo_id = c.cargo_id
             WHERE p.persona_estado = ?
@@ -64,10 +77,23 @@ class persona {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Leer un registro por ID
+    // Leer un registro por ID con cargo_id y cargo_nombre
     public function leer_por_id($id) {
         $stmt = $this->pdo->prepare("
-            SELECT p.*, c.cargo_nombre
+            SELECT 
+                p.persona_id,
+                p.persona_nombre,
+                p.persona_apellido,
+                p.persona_cedula,
+                p.persona_correo,
+                p.persona_telefono,
+                p.persona_foto,
+                p.persona_estado,
+                p.persona_nac,
+                p.persona_direccion,
+                p.persona_sexo,
+                p.cargo_id,
+                c.cargo_nombre
             FROM persona p
             LEFT JOIN cargo c ON p.cargo_id = c.cargo_id
             WHERE p.persona_id = ?

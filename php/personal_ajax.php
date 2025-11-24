@@ -1,5 +1,5 @@
 <?php
-require_once 'persona.php'; // tu clase persona
+require_once 'personal.php'; // tu clase persona
 $persona = new persona();
 
 function validarPersona($datos, $modo = 'crear', $id = null) {
@@ -18,9 +18,14 @@ function validarPersona($datos, $modo = 'crear', $id = null) {
     // Verificar campos obligatorios
     $camposFaltantes = [];
     foreach ($camposObligatorios as $campo) {
-        if (trim($datos[$campo]) === '') {
+        if (!isset($datos[$campo]) || trim($datos[$campo]) === '') {
             $camposFaltantes[] = $campo;
         }
+    }
+
+    // Caso especial: cédula enviada como "V-" o "E-" sin número
+    if (isset($datos['persona_cedula']) && ($datos['persona_cedula'] === 'V-' || $datos['persona_cedula'] === 'E-')) {
+        $camposFaltantes[] = 'persona_cedula';
     }
 
     if (!empty($camposFaltantes)) {
@@ -45,7 +50,7 @@ function validarPersona($datos, $modo = 'crear', $id = null) {
     }
 
     if (!preg_match('/^[VE]-\d{7,8}$/', $datos['persona_cedula'])) {
-        $erroresFormato['persona_cedula'] = 'La cédula debe tener 7 u 8 dígitos';
+        $erroresFormato['persona_cedula'] = 'La cédula debe tener 8 dígitos numéricos';
     }
 
     if (!empty($datos['persona_direccion']) && strlen($datos['persona_direccion']) > 100) {
@@ -127,6 +132,7 @@ function validarPersona($datos, $modo = 'crear', $id = null) {
     return ['valido' => true];
 }
 
+
 $accion = $_POST['accion'] ?? '';
 
 switch ($accion) {
@@ -187,7 +193,7 @@ switch ($accion) {
                 move_uploaded_file($_FILES['persona_foto']['tmp_name'], $rutaCompleta);
                 $datos['persona_foto'] = $rutaRelativa;
             } else {
-                $datos['persona_foto'] = 'img/icons/perfil.png';
+                $datos['persona_foto'] = 'img/icons/personal.png';
             }
 
             $estado = 1;
@@ -223,7 +229,7 @@ switch ($accion) {
     case 'obtener_persona':
         header('Content-Type: application/json');
 
-        $id = $_POST['id'] ?? '';
+        $id = $_POST['persona_id'] ?? '';
         if (!$id) {
             echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
             exit;
@@ -338,7 +344,7 @@ switch ($accion) {
         header('Content-Type: application/json');
 
         try {
-            $id = $_POST['id'] ?? '';
+            $id = $_POST['persona_id'] ?? '';
             if (!$id) {
                 throw new Exception('ID no proporcionado');
             }
@@ -361,7 +367,7 @@ switch ($accion) {
 
     case 'recuperar_persona':
         try {
-            $exito = $persona->recuperar($_POST['id']);
+            $exito = $persona->recuperar($_POST['persona_id']);
             echo json_encode([
                 'exito' => $exito,
                 'mensaje' => $exito ? 'Personal recuperado correctamente' : 'Error al recuperar'

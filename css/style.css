@@ -742,6 +742,20 @@ body {
     object-fit: cover;
 }
 
+#personaTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#personaTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#personaTabla td img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 #categoriaTabla tr:nth-child(even) {
     background-color: #ddd;
 }

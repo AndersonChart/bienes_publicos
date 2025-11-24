@@ -3,7 +3,7 @@
     <div class="filters">
         <!-- Filtro -->
         <div class="filters">
-                <label for="categoria" class="input_label">Categoría:</label>
+                <label for="categoria_filtro" class="input_label">Categoría:</label>
                 <select name="categoria_id" id="categoria_filtro" class="input_text input_select categoria_filtro">
                     <option value="" selected disabled>Seleccione</option>
                 </select>
