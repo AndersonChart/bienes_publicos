@@ -823,6 +823,26 @@ body {
     height: 40px;
 }
 
+#areaTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#areaTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#areaTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+
+#areaTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#areaTabla td {
+    width: 40px;
+    height: 40px;
+}
+
 .header {
     cursor: pointer;
     background-color: #345;
