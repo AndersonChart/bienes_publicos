@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-class cargo {
+class recepcion {
 
     private $pdo;
 
@@ -12,86 +12,55 @@ class cargo {
         $this->pdo = Conexion::conectar();
     }
 
-    // Verificar duplicados por código
-    public function existeCodigo($codigo, $excluirId = null) {
-        $sql = "SELECT COUNT(*) FROM cargo WHERE cargo_codigo = ?";
-        $params = [$codigo];
-
-        if ($excluirId !== null) {
-            $sql .= " AND cargo_id != ?";
-            $params[] = $excluirId;
-        }
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchColumn() > 0;
-    }
-
-    // Verificar duplicados por nombre
-    public function existeNombre($nombre, $excluirId = null) {
-        $sql = "SELECT COUNT(*) FROM cargo WHERE cargo_nombre = ?";
-        $params = [$nombre];
-
-        if ($excluirId !== null) {
-            $sql .= " AND cargo_id != ?";
-            $params[] = $excluirId;
-        }
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchColumn() > 0;
-    }
-
-    // Crear nuevo registro
-    public function crear($codigo, $nombre, $descripcion, $estado) {
+    // Crear nueva recepción (ajuste tipo 1 = entrada)
+    public function crear($fecha, $descripcion) {
         $stmt = $this->pdo->prepare(
-            "INSERT INTO cargo (cargo_codigo, cargo_nombre, cargo_descripcion, cargo_estado) 
-            VALUES (?, ?, ?, ?)"
+            "INSERT INTO ajuste (ajuste_fecha, ajuste_descripcion, ajuste_tipo) 
+             VALUES (?, ?, 1)"
         );
-        return $stmt->execute([$codigo, $nombre, $descripcion, $estado]);
+        return $stmt->execute([$fecha, $descripcion]);
     }
 
-    // Listar por estado
-    public function leer_por_estado($estado = 1) {
-        $sql = "SELECT * FROM cargo WHERE cargo_estado = ? ORDER BY cargo_nombre ASC";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$estado]);
+    // Listar todas las recepciones (solo tipo entrada)
+    public function leer_todas() {
+        $sql = "SELECT * FROM ajuste WHERE ajuste_tipo = 1 ORDER BY ajuste_fecha DESC";
+        $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Leer un registro por ID
+    // Leer una recepción por ID
     public function leer_por_id($id) {
-        $sql = "SELECT * FROM cargo WHERE cargo_id = ?";
+        $sql = "SELECT * FROM ajuste WHERE ajuste_id = ? AND ajuste_tipo = 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Actualizar registro
-    public function actualizar($codigo, $nombre, $descripcion, $estado, $id) {
-        try {
-            $stmt = $this->pdo->prepare(
-                "UPDATE cargo 
-                    SET cargo_codigo = ?, cargo_nombre = ?, cargo_descripcion = ?, cargo_estado = ? 
-                WHERE cargo_id = ?"
-            );
-            return $stmt->execute([$codigo, $nombre, $descripcion, $estado, $id]);
-        } catch (Exception $e) {
-            error_log("[cargo] Error en actualizar: " . $e->getMessage());
-            throw $e;
-        }
+    // Actualizar recepción (fecha y descripción)
+    public function actualizar($fecha, $descripcion, $id) {
+        $stmt = $this->pdo->prepare(
+            "UPDATE ajuste 
+             SET ajuste_fecha = ?, ajuste_descripcion = ? 
+             WHERE ajuste_id = ? AND ajuste_tipo = 1"
+        );
+        return $stmt->execute([$fecha, $descripcion, $id]);
     }
 
-    // Desincorporar registro
-    public function desincorporar($id) {
-        $stmt = $this->pdo->prepare("UPDATE cargo SET cargo_estado = 0 WHERE cargo_id = ?");
-        return $stmt->execute([$id]);
+    // Asociar artículos (seriales) a una recepción
+    public function agregar_articulo($ajuste_id, $serial_id) {
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO ajuste_articulo (articulo_serial_id, ajuste_id) 
+             VALUES (?, ?)"
+        );
+        return $stmt->execute([$serial_id, $ajuste_id]);
     }
 
-    // Recuperar registro
-    public function recuperar($id) {
-        $stmt = $this->pdo->prepare("UPDATE cargo SET cargo_estado = 1 WHERE cargo_id = ?");
-        return $stmt->execute([$id]);
+    // Listar artículos asociados a una recepción
+    public function leer_articulos($ajuste_id) {
+        $sql = "SELECT * FROM ajuste_articulo WHERE ajuste_id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$ajuste_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>
