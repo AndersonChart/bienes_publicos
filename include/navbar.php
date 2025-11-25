@@ -32,7 +32,7 @@
                 <a href="index.php?vista=listar_area">Áreas</a>
             </div>
             <div class="menu-content" id="ajustes">                
-                <a href="index.php?vista=listar_etc">Recepción</a>
+                <a href="index.php?vista=listar_recepcion">Recepción</a>
                 <a href="index.php?vista=listar_etc">Desincorporación</a>
             </div>
             <div class="menu-content" id="usuarios">

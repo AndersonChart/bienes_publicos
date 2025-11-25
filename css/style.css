@@ -7,6 +7,10 @@ body {
     box-sizing: border-box;
 }
 
+a {
+    text-decoration: none;
+}
+
 .form-resultado {
     margin-top: 10px;
     padding: 10px;
@@ -563,7 +567,7 @@ body {
 }
 
 .new_user {
-    flex: 0 1 70px;
+    flex: 0 1 auto;
     background: #090;
     font-weight: bold;
     text-align: center;
@@ -582,6 +586,21 @@ body {
 .new_user:hover {
     color: #090;
     border: 2px solid #090;
+    background-color: #fff;
+    box-shadow: 0 5px 10px #003;
+    transform: scale(1.05);
+    outline: none;
+}
+
+.new-proceso {
+    background: #049;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.new_proceso:hover {
+    color: #049;
+    border: 2px solid #049;
     background-color: #fff;
     box-shadow: 0 5px 10px #003;
     transform: scale(1.05);
