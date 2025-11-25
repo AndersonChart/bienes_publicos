@@ -8,9 +8,9 @@
     <div class="funciones">
         <div class="funciones-grid">
             <div class="funcion">
-                <img src="img/icons/registro.png" alt="Registro de bienes">
-                <h3>Registro de Bienes</h3>
-                <p>Permite registrar y clasificar los bienes según su tipo, marca y estado.</p>
+                <img src="img/icons/registro.png" alt="Registro de Artículos">
+                <h3>Registro de Artículos</h3>
+                <p>Permite registrar y clasificar los artículos según su tipo, marca y estado.</p>
             </div>
 
             <div class="funcion">
@@ -22,7 +22,7 @@
             <div class="funcion">
                 <img src="img/icons/reporte.png" alt="Generar reportes">
                 <h3>Generación de Reportes</h3>
-                <p>Crea reportes detallados de bienes registrados, asignados o desincorporados.</p>
+                <p>Crea reportes detallados de artículos registrados, asignados o desincorporados.</p>
             </div>
 
             <div class="funcion">
@@ -42,6 +42,19 @@
                 <h3>Recepcion</h3>
                 <p>Facilita la atención o solicitudes relacionado con los bienes Publicos.</p>
             </div>
+
+            <div class="funcion">
+                <img src="img/icons/auditoria.png" alt="Auditoría">
+                <h3>Auditoría de Bienes</h3>
+                <p>Consulta el historial asignaciones y cambios realizados a cada bien registrado.</p>
+            </div>
+
+            <div class="funcion">
+                <img src="img/icons/desincorporacion.png" alt="Desincorporación">
+                <h3>Desincorporación</h3>
+                 <p>Permite verificar bienes dañados o dados de baja para mantener un inventario actualizado.</p>
+            </div>
+
         </div>
     </div>
 </div>
