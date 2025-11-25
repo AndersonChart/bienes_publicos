@@ -1,7 +1,0 @@
-<?php
-$vista = isset($_GET['vista']) ? $_GET['vista'] : '';
-
-if ($vista == 'registrar_bien' || $vista == 'actualizar_bien') {
-    echo '<script src="js/validaciones_bienes.js"></script>';
-}
-?>
