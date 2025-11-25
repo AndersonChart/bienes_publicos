@@ -79,7 +79,6 @@
         <div class="delete_container">
             <span class="delete_data-title" id="delete_codigo"></span>
             <span class="delete_data" id="delete_nombre"></span>
-            <span class="delete_data" id="delete_descripcion"></span>
         </div>
         <div class="modal_delete-buttons">
             <form method="dialog">
@@ -99,7 +98,6 @@
         <div class="delete_container">
             <span class="delete_data-title" id="confirmar_codigo"></span>
             <span class="delete_data" id="confirmar_nombre"></span>
-            <span class="delete_data" id="confirmar_descripcion"></span>
         </div>
         <div class="modal_delete-buttons">
             <form method="dialog">

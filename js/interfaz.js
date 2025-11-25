@@ -2358,7 +2358,6 @@ function mostrarConfirmacionCargo(data, modo = 'eliminar') {
     if (modo === 'eliminar') {
         document.getElementById('delete_codigo').textContent = data.cargo_codigo || '';
         document.getElementById('delete_nombre').textContent = data.cargo_nombre || '';
-        document.getElementById('delete_descripcion').textContent = data.cargo_descripcion || '';
 
         const form = document.getElementById('form_delete_cargo');
         form.dataset.cargoId = data.cargo_id;
@@ -2369,7 +2368,6 @@ function mostrarConfirmacionCargo(data, modo = 'eliminar') {
     } else if (modo === 'recuperar') {
         document.getElementById('confirmar_codigo').textContent = data.cargo_codigo || '';
         document.getElementById('confirmar_nombre').textContent = data.cargo_nombre || '';
-        document.getElementById('confirmar_descripcion').textContent = data.cargo_descripcion || '';
 
         const form = document.getElementById('form_confirmar_cargo');
         form.dataset.cargoId = data.cargo_id;
@@ -2887,4 +2885,11 @@ document.getElementById('form_confirmar_persona')?.addEventListener('submit', fu
             $('#personaTabla').DataTable().ajax.reload(null, false);
         }
     });
+});
+
+//Filtros de cargos
+document.addEventListener('change', function (e) {
+    if (e.target.matches('#cargo_filtro')) {
+        $('#personaTabla').DataTable().ajax.reload(null, false);
+    }
 });

@@ -122,12 +122,12 @@
                 <li><strong class="info_subtitle">Nombre:</strong> <span class="info_data" id="info_persona_nombre"></span></li>
                 <li><strong class="info_subtitle">Apellido:</strong> <span class="info_data" id="info_persona_apellido"></span></li>
                 <li><strong class="info_subtitle">Cargo:</strong> <span class="info_data" id="info_persona_cargo"></span></li>
-                <li><strong class="info_subtitle">Correo:</strong> <span class="info_data" id="info_persona_correo"></span></li>
-                <li><strong class="info_subtitle">Teléfono:</strong> <span class="info_data" id="info_persona_telefono"></span></li>
-                <li><strong class="info_subtitle">Cédula:</strong> <span class="info_data" id="info_persona_cedula"></span></li>
-                <li><strong class="info_subtitle">Fecha de nacimiento:</strong> <span class="info_data" id="info_persona_nac"></span></li>
-                <li><strong class="info_subtitle">Dirección:</strong> <span class="info_data" id="info_persona_direccion"></span></li>
                 <li><strong class="info_subtitle">Sexo:</strong> <span class="info_data" id="info_persona_sexo"></span></li>
+                <li><strong class="info_subtitle">Cédula:</strong> <span class="info_data" id="info_persona_cedula"></span></li>
+                <li><strong class="info_subtitle">Correo:</strong> <span class="info_data" id="info_persona_correo"></span></li>
+                <li><strong class="info_subtitle">Fecha de nacimiento:</strong> <span class="info_data" id="info_persona_nac"></span></li>
+                <li><strong class="info_subtitle">Teléfono:</strong> <span class="info_data" id="info_persona_telefono"></span></li>
+                <li><strong class="info_subtitle">Dirección:</strong> <span class="info_data" id="info_persona_direccion"></span></li>
             </ul>
         </div>
     </dialog>

@@ -51,9 +51,9 @@ class persona {
         return $stmt->execute([$nombre, $apellido, $cargoId, $correo, $telefono, $cedula, $sexo, $nac, $direccion, $foto, $estado]);
     }
 
-    // Listar por estado con cargo_id y cargo_nombre
-    public function leer_por_estado($estado = 1) {
-        $stmt = $this->pdo->prepare("
+    // Listar por estado con filtro opcional de cargo_id
+    public function leer_por_estado($estado = 1, $cargoId = null) {
+        $sql = "
             SELECT 
                 p.persona_id,
                 p.persona_nombre,
@@ -71,11 +71,23 @@ class persona {
             FROM persona p
             JOIN cargo c ON p.cargo_id = c.cargo_id
             WHERE p.persona_estado = ?
-            ORDER BY p.persona_apellido ASC
-        ");
-        $stmt->execute([$estado]);
+        ";
+
+        $params = [$estado];
+
+        // Si se envió un cargo específico, añadir condición
+        if ($cargoId !== null) {
+            $sql .= " AND p.cargo_id = ?";
+            $params[] = $cargoId;
+        }
+
+        $sql .= " ORDER BY p.persona_id DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     // Leer un registro por ID con cargo_id y cargo_nombre
     public function leer_por_id($id) {

@@ -288,7 +288,7 @@ switch ($accion) {
                 exit;
             }
 
-            // Recoger datos del formulario
+            // Recoger datos del formulario (incluyendo rol_id)
             $datos = [
                 'usuario_nombre'    => $_POST['usuario_nombre'] ?? '',
                 'usuario_apellido'  => $_POST['usuario_apellido'] ?? '',
@@ -299,7 +299,8 @@ switch ($accion) {
                 'usuario_direccion' => $_POST['usuario_direccion'] ?? '',
                 'usuario_sexo'      => $_POST['usuario_sexo'] ?? '',
                 'usuario_usuario'   => $_POST['usuario_usuario'] ?? '',
-                'usuario_clave'     => $_POST['usuario_clave'] ?? ''
+                'usuario_clave'     => $_POST['usuario_clave'] ?? '',
+                'rol_id'            => $_POST['rol_id'] ?? ''   // 🔑 agregado
             ];
 
             // Validar datos
@@ -318,13 +319,11 @@ switch ($accion) {
             if (!empty($datos['usuario_clave'])) {
                 $datos['usuario_clave'] = password_hash($datos['usuario_clave'], PASSWORD_DEFAULT);
             } else {
-                $datos['usuario_clave'] = !empty($datos['usuario_clave']) 
-                ? password_hash($datos['usuario_clave'], PASSWORD_DEFAULT) 
-                : $actual['usuario_clave'];
+                $datos['usuario_clave'] = $actual['usuario_clave'];
             }
 
+            // Procesar imagen
             if (isset($_FILES['usuario_foto']) && $_FILES['usuario_foto']['error'] === UPLOAD_ERR_OK) {
-                // Eliminar foto anterior solo si está en la carpeta img/users
                 if (!empty($actual['usuario_foto']) && str_starts_with($actual['usuario_foto'], 'img/users/')) {
                     $rutaAnterior = '../' . $actual['usuario_foto'];
                     if (file_exists($rutaAnterior)) {
@@ -351,9 +350,8 @@ switch ($accion) {
                 $datos['usuario_foto'] = $actual['usuario_foto'];
             }
 
-
-
-            $rol = isset($_POST['rol_id']) ? $_POST['rol_id'] : $actual['rol_id'];
+            // Rol y estado
+            $rol = !empty($datos['rol_id']) ? $datos['rol_id'] : $actual['rol_id'];
             $estado = 1;
 
             // Actualizar usuario
@@ -378,14 +376,13 @@ switch ($accion) {
                 throw new Exception("La actualización falló. Verifica los datos enviados.");
             }
 
-
             echo json_encode([
                 'exito' => true,
                 'mensaje' => 'Usuario actualizado correctamente',
                 'resultado' => $resultado
             ]);
         } catch (Exception $e) {
-            http_response_code(500); // Marca el error como interno
+            http_response_code(500);
             echo json_encode([
                 'error' => true,
                 'mensaje' => 'Error al actualizar usuario',
@@ -393,8 +390,8 @@ switch ($accion) {
                 'trace' => $e->getTraceAsString()
             ]);
         }
-
     break;
+
 
 
     case 'deshabilitar_usuario':

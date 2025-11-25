@@ -138,8 +138,10 @@ $accion = $_POST['accion'] ?? '';
 switch ($accion) {
     case 'leer_todos':
         try {
-            $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
-            $registros = $persona->leer_por_estado($estado);
+            $estado   = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
+            $cargoId  = isset($_POST['cargo_id']) && $_POST['cargo_id'] !== '' ? intval($_POST['cargo_id']) : null;
+
+            $registros = $persona->leer_por_estado($estado, $cargoId);
             echo json_encode(['data' => $registros]);
         } catch (Exception $e) {
             http_response_code(500);
@@ -151,6 +153,7 @@ switch ($accion) {
             ]);
         }
     break;
+
 
     case 'crear':
         try {
