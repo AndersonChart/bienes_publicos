@@ -132,7 +132,6 @@ function validarPersona($datos, $modo = 'crear', $id = null) {
     return ['valido' => true];
 }
 
-
 $accion = $_POST['accion'] ?? '';
 
 switch ($accion) {
