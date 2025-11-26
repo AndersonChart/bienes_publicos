@@ -2,40 +2,104 @@
 <div class="banner_list">
     <div class="filters">
         <label for="categoria" class="input_label">Categoría:</label>
-        <select name="categoria_id" id="categoria_filtro" class="input_text input_select categoria_filtro" required>
+        <select name="categoria_id" id="categoria_filtro" class="input_text input_select categoria_filtro" >
             <option value="" selected disabled>Seleccione</option>
         </select>
         <label for="clasificacion" class="input_label">Clasificación:</label>
-        <select name="clasificacion_id" id="clasificacion_filtro" class="input_text input_select clasificacion_filtro" required>
+        <select name="clasificacion_id" id="clasificacion_filtro" class="input_text input_select clasificacion_filtro" >
             <option value="" selected disabled>Seleccione</option>
         </select>
     </div>
     <div class="basics-container">
         <a class="new_user" href="index.php?vista=listar_recepcion">← Regresar</a>
-        <div class="new_user new-proceso" data-modal-target="new_recepcion">Procesar</div>
+        <div class="new-proceso" data-modal-target="new_recepcion">Procesar</div>
     </div>
 </div>
 
 <!-- Modal: Finalizar Proceso -->
-<dialog data-modal="new_recepcion" class="modal modal_new-recepcion">
-    <form method="dialog"><button class="modal__close">X</button></form>
+<dialog data-modal="new_recepcion" class="modal_new-recepcion">
+    <!-- Botón de cierre del modal -->
+    <button type="button" class="modal__close" onclick="this.closest('dialog').close()">X</button>
+
     <h2 class="modal_title">Realizar Recepción</h2>
-    <form id="form_nuevo_recepcion" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container">
+    <div class="recepcion_container">
+        <!-- Columna izquierda: formulario -->
+        <form id="form_nuevo_recepcion" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container">
+            <div class="input_block_content">
+                <label for="ajuste_fecha" class="input_label">Fecha*</label>
+                <input type="date" name="ajuste_fecha" id="ajuste_fecha" class="input_text input_date">
+            </div>
 
-        <div class="input_block_content">
-            <label for="recepcion_fecha" class="input_label">Fecha*</label>
-            <input type="date" name="recepcion_fecha" id="recepcion_fecha" class="input_text input_date" required>
+            <div class="input_block_content">
+                <label for="ajuste_descripcion" class="input_label">Descripción</label>
+                <input type="text" id="ajuste_descripcion" name="ajuste_descripcion" class="input_text">
+            </div>
+
+            <!-- Campo oculto para el tipo -->
+            <input type="hidden" name="ajuste_tipo" value="1"> <!-- 1 = Entrada -->
+
+            <!-- Contenedor de errores -->
+            <div id="error-container-recepcion" class="error-container"></div>
+
+            <!-- Botón de envío -->
+            <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_recepcion">
+        </form>
+
+        <div class="separador"></div>
+
+        <!-- Columna derecha: tabla resumen -->
+        <div class="resumen_container">
+            <div class="container_table_box-recepcion">
+                <div class="top"></div>
+                <table id="recepcionResumenTabla" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th colspan="3" class="title">Resumen Recepción</th>
+                        </tr>
+                        <tr>
+                            <th class="header">Código</th>
+                            <th class="header">Nombre</th>
+                            <th class="header">Cantidad</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="bottom paginador"></div>
+            </div>
         </div>
-
-        <div class="input_block_content">
-            <label for="recepcion_descripcion" class="input_label">Descripción*</label>
-            <input type="text" id="recepcion_descripcion" name="recepcion_descripcion" class="input_text" required>
-        </div>
-
-        <div id="error-container-recepcion" class="error-container"></div>
-        <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_recepcion">
-    </form>
+    </div>
 </dialog>
+
+
+
+
+<!-- Modal: Información -->
+<dialog data-modal="info_articulo" class="modal modal_info">
+    <div class="modal_header-info">
+        <form method="dialog"><button class="modal__close">X</button></form>
+        <h2 class="modal_title modal_title-info">Información del artículo</h2>
+    </div>
+    <div class="img_info">
+        <img id="info_imagen" class="foto_info imagen_info">
+    </div>
+    <div class="info_container">
+        <ul class="info_lista">
+            <li><strong class="info_subtitle">Código:</strong> <span class="info_data" id="info_codigo"></span></li>
+            <li><strong class="info_subtitle">Nombre:</strong> <span class="info_data" id="info_nombre"></span></li>
+            <li><strong class="info_subtitle">Categoría:</strong> <span class="info_data" id="info_categoria"></span></li>
+            <li><strong class="info_subtitle">Clasificación:</strong> <span class="info_data" id="info_clasificacion"></span></li>
+            <li id="li_info_marca">
+                <strong class="info_subtitle">Marca:</strong> 
+                <span class="info_data" id="info_marca"></span>
+            </li>
+            <li id="li_info_modelo">
+                <strong class="info_subtitle">Modelo:</strong> 
+                <span class="info_data" id="info_modelo"></span>
+            </li>
+            <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_descripcion"></span></li>
+        </ul>
+    </div>
+</dialog>
+
 
 <!-- Modal: Seriales -->
 <dialog data-modal="seriales_articulo" class="modal modal_confirmar">
@@ -75,7 +139,7 @@
 <dialog data-modal="success" class="modal modal_success">
     <form method="dialog">
         <div class="modal_icon"></div>
-        <h2 class="modal_title">¡Añadido con éxito!</h2>
+        <h2 class="modal_title">¡Recepción procesada con éxito!</h2>
         <p class="modal_success-message" id="success-message"></p>
         <button class="modal__close-success" id="close-success_articulo">Aceptar</button>
     </form>
@@ -87,15 +151,13 @@
     <table id="recepcionArticuloTabla" class="display" style="width:100%">
         <thead>
             <tr>
-                <th colspan="9" class="title">Artículos</th>
+                <th colspan="7" class="title">Ingresar Artículos</th>
             </tr>
             <tr>
                 <th class="header">Código</th>
                 <th class="header">Nombre</th>
                 <th class="header">Categoría</th>
                 <th class="header">Clasificación</th>
-                <th class="header">Modelo</th>
-                <th class="header">Marca</th>
                 <th class="header">Imagen</th>
                 <th class="header">Cantidad</th>
                 <th class="header">Acciones</th>
@@ -106,3 +168,7 @@
 </div>
 
 <script src="js/recepcion_articulo_datatable.js"></script>
+<script src="js/recepcion_resumen_datatable.js"></script>
+<!--
+<script src="js/recepcion_serial_id_datatable.js"></script>
+-->

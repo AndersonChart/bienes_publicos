@@ -566,6 +566,10 @@ a {
     gap: 10px;
 }
 
+.new_user-usuario {
+    margin-left: auto;
+}
+
 .new_user {
     flex: 0 1 auto;
     background: #090;
@@ -579,10 +583,6 @@ a {
     transition: all 0.3s ease;
 }
 
-.new_user-usuario {
-    margin-left: auto;
-}
-
 .new_user:hover {
     color: #090;
     border: 2px solid #090;
@@ -593,12 +593,19 @@ a {
 }
 
 .new-proceso {
+    flex: 0 1 auto;
     background: #049;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 16px;
     color: #fff;
+    border-radius: 5px;
+    user-select: none;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.new_proceso:hover {
+.new-proceso:hover {
     color: #049;
     border: 2px solid #049;
     background-color: #fff;
@@ -650,6 +657,8 @@ a {
     outline: none;
 }
 
+
+
 .container_table_box {
     margin: 0px auto;
     width: 95%;
@@ -660,6 +669,16 @@ a {
     box-sizing: border-box;
     overflow: auto;   
 }
+
+.container_table_box-recepcion {
+    min-width: 500px;          /* ocupa todo el ancho disponible */
+    min-height: 500px;    /* altura mínima */
+    border-radius: 20px;
+    background: #f9f9f9;  /* opcional para distinguir */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
 
 /* Contenedor superior */
 /* Contenedor superior */
@@ -801,6 +820,18 @@ a {
     height: 40px;
 }
 
+#recepcionTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#recepcionTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#recepcionTabla td {
+    width: 40px;
+    height: 40px;
+}
+
 #marcaTabla tr:nth-child(even) {
     background-color: #ddd;
 }
@@ -809,6 +840,19 @@ a {
 }
 
 #marcaTabla td img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+#recepcionArticuloTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#recepcionArticuloTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#recepcionArticuloTabla td img {
     width: 100px;
     height: 100px;
     object-fit: cover;
@@ -980,7 +1024,7 @@ a {
 
 
 /*VENTANAS MODALES*/
-.modal {
+.modal, .modal_new-recepcion {
     position: relative;
     box-sizing: border-box;
     display: flex;
@@ -998,14 +1042,29 @@ a {
 }
 
 /* Fondo oscuro de superposición */
-.modal::backdrop {
+.modal::backdrop, .modal_new-recepcion::backdrop {
     background: linear-gradient(#111c, #111 99%);
     transition: background-color 1s ease;
 }
 
-.modal:not([open]) {
+.modal:not([open]), .modal_new-recepcion:not([open]) {
     display: none;
 }
+
+.modal_new-recepcion {
+    justify-content: space-around;
+    display: flex;            /* título arriba, luego contenido */
+    flex-direction: column;   /* asegura que el título quede arriba */
+    width: auto;              /* se adapta al contenido */
+    min-width: 60%;           /* ancho mínimo */
+    max-width: 80vw;          /* máximo 80% del ancho de la pantalla */
+    padding: 20px;
+    border-radius: 20px;
+    background: #ddd;
+    box-sizing: border-box;
+}
+
+
 
 /* Animación de entrada desde arriba */
 @keyframes slideDown {
@@ -1336,6 +1395,23 @@ a {
     padding-bottom: 80px; /* espacio extra para el botón */
 }
 
+.recepcion_container {
+    display: flex;
+    margin-top: 20px;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: stretch;   /* estira los hijos a la misma altura */
+    gap: 40px;
+}
+
+.separador {
+    background-color: #444;
+    width: 5px;             /* grosor de la línea */
+    border-radius: 5px;
+    min-height: 100%;       /* ocupa toda la altura del contenedor padre */
+}
+
+
 
 .input_block_content {
     flex: 0 0 calc(50% - 20px); /* 50% menos la mitad del gap */
@@ -1539,4 +1615,3 @@ a {
     outline: none;
     transform: scale(1.05);
 }
-

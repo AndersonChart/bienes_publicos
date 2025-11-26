@@ -780,6 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tabla.column(5).visible(true);
             }
         }
+
     // --- Filtros de inventario ---
     const filtroCategoria = document.getElementById('categoria_filtro');
     const filtroClasificacion = document.getElementById('clasificacion_filtro');
@@ -875,6 +876,91 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         }
+
+        //FILTROS DE RECEPCION
+
+        const filtroCategoriaRecepcion = document.getElementById('categoria_filtro');
+        const filtroClasificacionRecepcion = document.getElementById('clasificacion_filtro');
+
+        if (filtroCategoriaRecepcion) {
+            filtroCategoriaRecepcion.addEventListener('change', () => {
+                const valor = filtroCategoriaRecepcion.value;
+
+                if (valor !== '') {
+                    // Cargar clasificaciones de la categoría seleccionada
+                    cargarClasificacion({
+                        categoria_id: valor,
+                        scope: 'filtro',
+                        onComplete: (lista) => {
+                            if (Array.isArray(lista) && lista.length > 0) {
+                                filtroClasificacionRecepcion.innerHTML = '';
+                                const todasOption = document.createElement('option');
+                                todasOption.value = '';
+                                todasOption.textContent = 'Todas las clasificaciones';
+                                filtroClasificacionRecepcion.appendChild(todasOption);
+
+                                lista.forEach(clasificacion => {
+                                    const option = document.createElement('option');
+                                    option.value = clasificacion.clasificacion_id;
+                                    option.textContent = clasificacion.clasificacion_nombre;
+                                    filtroClasificacionRecepcion.appendChild(option);
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    // Todas las categorías → cargar todas las clasificaciones
+                    cargarClasificacion({
+                        scope: 'filtro',
+                        onComplete: (lista) => {
+                            if (Array.isArray(lista) && lista.length > 0) {
+                                filtroClasificacionRecepcion.innerHTML = '';
+                                const todasOption = document.createElement('option');
+                                todasOption.value = '';
+                                todasOption.textContent = 'Todas las clasificaciones';
+                                filtroClasificacionRecepcion.appendChild(todasOption);
+
+                                lista.forEach(clasificacion => {
+                                    const option = document.createElement('option');
+                                    option.value = clasificacion.clasificacion_id;
+                                    option.textContent = clasificacion.clasificacion_nombre;
+                                    filtroClasificacionRecepcion.appendChild(option);
+                                });
+                            }
+                        }
+                    });
+                }
+
+                // Recargar la tabla de recepción con el filtro aplicado
+                $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+            });
+        }
+
+        if (filtroClasificacionRecepcion) {
+            filtroClasificacionRecepcion.addEventListener('change', () => {
+                const clasificacionId = filtroClasificacionRecepcion.value;
+                const categoriaActual = filtroCategoriaRecepcion.value || '';
+
+                if (!clasificacionId) {
+                    // Todas las clasificaciones → recargar según la categoría actual
+                    $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+                    return;
+                }
+
+                fetch('php/clasificacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'obtener_clasificacion', id: clasificacionId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exito && data.clasificacion) {
+                        filtroCategoriaRecepcion.value = data.clasificacion.categoria_id;
+                    }
+                    $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+                });
+            });
+        }
+
 });
 
 
@@ -2231,6 +2317,117 @@ document.addEventListener('change', function (e) {
 });
 
 
+
+/* Crear Recepcion */
+document.addEventListener('DOMContentLoaded', function () {
+    const formRecepcion = document.getElementById('form_nuevo_recepcion');
+    const errorContainer = document.getElementById('error-container-recepcion');
+    const modalRecepcion = document.querySelector('dialog[data-modal="new_recepcion"]');
+    const fechaInput = document.getElementById('ajuste_fecha');
+
+    // Ajustar la fecha automáticamente al día de hoy y bloquear futuras
+    if (fechaInput) {
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        const fechaHoy = `${yyyy}-${mm}-${dd}`;
+
+        fechaInput.value = fechaHoy;
+        fechaInput.setAttribute('max', fechaHoy);
+    }
+
+    // Envío del formulario
+    if (formRecepcion) {
+        formRecepcion.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fecha = document.getElementById('ajuste_fecha').value;
+            const descripcion = document.getElementById('ajuste_descripcion').value.trim();
+
+            // 👉 Artículos seleccionados desde cantidadesIngresadas
+            // Cada entrada debe tener articulo_id, cantidad y seriales
+            const resumen = Object.values(cantidadesIngresadas)
+                .filter(item => item.cantidad && item.cantidad > 0)
+                .map(item => ({
+                    articulo_id: item.articulo_id,
+                    cantidad: item.cantidad,
+                    seriales: item.seriales || Array(parseInt(item.cantidad, 10)).fill("")
+                }));
+
+            const formData = new FormData();
+            formData.append('accion', 'crear');       // debe coincidir con recepcion_ajax.php
+            formData.append('ajuste_fecha', fecha);
+            formData.append('ajuste_descripcion', descripcion);
+            formData.append('ajuste_tipo', 1);        // 1 = Entrada (Recepción)
+            formData.append('articulos', JSON.stringify(resumen));
+
+            fetch('php/recepcion_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            let input = formRecepcion.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    mostrarModalExito(data.mensaje);
+
+                    if (modalRecepcion && modalRecepcion.open) {
+                        modalRecepcion.close();
+                    }
+
+                    limpiarFormulario(formRecepcion);
+
+                    if ($('#recepcionTabla').length) {
+                        $('#recepcionTabla').DataTable().ajax.reload(null, false);
+                    }
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
+
+    // Actualizar tabla al cambiar filtros
+    document.addEventListener('change', function (e) {
+        if ((e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro'))
+            && $('#recepcionArticuloTabla').length) {
+            $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+        }
+    });
+});
+
+
+
+
+
+// Actualizar tabla al cambiar filtros
+document.addEventListener('change', function (e) {
+    if ((e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro'))
+        && $('#recepcionArticuloTabla').length) {
+        $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+    }
+});
+
+
+
 /*SUBMODULO: CARGOS*/
 
 // Función: abrir formulario de edición de cargo
@@ -2893,3 +3090,4 @@ document.addEventListener('change', function (e) {
         $('#personaTabla').DataTable().ajax.reload(null, false);
     }
 });
+
