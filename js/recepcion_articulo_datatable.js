@@ -113,20 +113,6 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Función para obtener todos los artículos con cantidad
-    function obtenerResumenRecepcion() {
-        return Object.values(cantidadesIngresadas)
-            .filter(item => item.cantidad && item.cantidad > 0);
-    }
-
-    // Ejemplo: al procesar recepción
-    $('#btn_guardar_recepcion').on('click', function (e) {
-        e.preventDefault();
-        const resumen = obtenerResumenRecepcion();
-        console.log("Resumen de recepción:", resumen);
-        // Aquí puedes enviar 'resumen' al backend junto con fecha/descripcion
-    });
-
     // Evento: abrir modal de seriales
     $('#recepcionArticuloTabla tbody').on('click', '.btn_agregar_seriales', function () {
         const articuloId = $(this).data('id');

@@ -2318,12 +2318,21 @@ document.addEventListener('change', function (e) {
 
 
 
-/* Crear Recepcion */
 document.addEventListener('DOMContentLoaded', function () {
+    window.cantidadesIngresadas = window.cantidadesIngresadas || {};
     const formRecepcion = document.getElementById('form_nuevo_recepcion');
     const errorContainer = document.getElementById('error-container-recepcion');
+    const btnNuevo = document.querySelector('[data-modal-target="new_recepcion"]');
     const modalRecepcion = document.querySelector('dialog[data-modal="new_recepcion"]');
     const fechaInput = document.getElementById('ajuste_fecha');
+
+    // Abrir modal y limpiar formulario
+    if (btnNuevo && modalRecepcion) {
+        btnNuevo.addEventListener('click', () => {
+            if (modalRecepcion.showModal) modalRecepcion.showModal();
+            limpiarFormulario(formRecepcion);
+        });
+    }
 
     // Ajustar la fecha automáticamente al día de hoy y bloquear futuras
     if (fechaInput) {
@@ -2341,12 +2350,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formRecepcion) {
         formRecepcion.addEventListener('submit', function (e) {
             e.preventDefault();
+            console.log("Interceptado submit de recepción");
 
             const fecha = document.getElementById('ajuste_fecha').value;
             const descripcion = document.getElementById('ajuste_descripcion').value.trim();
 
             // 👉 Artículos seleccionados desde cantidadesIngresadas
-            // Cada entrada debe tener articulo_id, cantidad y seriales
             const resumen = Object.values(cantidadesIngresadas)
                 .filter(item => item.cantidad && item.cantidad > 0)
                 .map(item => ({
@@ -2355,11 +2364,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     seriales: item.seriales || Array(parseInt(item.cantidad, 10)).fill("")
                 }));
 
+            // Validación rápida en frontend
+            if (resumen.length === 0) {
+                errorContainer.innerHTML = '<p>Debe ingresar al menos un artículo con cantidad</p>';
+                errorContainer.style.display = 'block';
+                return;
+            }
+
             const formData = new FormData();
-            formData.append('accion', 'crear');       // debe coincidir con recepcion_ajax.php
+            formData.append('accion', 'crear');
             formData.append('ajuste_fecha', fecha);
             formData.append('ajuste_descripcion', descripcion);
-            formData.append('ajuste_tipo', 1);        // 1 = Entrada (Recepción)
+            formData.append('ajuste_tipo', 1);
             formData.append('articulos', JSON.stringify(resumen));
 
             fetch('php/recepcion_ajax.php', {
@@ -2377,7 +2393,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (data.campos && Array.isArray(data.campos)) {
                         data.campos.forEach((campo, index) => {
-                            let input = formRecepcion.querySelector(`[name="${campo}"]`);
+                            const input = formRecepcion.querySelector(`[name="${campo}"]`);
                             if (input) {
                                 input.classList.add('input-error');
                                 if (index === 0) input.focus();
@@ -2404,15 +2420,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-
-    // Actualizar tabla al cambiar filtros
-    document.addEventListener('change', function (e) {
-        if ((e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro'))
-            && $('#recepcionArticuloTabla').length) {
-            $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
-        }
-    });
 });
+
 
 
 
