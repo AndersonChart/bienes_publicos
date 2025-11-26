@@ -3,7 +3,6 @@ require_once 'recepcion.php';
 $recepcion = new recepcion();
 
 function validarAjuste($datos, $modo = 'crear', $id = null) {
-    $erroresFormato = [];
     $camposObligatorios = ['ajuste_fecha'];
 
     // Verificar campos obligatorios
@@ -43,10 +42,10 @@ function validarAjuste($datos, $modo = 'crear', $id = null) {
     }
 
     // Validación de artículos vacíos
-    if (empty($datos['articulos'])) {
+    if (!is_array($datos['articulos']) || count($datos['articulos']) === 0) {
         return [
             'error' => true,
-            'mensaje' => 'Debe ingresar al menos un artículo',
+            'mensaje' => 'Debe ingresar al menos un artículo con cantidad',
             'campos' => ['articulos']
         ];
     }
@@ -60,7 +59,6 @@ function validarAjuste($datos, $modo = 'crear', $id = null) {
 
     return ['valido' => true];
 }
-
 
 $accion = $_POST['accion'] ?? '';
 
@@ -96,7 +94,29 @@ switch ($accion) {
         try {
             header('Content-Type: application/json');
 
-            $articulos = isset($_POST['articulos']) ? json_decode($_POST['articulos'], true) : [];
+            // Decodificar artículos enviados como JSON
+            $articulos = [];
+            if (isset($_POST['articulos'])) {
+                $decoded = json_decode($_POST['articulos'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $articulos = $decoded;
+                }
+            }
+
+            // Normalizar: asegurar que seriales nunca sea NULL
+            foreach ($articulos as &$art) {
+                if (!isset($art['seriales']) || !is_array($art['seriales'])) {
+                    // Si no existe, crear array vacío con la cantidad de elementos
+                    $cantidad = isset($art['cantidad']) ? intval($art['cantidad']) : 0;
+                    $art['seriales'] = $cantidad > 0 ? array_fill(0, $cantidad, "") : [];
+                } else {
+                    // Si existe pero tiene nulls, reemplazar por strings vacíos
+                    $art['seriales'] = array_map(function($s) {
+                        return $s === null ? "" : $s;
+                    }, $art['seriales']);
+                }
+            }
+            unset($art); // romper referencia
 
             $datos = [
                 'ajuste_fecha'       => $_POST['ajuste_fecha'] ?? '',
@@ -105,21 +125,10 @@ switch ($accion) {
                 'articulos'          => $articulos
             ];
 
-            if (empty($datos['ajuste_fecha'])) {
-                echo json_encode([
-                    'error' => true,
-                    'mensaje' => 'Debe ingresar la fecha del ajuste',
-                    'campos' => ['ajuste_fecha']
-                ]);
-                exit;
-            }
-
-            if (empty($datos['articulos'])) {
-                echo json_encode([
-                    'error' => true,
-                    'mensaje' => 'Debe ingresar al menos un artículo con cantidad',
-                    'campos' => ['articulos']
-                ]);
+            // Validación
+            $validacion = validarAjuste($datos, 'crear');
+            if (isset($validacion['error'])) {
+                echo json_encode($validacion);
                 exit;
             }
 
@@ -142,6 +151,7 @@ switch ($accion) {
             ]);
         }
     break;
+
 
     case 'listar_articulos_recepcion':
         try {
@@ -174,7 +184,7 @@ switch ($accion) {
         }
     break;
 
-    case 'obtener_recepcion': // corregido: antes tenías 'obtener_ajuste'
+    case 'obtener_recepcion':
         header('Content-Type: application/json');
         $id = $_POST['id'] ?? '';
         if (!$id) {
@@ -219,27 +229,6 @@ switch ($accion) {
             ]);
         }
     break;
-    case 'listar_articulos_recepcion':
-        try {
-            header('Content-Type: application/json');
-            $categoriaId = $_POST['categoria_id'] ?? '';
-            $clasificacionId = $_POST['clasificacion_id'] ?? '';
-
-            // Estado = 1 significa activos/disponibles
-            $registros = $recepcion->leer_articulos_disponibles(1, $categoriaId, $clasificacionId);
-
-            echo json_encode(['data' => $registros]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'data' => [],
-                'error' => true,
-                'mensaje' => 'Error al listar artículos disponibles',
-                'detalle' => $e->getMessage()
-            ]);
-        }
-    break;
-
 
     case 'listar_articulos_por_ajuste':
         try {

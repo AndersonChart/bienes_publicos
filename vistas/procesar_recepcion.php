@@ -24,7 +24,7 @@
     <h2 class="modal_title">Realizar Recepción</h2>
     <div class="recepcion_container">
         <!-- Columna izquierda: formulario -->
-        <form id="form_nuevo_recepcion" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container">
+        <form id="form_nuevo_recepcion" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container" novalidate>
             <div class="input_block_content">
                 <label for="ajuste_fecha" class="input_label">Fecha*</label>
                 <input type="date" name="ajuste_fecha" id="ajuste_fecha" class="input_text input_date">
@@ -70,8 +70,6 @@
 </dialog>
 
 
-
-
 <!-- Modal: Información -->
 <dialog data-modal="info_articulo" class="modal modal_info">
     <div class="modal_header-info">
@@ -100,41 +98,43 @@
     </div>
 </dialog>
 
-
 <!-- Modal: Seriales -->
 <dialog data-modal="seriales_articulo" class="modal modal_confirmar">
-    <form method="dialog"><button class="modal__close">X</button></form>
-    <div class="modal_header-confirmar">
+    <div class="modal_header-info">
+        <form method="dialog"><button class="modal__close">X</button></form>
         <h2 class="modal_title">Añadir seriales</h2>
     </div>
-    <div class="img_info">
-        <!-- Imagen con placeholder por defecto -->
-        <img id="recepcion_imagen_articulo" class="foto_info imagen_info" src="img/icons/articulo.png" alt="Imagen del artículo">
-    </div>
-    <div class="recepcion_container">
-        <span class="delete_data-title" id="recepcion_codigo_articulo"></span>
-        <span class="delete_data" id="recepcion_nombre_articulo"></span>
-        <span class="delete_data" id="recepcion_categoria_articulo"></span>
-        <span class="delete_data" id="recepcion_clasificacion_articulo"></span>
-        <div class="seriales">
-            <div class="top"></div>
-            <table id="recepcionSerialIdTabla" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th class="header">Número</th>
-                        <th class="header">Serial</th>
-                    </tr>
-                </thead>
-            </table>
-            <div class="bottom paginador"></div>
-        </div>
-        <div id="error-container-recepcion-serial" class="error-container"></div>
-        <form id="form_recepcion_articulo_id" method="POST">
-            <input type="submit" value="Aceptar" name="recepcion_serial" class="register_submit-confirm" id="btn_serial">
-        </form>
-    </div>
-</dialog>
 
+    <!-- Imagen del artículo -->
+    <div class="img_info">
+        <img id="serial_imagen_articulo" class="foto_info imagen_info" src="img/icons/articulo.png" alt="Imagen del artículo">
+    </div>
+
+    <!-- Código y nombre -->
+    <div class="delete_container">
+            <span class="delete_data-title" id="serial_codigo_articulo"></span>
+            <span class="delete_data" id="serial_nombre_articulo"></span>
+    </div>
+
+    <!-- Tabla de seriales -->
+    <div class="seriales_container">
+        <table id="recepcionSerialIdTabla" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th class="header">Número</th>
+                    <th class="header">Serial</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <!-- Contenedor de errores -->
+    <div id="error-container-recepcion-serial" class="error-container"></div>
+
+        <form id="form_recepcion_articulo_id" method="POST">
+            <input type="submit" value="Guardar" name="recepcion_serial" class="register_submit" id="btn_serial">
+        </form>
+</dialog>
 <!-- Modal: Éxito -->
 <dialog data-modal="success" class="modal modal_success">
     <form method="dialog">
@@ -169,6 +169,4 @@
 
 <script src="js/recepcion_articulo_datatable.js"></script>
 <script src="js/recepcion_resumen_datatable.js"></script>
-<!--
 <script src="js/recepcion_serial_id_datatable.js"></script>
--->

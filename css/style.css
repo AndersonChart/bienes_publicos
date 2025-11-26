@@ -679,6 +679,22 @@ a {
     box-sizing: border-box;
 }
 
+.seriales_container {
+    width: 400px;
+    max-width: auto;
+    min-height: 300px;
+    border-radius: 20px;
+    background: #f9f9f9;  /* opcional para distinguir */
+    box-sizing: border-box;
+    gap: 50px;
+}
+
+.btn_agregar_seriales.disabled {
+    opacity: 0.5;
+    pointer-events: none; /* no se puede hacer clic */
+    cursor: not-allowed;
+}
+
 
 /* Contenedor superior */
 /* Contenedor superior */
@@ -880,6 +896,14 @@ a {
     height: 100px;
     object-fit: cover;
 }
+
+#articuloTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#articuloTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
 
 #cargoTabla tr:nth-child(even) {
     background-color: #ddd;
