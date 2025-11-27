@@ -15,7 +15,6 @@ window.addEventListener('load', function () {
         articuloActivo: null
     };
 
-    // Helpers UI
     function showDialog(selector) {
         const dlg = document.querySelector(selector);
         if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
@@ -131,12 +130,10 @@ window.addEventListener('load', function () {
         pageLength: 15
     });
 
-    // Filtros
     $('#categoria_filtro, #clasificacion_filtro').on('change', function () {
         tablaArticulos.ajax.reload(null, false);
     });
 
-    // Mantener cantidades y botones
     tablaArticulos.on('draw', function () {
         $('#procesoRecepcionArticuloTabla tbody .input_cantidad').each(function () {
             const id = $(this).data('id');
@@ -153,7 +150,6 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Cambios de cantidad
     $('#procesoRecepcionArticuloTabla tbody').on('input', '.input_cantidad', function () {
         const id = $(this).data('id');
         const codigo = $(this).data('codigo');
@@ -186,9 +182,6 @@ window.addEventListener('load', function () {
         actualizarResumenRecepcion();
     });
 
-    // ------------------------------
-    // DataTable: Resumen
-    // ------------------------------
     const tablaResumen = $('#procesoRecepcionResumenTabla').DataTable({
         data: [],
         columns: [
@@ -215,9 +208,6 @@ window.addEventListener('load', function () {
         tablaResumen.draw();
     }
 
-    // ------------------------------
-    // DataTable: Seriales (modal)
-    // ------------------------------
     const tablaSeriales = $('#procesoRecepcionSerialTabla').DataTable({
         scrollY: '300px',
         scrollCollapse: true,
@@ -254,8 +244,10 @@ window.addEventListener('load', function () {
                                 value="${valor}">`
             });
         }
+
         tablaSeriales.rows.add(filas).draw();
     }
+
 
     // Abrir modal de info
     $('#procesoRecepcionArticuloTabla tbody').on('click', '.btn_ver_info', function () {
@@ -313,7 +305,6 @@ window.addEventListener('load', function () {
         tablaSeriales.columns.adjust().draw();
     });
 
-    // Helpers de errores en modal de seriales
     function resetErrorSerial() {
         const el = document.getElementById('error-container-proceso-recepcion-serial');
         if (el) {
@@ -330,7 +321,7 @@ window.addEventListener('load', function () {
         }
     }
 
-    // Guardar seriales desde el modal
+    // Guardar seriales desde el modal con validación entre artículos
     $('#form_proceso_recepcion_seriales').on('submit', function (e) {
         e.preventDefault();
 
@@ -357,6 +348,19 @@ window.addEventListener('load', function () {
             return;
         }
 
+        // Validación contra otros artículos en el mismo proceso
+        for (const [artId, item] of Object.entries(estado.buffer)) {
+            if (parseInt(artId) !== estado.articuloActivo && Array.isArray(item.seriales)) {
+                for (const s of item.seriales) {
+                    const val = String(s || '').trim();
+                    if (val !== '' && serialesNoVacios.includes(val)) {
+                        setErrorSerial(`El serial ${val} ya fue ingresado en otro artículo durante este proceso.`);
+                        return;
+                    }
+                }
+            }
+        }
+
         if (serialesNoVacios.length > 0) {
             $.post('php/recepcion_ajax.php', {
                 accion: 'validar_seriales',
@@ -375,7 +379,6 @@ window.addEventListener('load', function () {
         }
     });
 
-    // Validación duplicados entre artículos
     function validarDuplicadosEntreArticulos() {
         const todosSeriales = [];
         for (const item of Object.values(estado.buffer)) {
@@ -397,7 +400,6 @@ window.addEventListener('load', function () {
         return null;
     }
 
-    // Abrir modal de recepción
     document.querySelectorAll('[data-modal-target="modal_proceso_recepcion"]').forEach(el => {
         el.addEventListener('click', function () {
             actualizarResumenRecepcion();
@@ -406,7 +408,6 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Envío del formulario de recepción
     $('#form_proceso_recepcion').on('submit', function (e) {
         e.preventDefault();
         clearError('error-container-proceso-recepcion');
@@ -428,7 +429,6 @@ window.addEventListener('load', function () {
             return;
         }
 
-        // Validación duplicados entre artículos
         const errorDuplicado = validarDuplicadosEntreArticulos();
         if (errorDuplicado) {
             setError('error-container-proceso-recepcion', errorDuplicado);
@@ -463,7 +463,6 @@ window.addEventListener('load', function () {
         }, 'json');
     });
 
-    // Cierre de modal de éxito
     $('#close-success-proceso-recepcion').on('click', function () {
         closeDialog('dialog[data-modal="success"]');
     });
