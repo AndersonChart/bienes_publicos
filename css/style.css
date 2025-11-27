@@ -125,9 +125,10 @@ a {
     cursor: pointer;
 }
 
-.error-container {
+.error-container, .error-container-serial {
     display: block;
     min-width: 300px;
+    max-width: 60%;
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: bold;
@@ -137,11 +138,14 @@ a {
     text-align: center;
     margin: 0 auto;
 
-    /* ✅ Estas son las claves para centrarlo dentro de un contenedor flex */
+    /*  Estas son las claves para centrarlo dentro de un contenedor flex */
     align-self: center;       /* Centra dentro del flex padre */
     order: 2;                /* Lo coloca antes que los inputs si es necesario */
 }
 
+.error-container-serial {
+    max-width: 40%;
+}
 
 #error-container:empty {
     display: none;
@@ -680,13 +684,15 @@ a {
 }
 
 .seriales_container {
-    width: 400px;
+    width: 90%;
     max-width: auto;
-    min-height: 300px;
+    height: auto;
     border-radius: 20px;
     background: #f9f9f9;  /* opcional para distinguir */
     box-sizing: border-box;
+    margin-bottom: 10px;
     gap: 50px;
+    overflow-y: auto;
 }
 
 .btn_agregar_seriales.disabled {
@@ -861,14 +867,14 @@ a {
     object-fit: cover;
 }
 
-#recepcionArticuloTabla tr:nth-child(even) {
+#procesoRecepcionArticuloTabla tr:nth-child(even) {
     background-color: #ddd;
 }
-#recepcionArticuloTabla tr:nth-child(odd) {
+#procesoRecepcionArticuloTabla tr:nth-child(odd) {
     background-color: #ccc;
 }
 
-#recepcionArticuloTabla td img {
+#procesoRecepcionArticuloTabla td img {
     width: 100px;
     height: 100px;
     object-fit: cover;
@@ -923,6 +929,11 @@ a {
 #cargoTabla td {
     width: 40px;
     height: 40px;
+}
+
+#procesoRecepcionSerialTabla td {
+    width: 10px;
+    height: 10px;
 }
 
 #areaTabla tr:nth-child(even) {
@@ -1088,6 +1099,12 @@ a {
     box-sizing: border-box;
 }
 
+.modal_serial {
+    height: auto;
+    max-height: 800px;
+}
+
+
 
 
 /* Animación de entrada desde arriba */
@@ -1246,6 +1263,8 @@ a {
     object-fit: cover;
     object-position: center;
 }
+
+
 
 /* Contenedor de datos */
 .delete_container {
@@ -1471,6 +1490,28 @@ a {
     width: auto;
 }
 
+.input_serial {
+    width: 100%;
+    padding: 6px 10px;              /* espacio interno cómodo */
+    border: 1px solid #ccc;         /* borde sutil */
+    border-radius: 4px;             /* esquinas redondeadas */
+    font-size: 14px;
+    box-sizing: border-box;         /* asegura que el padding no rompa el ancho */
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input_serial:focus {
+    border-color: #4a90e2;          /* azul al enfocar */
+    box-shadow: 0 0 4px rgba(74, 144, 226, 0.4); /* halo suave */
+    outline: none;                  /* quitar borde por defecto */
+}
+
+.input_serial::placeholder {
+    color: #aaa;                    /* placeholder más tenue */
+    font-style: italic;
+}
+
+
 /* Estilo base para el input tipo date */
 .input_date::-webkit-calendar-picker-indicator {
     background-color: transparent;
@@ -1638,4 +1679,11 @@ a {
     box-shadow: 0 5px 10px #003;
     outline: none;
     transform: scale(1.05);
+}
+
+.btn_agregar_seriales.is-disabled,
+.btn_agregar_seriales[disabled] {
+    opacity: 0.4;       /* opacidad baja */
+    pointer-events: none;
+    cursor: not-allowed;
 }

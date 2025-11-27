@@ -12,37 +12,35 @@
     </div>
     <div class="basics-container">
         <a class="new_user" href="index.php?vista=listar_recepcion">← Regresar</a>
-        <div class="new-proceso" data-modal-target="new_recepcion">Procesar</div>
+        <div class="new-proceso" data-modal-target="modal_proceso_recepcion">Procesar</div>
     </div>
 </div>
 
 <!-- Modal: Finalizar Proceso -->
-<dialog data-modal="new_recepcion" class="modal_new-recepcion">
-    <!-- Botón de cierre del modal -->
+<dialog data-modal="modal_proceso_recepcion" class="modal_new-recepcion">
     <button type="button" class="modal__close" onclick="this.closest('dialog').close()">X</button>
-
     <h2 class="modal_title">Realizar Recepción</h2>
-    <div class="recepcion_container">
+
+    <div class="proceso_container">
         <!-- Columna izquierda: formulario -->
-        <form id="form_nuevo_recepcion" method="POST" enctype="multipart/form-data" autocomplete="off" class="user_container" novalidate>
+        <form id="form_proceso_recepcion" method="POST" autocomplete="off" class="user_container" novalidate>
             <div class="input_block_content">
-                <label for="ajuste_fecha" class="input_label">Fecha*</label>
-                <input type="date" name="ajuste_fecha" id="ajuste_fecha" class="input_text input_date">
+                <label for="proceso_recepcion_fecha" class="input_label">Fecha*</label>
+                <input type="date" name="ajuste_fecha" id="proceso_recepcion_fecha" class="input_text input_date">
             </div>
 
             <div class="input_block_content">
-                <label for="ajuste_descripcion" class="input_label">Descripción</label>
-                <input type="text" id="ajuste_descripcion" name="ajuste_descripcion" class="input_text">
+                <label for="proceso_recepcion_descripcion" class="input_label">Descripción</label>
+                <input type="text" id="proceso_recepcion_descripcion" name="ajuste_descripcion" class="input_text">
             </div>
 
-            <!-- Campo oculto para el tipo -->
             <input type="hidden" name="ajuste_tipo" value="1"> <!-- 1 = Entrada -->
 
             <!-- Contenedor de errores -->
-            <div id="error-container-recepcion" class="error-container"></div>
+            <div id="error-container-proceso-recepcion" class="error-container"></div>
 
             <!-- Botón de envío -->
-            <input type="submit" value="Guardar" name="save" class="register_submit" id="btn_guardar_recepcion">
+            <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_proceso_recepcion">
         </form>
 
         <div class="separador"></div>
@@ -50,11 +48,10 @@
         <!-- Columna derecha: tabla resumen -->
         <div class="resumen_container">
             <div class="container_table_box-recepcion">
-                <div class="top"></div>
-                <table id="recepcionResumenTabla" class="display" style="width:100%">
+                <table id="procesoRecepcionResumenTabla" class="display" style="width:100%">
                     <thead>
                         <tr>
-                            <th colspan="3" class="title">Resumen Recepción</th>
+                            <th colspan="3" class="title">Resumen de la Recepción</th>
                         </tr>
                         <tr>
                             <th class="header">Código</th>
@@ -63,12 +60,10 @@
                         </tr>
                     </thead>
                 </table>
-                <div class="bottom paginador"></div>
             </div>
         </div>
     </div>
 </dialog>
-
 
 <!-- Modal: Información -->
 <dialog data-modal="info_articulo" class="modal modal_info">
@@ -98,8 +93,9 @@
     </div>
 </dialog>
 
+
 <!-- Modal: Seriales -->
-<dialog data-modal="seriales_articulo" class="modal modal_confirmar">
+<dialog data-modal="seriales_articulo" class="modal modal_confirmar modal_serial">
     <div class="modal_header-info">
         <form method="dialog"><button class="modal__close">X</button></form>
         <h2 class="modal_title">Añadir seriales</h2>
@@ -112,13 +108,13 @@
 
     <!-- Código y nombre -->
     <div class="delete_container">
-            <span class="delete_data-title" id="serial_codigo_articulo"></span>
-            <span class="delete_data" id="serial_nombre_articulo"></span>
+        <span class="delete_data-title" id="serial_codigo_articulo"></span>
+        <span class="delete_data" id="serial_nombre_articulo"></span>
     </div>
 
     <!-- Tabla de seriales -->
     <div class="seriales_container">
-        <table id="recepcionSerialIdTabla" class="display" style="width:100%">
+        <table id="procesoRecepcionSerialTabla" class="display" style="width:100%">
             <thead>
                 <tr>
                     <th class="header">Número</th>
@@ -129,26 +125,27 @@
     </div>
 
     <!-- Contenedor de errores -->
-    <div id="error-container-recepcion-serial" class="error-container"></div>
+    <div id="error-container-proceso-recepcion-serial" class="error-container error-container-serial"></div>
 
-        <form id="form_recepcion_articulo_id" method="POST">
-            <input type="submit" value="Guardar" name="recepcion_serial" class="register_submit" id="btn_serial">
-        </form>
-</dialog>
-<!-- Modal: Éxito -->
-<dialog data-modal="success" class="modal modal_success">
-    <form method="dialog">
-        <div class="modal_icon"></div>
-        <h2 class="modal_title">¡Recepción procesada con éxito!</h2>
-        <p class="modal_success-message" id="success-message"></p>
-        <button class="modal__close-success" id="close-success_articulo">Aceptar</button>
+    <!-- Botón de guardar -->
+    <form id="form_proceso_recepcion_seriales" method="POST">
+        <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_proceso_recepcion_seriales">
     </form>
 </dialog>
 
-<!-- Tabla -->
+
+<!-- Modal: Éxito -->
+<dialog data-modal="success" class="modal modal_success">
+    <form method="dialog">
+        <h2 class="modal_title">Recepción procesada con éxito</h2>
+        <p id="success-message"></p>
+        <button class="modal__close-success" id="close-success-proceso-recepcion">Aceptar</button>
+    </form>
+</dialog>
+
+<!-- Tabla principal de artículos -->
 <div class="container_table_box">
-    <div class="top"></div>
-    <table id="recepcionArticuloTabla" class="display" style="width:100%">
+    <table id="procesoRecepcionArticuloTabla" class="display" style="width:100%">
         <thead>
             <tr>
                 <th colspan="7" class="title">Ingresar Artículos</th>
@@ -164,9 +161,7 @@
             </tr>
         </thead>
     </table>
-    <div class="bottom paginador"></div>
 </div>
 
-<script src="js/recepcion_articulo_datatable.js"></script>
-<script src="js/recepcion_resumen_datatable.js"></script>
-<script src="js/recepcion_serial_id_datatable.js"></script>
+<!-- Un solo archivo JS para manejar todo -->
+<script src="js/proceso_recepcion_datatable.js"></script>

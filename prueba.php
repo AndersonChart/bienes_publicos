@@ -2,6 +2,353 @@
 echo password_hash("admin123", PASSWORD_DEFAULT);
 ?>
 
+/* Crear Recepcion */
+document.addEventListener('DOMContentLoaded', function () {
+    // Buffer global compartido por tabla de artículos, resumen y formulario
+    window.cantidadesIngresadas = window.cantidadesIngresadas || {};
+    const cantidadesIngresadas = window.cantidadesIngresadas;
+
+    const formRecepcion = document.getElementById('form_nuevo_recepcion');
+    const errorContainer = document.getElementById('error-container-recepcion');
+    const btnNuevo = document.querySelector('[data-modal-target="new_recepcion"]');
+    const modalRecepcion = document.querySelector('dialog[data-modal="new_recepcion"]');
+    const fechaInput = document.getElementById('ajuste_fecha');
+
+    // Abrir modal y limpiar formulario
+    if (btnNuevo && modalRecepcion) {
+        btnNuevo.addEventListener('click', () => {
+            if (modalRecepcion.showModal) modalRecepcion.showModal();
+            limpiarFormulario(formRecepcion);
+
+            // Reasignar fecha de hoy después de limpiar
+            if (fechaInput) {
+                const hoy = new Date();
+                const yyyy = hoy.getFullYear();
+                const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+                const dd = String(hoy.getDate()).padStart(2, '0');
+                const fechaHoy = `${yyyy}-${mm}-${dd}`;
+
+                fechaInput.value = fechaHoy;
+                fechaInput.setAttribute('max', fechaHoy);
+
+                console.log("Fecha asignada automáticamente:", fechaHoy);
+            }
+        });
+    }
+
+    // Envío del formulario
+    if (formRecepcion) {
+        formRecepcion.addEventListener('submit', function (e) {
+            e.preventDefault();
+            console.log("Interceptado submit de recepción");
+
+            const fecha = fechaInput ? fechaInput.value : '';
+            const descripcion = document.getElementById('ajuste_descripcion').value.trim();
+
+            // Resetear errores previos
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+
+            // Validación personalizada de fecha
+            if (!fecha) {
+                errorContainer.innerHTML = '<p>Debe rellenar la fecha del ajuste</p>';
+                errorContainer.style.display = 'block';
+                fechaInput.classList.add('input-error');
+                fechaInput.focus();
+                return;
+            }
+            const regexFecha = /^\d{4}-\d{2}-\d{2}$/;
+            if (!regexFecha.test(fecha)) {
+                errorContainer.innerHTML = '<p>La fecha debe tener formato YYYY-MM-DD</p>';
+                errorContainer.style.display = 'block';
+                fechaInput.classList.add('input-error');
+                fechaInput.focus();
+                return;
+            }
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const fechaHoy = `${yyyy}-${mm}-${dd}`;
+            if (fecha > fechaHoy) {
+                errorContainer.innerHTML = '<p>La fecha no puede ser posterior al día de hoy</p>';
+                errorContainer.style.display = 'block';
+                fechaInput.classList.add('input-error');
+                fechaInput.focus();
+                return;
+            }
+
+            // Artículos seleccionados desde cantidadesIngresadas (buffer global)
+            const resumen = Object.values(cantidadesIngresadas)
+                .filter(item => item.cantidad && item.cantidad > 0)
+                .map(item => ({
+                    articulo_id: item.articulo_id,
+                    cantidad: item.cantidad,
+                    seriales: item.seriales || Array(parseInt(item.cantidad, 10)).fill("")
+                }));
+
+            console.log("Resumen a enviar:", resumen);
+
+            // Validación personalizada de artículos
+            if (resumen.length === 0) {
+                errorContainer.innerHTML = '<p>Debe ingresar al menos un artículo con cantidad</p>';
+                errorContainer.style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('accion', 'crear');
+            formData.append('ajuste_fecha', fecha);
+            formData.append('ajuste_descripcion', descripcion);
+            formData.append('ajuste_tipo', 1);
+            formData.append('articulos', JSON.stringify(resumen));
+
+            console.log("JSON articulos:", formData.get('articulos'));
+
+            fetch('php/recepcion_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Respuesta backend:", data);
+
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            const input = formRecepcion.querySelector(`[name="${campo}"]`);
+                            if (input) {
+                                input.classList.add('input-error');
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    mostrarModalExito(data.mensaje);
+
+                    if (modalRecepcion && modalRecepcion.open) {
+                        modalRecepcion.close();
+                    }
+
+                    limpiarFormulario(formRecepcion);
+
+                    // Reasignar fecha de hoy también después de guardar
+                    if (fechaInput) {
+                        const hoy = new Date();
+                        const yyyy = hoy.getFullYear();
+                        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+                        const dd = String(hoy.getDate()).padStart(2, '0');
+                        const fechaHoy = `${yyyy}-${mm}-${dd}`;
+                        fechaInput.value = fechaHoy;
+                        fechaInput.setAttribute('max', fechaHoy);
+                    }
+
+                    if ($('#recepcionTabla').length) {
+                        $('#recepcionTabla').DataTable().ajax.reload(null, false);
+                    }
+                }
+            })
+            .catch((err) => {
+                console.error("Error en fetch:", err);
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
+});
+
+// Buffer global: cantidades ingresadas por artículo (id => {cantidad, seriales, codigo, nombre})
+window.cantidadesIngresadas = window.cantidadesIngresadas || {};
+
+window.addEventListener('load', function () {
+    if (typeof $ !== 'function') {
+        console.error('jQuery no está disponible');
+        return;
+    }
+
+    // Inicializar DataTable de seriales una sola vez
+    const tablaSeriales = $('#recepcionSerialIdTabla').DataTable({
+        scrollY: '300px',
+        scrollCollapse: true,
+        responsive: true,
+        paging: false,
+        searching: false,
+        info: false,
+        ordering: true,
+        columns: [
+        { data: 'numero', title: 'Número', orderable: true },
+        { data: 'serial', title: 'Serial', orderable: false }
+        ],
+        language: {
+        emptyTable: 'No hay filas para mostrar'
+        }
+    });
+
+    // Utilidad: mostrar error
+    function showError(msg) {
+        const ec = document.getElementById('error-container-recepcion-serial');
+        if (!ec) return;
+        ec.textContent = msg || 'Ocurrió un error';
+        ec.style.display = 'block';
+    }
+
+    // Utilidad: limpiar/ocultar error
+    function clearError() {
+        const ec = document.getElementById('error-container-recepcion-serial');
+        if (!ec) return;
+        ec.innerHTML = '';
+        ec.style.display = 'none';
+    }
+
+    // Abre el modal y coloca encabezado + genera filas según buffer
+    function abrirModalSeriales(dataBackend, articuloBuffer) {
+        // Imagen
+        const img = document.getElementById('serial_imagen_articulo');
+        img.src =
+        (dataBackend.articulo_imagen && dataBackend.articulo_imagen.trim() !== '')
+            ? `${dataBackend.articulo_imagen}?t=${Date.now()}`
+            : 'img/icons/articulo.png';
+
+        // Código y nombre (acepta variantes, usa buffer como fallback)
+        const codigo =
+        dataBackend.articulo_codigo ||
+        dataBackend.codigo ||
+        articuloBuffer?.codigo ||
+        '';
+        const nombre =
+        dataBackend.articulo_nombre ||
+        dataBackend.nombre ||
+        articuloBuffer?.nombre ||
+        '';
+
+        document.getElementById('serial_codigo_articulo').textContent = codigo;
+        document.getElementById('serial_nombre_articulo').textContent = nombre;
+
+        // Limpiar y ocultar error
+        clearError();
+
+        // Generar filas
+        tablaSeriales.clear();
+        const cantidad = parseInt(articuloBuffer?.cantidad, 10) || 0;
+
+        if (cantidad <= 0) {
+        tablaSeriales.rows.add([{ numero: '', serial: 'Ingrese una cantidad válida en la tabla principal' }]).draw();
+        } else {
+        // Asegurar array de seriales en buffer
+        if (!Array.isArray(articuloBuffer.seriales) || articuloBuffer.seriales.length !== cantidad) {
+            articuloBuffer.seriales = Array.from({ length: cantidad }, () => '');
+        }
+
+        const filas = Array.from({ length: cantidad }, (_, i) => ({
+            numero: i + 1,
+            serial: `<input type="text"
+                            class="input_text input_serial"
+                            data-articulo="${articuloBuffer.articulo_id}"
+                            data-index="${i}"
+                            value="${articuloBuffer.seriales[i] || ''}">`
+        }));
+
+        tablaSeriales.rows.add(filas).draw();
+        }
+
+        // Abrir modal
+        document.querySelector('dialog[data-modal="seriales_articulo"]')?.showModal();
+    }
+
+    // Evento público para abrir modal desde la tabla principal
+    // Llama: abrirSerialesDesdeTabla(articuloId)
+    window.abrirSerialesDesdeTabla = function (articuloId) {
+        if (!articuloId) return showError('ID de artículo inválido');
+
+        const articuloBuffer = window.cantidadesIngresadas[articuloId];
+        if (!articuloBuffer || (parseInt(articuloBuffer.cantidad, 10) || 0) <= 0) {
+        return showError('Primero ingrese una cantidad válida en la tabla principal');
+        }
+
+        // Pedir datos completos al backend (imagen, código, nombre)
+        fetch('php/articulo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_articulo', id: articuloId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.articulo) {
+            abrirModalSeriales(data.articulo, articuloBuffer);
+            } else {
+            showError(data.mensaje || 'No se pudo obtener el artículo');
+            }
+        })
+        .catch(err => {
+            console.error('Error al obtener artículo:', err);
+            showError('Error de comunicación con el servidor');
+        });
+    };
+
+    // Guardar seriales desde el modal
+    $('#form_recepcion_articulo_id').on('submit', function (e) {
+        e.preventDefault();
+
+        try {
+        const inputs = document.querySelectorAll('#recepcionSerialIdTabla tbody .input_serial');
+
+        if (!inputs || inputs.length === 0) {
+            showError('No hay filas para guardar');
+            return;
+        }
+
+        let articuloId = null;
+
+        inputs.forEach(input => {
+            const id = input.getAttribute('data-articulo');
+            const idx = parseInt(input.getAttribute('data-index'), 10);
+            const val = input.value.trim();
+
+            if (!articuloId) articuloId = id;
+            if (!window.cantidadesIngresadas[id]) return;
+
+            window.cantidadesIngresadas[id].seriales[idx] = val;
+        });
+
+        // Cerrar modal
+        document.querySelector('dialog[data-modal="seriales_articulo"]')?.close();
+        } catch (ex) {
+        console.error('Error guardando seriales:', ex);
+        showError('No se pudieron guardar los seriales');
+        }
+    });
+    });
+
+
+    // Actualizar tabla al cambiar filtros
+    document.addEventListener('change', function (e) {
+        if ((e.target.matches('#categoria_filtro') || e.target.matches('#clasificacion_filtro'))
+            && $('#recepcionArticuloTabla').length) {
+            $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+        }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!-- Modal: Información -->
 <dialog data-modal="info_articulo" class="modal modal_info">
