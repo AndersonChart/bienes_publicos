@@ -3053,3 +3053,96 @@ document.addEventListener('change', function (e) {
 
 /*MODULO: RECEPCION*/
 
+// Mostrar información de recepción
+function mostrarInfoRecepcion(data) {
+    document.getElementById('info_recepcion_id').textContent = data.recepcion_id || '';
+    document.getElementById('info_recepcion_fecha').textContent = data.recepcion_fecha || '';
+    document.getElementById('info_recepcion_descripcion').textContent = data.recepcion_descripcion || '';
+
+    const modal = document.querySelector('dialog[data-modal="info_recepcion"]');
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+}
+
+// Mostrar datos en confirmación de recepción
+function mostrarConfirmacionRecepcion(data, modo = 'anular') {
+    if (modo === 'anular') {
+        document.getElementById('anular_recepcion_id').textContent = data.recepcion_id || '';
+        document.getElementById('anular_recepcion_descripcion').textContent = data.recepcion_descripcion || '';
+
+        const form = document.getElementById('form_anular_recepcion');
+        form.dataset.recepcionId = data.recepcion_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="anular_recepcion"]');
+        if (modal?.showModal) modal.showModal();
+    } else if (modo === 'recuperar') {
+        document.getElementById('confirmar_recepcion_id').textContent = data.recepcion_id || '';
+        document.getElementById('confirmar_recepcion_descripcion').textContent = data.recepcion_descripcion || '';
+
+        const form = document.getElementById('form_recuperar_recepcion');
+        form.dataset.recepcionId = data.recepcion_id;
+        form.dataset.modo = modo;
+
+        const modal = document.querySelector('dialog[data-modal="recuperar_recepcion"]');
+        if (modal?.showModal) modal.showModal();
+    }
+}
+
+// Anular recepción
+document.getElementById('form_anular_recepcion')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.recepcionId;
+    if (!id) return;
+
+    fetch('php/recepcion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'anular', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="anular_recepcion"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Recepción anulada');
+            $('#recepcionTabla').DataTable().ajax.reload(null, false);
+        } else {
+            mostrarModalError(data.mensaje || 'No se pudo anular la recepción');
+        }
+    })
+    .catch(() => {
+        mostrarModalError('Error de conexión con el servidor');
+    });
+});
+
+// Recuperar recepción
+document.getElementById('form_recuperar_recepcion')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const id = this.dataset.recepcionId;
+    if (!id) return;
+
+    fetch('php/recepcion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exito) {
+            const modal = document.querySelector('dialog[data-modal="recuperar_recepcion"]');
+            if (modal?.open) modal.close();
+
+            mostrarModalExito(data.mensaje || 'Recepción recuperada');
+            estadoRecepcion = 1; // volvemos a habilitadas
+            $('#recepcionTabla').DataTable().ajax.reload(null, false);
+        } else {
+            mostrarModalError(data.mensaje || 'No se pudo recuperar la recepción');
+        }
+    })
+    .catch(() => {
+        mostrarModalError('Error de conexión con el servidor');
+    });
+});
