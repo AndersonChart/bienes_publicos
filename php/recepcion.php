@@ -19,7 +19,7 @@ class recepcion {
             // Insertar cabecera del ajuste (tipo 1 = Entrada)
             $stmtCab = $this->pdo->prepare(
                 "INSERT INTO ajuste (ajuste_fecha, ajuste_descripcion, ajuste_tipo, ajuste_estado)
-                 VALUES (?, ?, 1, 1)"
+                VALUES (?, ?, 1, 1)"
             );
             $stmtCab->execute([$fecha, $descripcion]);
             $ajuste_id = $this->pdo->lastInsertId();
@@ -27,11 +27,11 @@ class recepcion {
             if (!empty($articulos)) {
                 $stmtSerial = $this->pdo->prepare(
                     "INSERT INTO articulo_serial (articulo_id, articulo_serial, estado_id)
-                     VALUES (?, ?, 1)"
+                    VALUES (?, ?, 1)"
                 );
                 $stmtAjusteArticulo = $this->pdo->prepare(
                     "INSERT INTO ajuste_articulo (articulo_serial_id, ajuste_id)
-                     VALUES (?, ?)"
+                    VALUES (?, ?)"
                 );
 
                 // Validar duplicados entre artículos en el mismo payload
@@ -101,9 +101,9 @@ class recepcion {
     public function existe_serial($serial) {
         $stmt = $this->pdo->prepare(
             "SELECT COUNT(*) 
-             FROM articulo_serial 
-             WHERE articulo_serial = ? 
-               AND estado_id <> 4"
+            FROM articulo_serial 
+            WHERE articulo_serial = ? 
+            AND estado_id <> 4"
         );
         $stmt->execute([$serial]);
         return $stmt->fetchColumn() > 0;
@@ -116,9 +116,9 @@ class recepcion {
             $placeholders = implode(',', array_fill(0, count($seriales), '?'));
             $stmt = $this->pdo->prepare(
                 "SELECT articulo_serial 
-                 FROM articulo_serial 
-                 WHERE articulo_serial IN ($placeholders)
-                   AND estado_id <> 4"
+                FROM articulo_serial 
+                WHERE articulo_serial IN ($placeholders)
+                AND estado_id <> 4"
             );
             $stmt->execute($seriales);
             $repetidos = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -147,14 +147,53 @@ class recepcion {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Anular recepción
     public function anular($id) {
-        $stmt = $this->pdo->prepare(
-            "UPDATE ajuste SET ajuste_estado = 0
-             WHERE ajuste_id = ? AND ajuste_tipo = 1"
-        );
-        return $stmt->execute([(int)$id]);
+        try {
+            $this->pdo->beginTransaction();
+
+            // Buscar seriales asociados a la recepción
+            $stmt = $this->pdo->prepare(
+                "SELECT s.articulo_serial_id, s.estado_id
+                FROM ajuste_articulo aa
+                INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
+                WHERE aa.ajuste_id = ?"
+            );
+            $stmt->execute([(int)$id]);
+            $seriales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Validar que todos estén en estado 1
+            foreach ($seriales as $s) {
+                if ((int)$s['estado_id'] !== 1) {
+                    // Si alguno no está en estado 1, abortar
+                    throw new Exception('Seriales comprometidos, no se puede anular.');
+                }
+            }
+
+            // Marcar cabecera como anulada
+            $stmtCab = $this->pdo->prepare(
+                "UPDATE ajuste SET ajuste_estado = 0
+                WHERE ajuste_id = ? AND ajuste_tipo = 1"
+            );
+            $stmtCab->execute([(int)$id]);
+
+            // Marcar todos los seriales asociados como estado 4
+            $stmtSeriales = $this->pdo->prepare(
+                "UPDATE articulo_serial
+                SET estado_id = 4
+                WHERE articulo_serial_id IN (
+                    SELECT articulo_serial_id FROM ajuste_articulo WHERE ajuste_id = ?
+                )"
+            );
+            $stmtSeriales->execute([(int)$id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false; // devolvemos false para que el router muestre el modal de error
+        }
     }
+
 
     // Listar artículos disponibles
     public function leer_articulos_disponibles($estado = 1, $categoriaId = '', $clasificacionId = '') {

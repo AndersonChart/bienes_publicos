@@ -86,18 +86,31 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Listener: anular recepción
+    // Acción de anular recepción
     $('#recepcionTabla tbody').on('click', '.btn_anular', function () {
         const id = $(this).data('id');
-        if (!id) return;
-        fetch('php/recepcion_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({ accion: 'obtener_recepcion', id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.exito && data.recepcion) mostrarConfirmacionRecepcion(data.recepcion, 'anular');
+        console.log('Anular recepción id:', id);
+
+        $.post('php/recepcion_ajax.php', { accion: 'anular', id }, function (resp) {
+            try {
+                resp = (typeof resp === 'string') ? JSON.parse(resp) : resp;
+            } catch (e) {
+                console.error('Respuesta no JSON:', resp);
+            }
+
+            console.log('Respuesta anular:', resp);
+
+            if (resp && resp.exito) {
+                mostrarModalExito(resp.mensaje);
+                $('#recepcionTabla tbody').DataTable().ajax.reload(null, false);
+            } else {
+                mostrarModalError(resp?.mensaje || 'No se pudo anular la recepción');
+            }
+        }, 'json').fail(function (xhr) {
+            console.error('Fail anular:', xhr.status, xhr.responseText);
+            mostrarModalError('Error de comunicación con el servidor al intentar anular.');
         });
     });
+
 });
 

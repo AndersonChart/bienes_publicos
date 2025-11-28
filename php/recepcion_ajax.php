@@ -312,26 +312,32 @@ switch ($accion) {
 
 
     case 'anular':
-        try {
-            $id = $_POST['id'] ?? '';
-            if (!$id) {
-                throw new Exception('No se proporcionó el identificador de la recepción');
-            }
-            $exito = $recepcion->anular($id);
+    try {
+        $id = $_POST['id'] ?? '';
+        if (!$id) {
+            throw new Exception('No se proporcionó el identificador de la recepción');
+        }
+        $exito = $recepcion->anular($id);
 
+        if ($exito) {
             echo json_encode([
-                'exito'   => $exito,
-                'mensaje' => $exito ? 'La recepción fue anulada correctamente' : 'No se pudo anular la recepción seleccionada'
+                'exito'   => true,
+                'mensaje' => 'La recepción fue anulada correctamente'
             ]);
-        } catch (Exception $e) {
-            http_response_code(500);
+        } else {
             echo json_encode([
                 'exito'   => false,
-                'mensaje' => 'Ocurrió un error al intentar anular la recepción',
-                'detalle' => $e->getMessage()
+                'mensaje' => 'No se puede anular la recepción'
             ]);
         }
-        break;
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'exito'   => false,
+            'mensaje' => 'No se puede anular la recepción'
+        ]);
+    }
+    break;
 
     case 'listar_articulos_por_ajuste':
         try {

@@ -14,6 +14,25 @@ function mostrarModalExito(mensaje) {
     }
 }
 
+//Función global: operación fallida
+function mostrarModalError(mensaje) {
+    const errorModal = document.querySelector('dialog[data-modal="error"]');
+    const errorMessage = document.getElementById('error-message');
+    const closeError = document.getElementById('close-error');
+
+    if (errorModal && typeof errorModal.showModal === 'function') {
+        errorMessage.textContent = mensaje;
+        errorModal.showModal();
+
+        closeError.onclick = () => {
+            errorModal.close();
+        };
+    }
+}
+
+
+
+
 
 //Función global: mostrar errores
 function mostrarError(containerId, mensaje) {
@@ -774,7 +793,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btncrear = document.getElementById('btn_crear');
     if (btncrear) btncrear.disabled = false;
 
-    inicializarFechasHoy();
     cargarCategorias();
     cargarRol();
     cargarClasificacion();
