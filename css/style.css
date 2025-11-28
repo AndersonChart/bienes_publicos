@@ -1092,7 +1092,7 @@ a {
     flex-direction: column;   /* asegura que el título quede arriba */
     width: auto;              /* se adapta al contenido */
     min-width: 60%;           /* ancho mínimo */
-    max-width: 80vw;          /* máximo 80% del ancho de la pantalla */
+    max-width: 40vw;          /* máximo 80% del ancho de la pantalla */
     padding: 20px;
     border-radius: 20px;
     background: #ddd;

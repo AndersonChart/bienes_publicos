@@ -48,7 +48,7 @@
         <!-- Columna derecha: tabla resumen -->
         <div class="resumen_container">
             <div class="container_table_box-recepcion">
-                <table id="procesoRecepcionResumenTabla" class="display" style="width:100%">
+                <table id="procesoRecepcionResumenTabla" class="display">
                     <thead>
                         <tr>
                             <th colspan="3" class="title">Resumen de la Recepción</th>

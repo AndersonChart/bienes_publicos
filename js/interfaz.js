@@ -2970,59 +2970,28 @@ function mostrarInfoPersona(data) {
     }
 }
 
-// 👉 Función para ingresar seriales con encabezado
-function ingresarSerialArticulo(dataBackend, articuloBuffer) {
-    // Imagen
-    const img = document.getElementById('recepcion_imagen_articulo');
-    img.src = (dataBackend.articulo_imagen?.trim() !== '') 
-        ? dataBackend.articulo_imagen + '?t=' + Date.now() 
-        : 'img/icons/articulo.png';
+function mostrarConfirmacionPersona(persona, accion) {
+    const dialog = document.querySelector('dialog[data-modal="eliminar_persona"]');
+    if (!dialog) return;
 
-    // Código y nombre (acepta varias claves)
-    const codigo = dataBackend.articulo_codigo || dataBackend.codigo || articuloBuffer.codigo || '';
-    const nombre = dataBackend.articulo_nombre || dataBackend.nombre || articuloBuffer.nombre || '';
+    // Rellenar datos en el modal
+    document.getElementById('delete_persona_nombre_completo').textContent = persona.nombre + ' ' + persona.apellido;
+    document.getElementById('delete_persona_cargo').textContent = persona.cargo;
+    document.getElementById('delete_foto_persona').src = persona.foto || 'img/icons/perfil.png';
 
-    document.getElementById('recepcion_codigo_articulo').textContent = codigo;
-    document.getElementById('recepcion_nombre_articulo').textContent = nombre;
+    // Guardar el id en el formulario
+    const form = document.getElementById('form_delete_persona');
+    form.dataset.personaId = persona.id;
 
-    // Ocultar/limpiar contenedor de error
-    const errorContainer = document.getElementById('error-container-recepcion-serial');
-    if (errorContainer) {
-        errorContainer.innerHTML = '';
-        errorContainer.style.display = 'none';
-    }
-
-    // Tabla de seriales
-    const tablaSeriales = $('#recepcionSerialIdTabla').DataTable();
-    tablaSeriales.clear();
-
-    const cantidad = parseInt(articuloBuffer.cantidad, 10) || 0;
-    if (cantidad <= 0) {
-        tablaSeriales.rows.add([{ numero: '', serial: 'Intente ingresar cantidad' }]).draw();
-    } else {
-        const filas = [];
-        for (let i = 0; i < cantidad; i++) {
-            filas.push({
-                numero: i + 1,
-                serial: `<input type="text" 
-                            class="input_text input_serial" 
-                            data-articulo="${articuloBuffer.articulo_id}" 
-                            data-index="${i}" 
-                            value="${articuloBuffer.seriales[i] || ''}">`
-            });
-        }
-        tablaSeriales.rows.add(filas).draw();
-    }
-
-    // Abrir modal
-    document.querySelector('dialog[data-modal="seriales_articulo"]')?.showModal();
+    // Abrir el modal
+    dialog.showModal();
 }
 
 
 // Eliminar personal
 document.getElementById('form_delete_persona')?.addEventListener('submit', function (e) {
     e.preventDefault();
-    const id = this.dataset.personaId;
+    const id = this.dataset.personaId; // ahora sí tendrá valor
     if (!id) return;
 
     fetch('php/personal_ajax.php', {
@@ -3038,6 +3007,7 @@ document.getElementById('form_delete_persona')?.addEventListener('submit', funct
         }
     });
 });
+
 
 // Recuperar personal
 document.getElementById('form_confirmar_persona')?.addEventListener('submit', function (e) {

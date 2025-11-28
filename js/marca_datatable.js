@@ -51,7 +51,8 @@ window.addEventListener('load', function () {
             {
                 data: 'marca_imagen',
                 render: function (data) {
-                    if (!data || data.trim() === '') return '';
+                    // Si no hay imagen, usar la por defecto
+                    const foto = data && data.trim() !== '' ? data : 'img/icons/marca.png';
                     return `
                         <div class="imagen_celda_wrapper">
                             <img src="${data}?t=${new Date().getTime()}" class="tabla_imagen">
