@@ -4,6 +4,21 @@
 
 window.addEventListener('load', function () {
     'use strict';
+    
+    // Interceptar clic en "Regresar"
+    document.querySelector('.basics-container .new_user').addEventListener('click', function (e) {
+        e.preventDefault(); // evitar redirección inmediata
+
+        const modal = document.querySelector('dialog[data-modal="confirmar_regresar_recepcion"]');
+        if (modal?.showModal) modal.showModal();
+    });
+
+    // Acción al confirmar
+    document.getElementById('form_confirmar_regresar').addEventListener('submit', function (e) {
+        e.preventDefault();
+        // Redirigir a la lista de recepciones
+        window.location.href = "index.php?vista=listar_recepcion";
+    });
 
     if (typeof $ !== 'function') {
         console.error('jQuery no está disponible');
@@ -182,12 +197,22 @@ window.addEventListener('load', function () {
         actualizarResumenRecepcion();
     });
 
+    // ------------------------------
+    // DataTable: Resumen con child rows
+    // ------------------------------
     const tablaResumen = $('#procesoRecepcionResumenTabla').DataTable({
         data: [],
         columns: [
             { data: 'codigo', title: 'Código' },
             { data: 'nombre', title: 'Nombre' },
-            { data: 'cantidad', title: 'Cantidad' }
+            { data: 'cantidad', title: 'Cantidad' },
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<span class="toggle-details">▶</span>',
+                title: 'Seriales'
+            }
         ],
         ordering: true,
         scrollY: '500px',
@@ -198,16 +223,54 @@ window.addEventListener('load', function () {
         language: { emptyTable: 'No se encuentran registros' }
     });
 
+    function formatSeriales(rowData) {
+        const bufferItem = estado.buffer[rowData.articulo_id];
+        if (!bufferItem || !Array.isArray(bufferItem.seriales) || bufferItem.seriales.length === 0) {
+            return '<div class="seriales-empty">No se ingresaron seriales</div>';
+        }
+        let html = '<div class="seriales-list"><ul>';
+        bufferItem.seriales.forEach((s, i) => {
+            html += `<li><strong>${i + 1}:</strong> ${s || '(vacío)'}</li>`;
+        });
+        html += '</ul></div>';
+        return html;
+    }
+
+    $('#procesoRecepcionResumenTabla tbody').on('click', 'td.dt-control', function () {
+        const tr = $(this).closest('tr');
+        const row = tablaResumen.row(tr);
+
+        if (row.child.isShown()) {
+            // Cerrar
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('.toggle-details').text('▶');
+        } else {
+            // Abrir
+            row.child(formatSeriales(row.data())).show();
+            tr.addClass('shown');
+            $(this).find('.toggle-details').text('▼');
+        }
+    });
+
     function actualizarResumenRecepcion() {
         const resumen = Object.values(estado.buffer)
             .filter(item => Number.isFinite(item.cantidad) && item.cantidad > 0)
-            .map(item => ({ codigo: item.codigo, nombre: item.nombre, cantidad: item.cantidad }));
+            .map(item => ({
+                articulo_id: item.articulo_id, // necesario para child rows
+                codigo: item.codigo,
+                nombre: item.nombre,
+                cantidad: item.cantidad
+            }));
 
         tablaResumen.clear();
         tablaResumen.rows.add(resumen);
         tablaResumen.draw();
     }
 
+    // ------------------------------
+    // DataTable: Seriales en modal
+    // ------------------------------
     const tablaSeriales = $('#procesoRecepcionSerialTabla').DataTable({
         scrollY: '300px',
         scrollCollapse: true,
@@ -247,6 +310,7 @@ window.addEventListener('load', function () {
 
         tablaSeriales.rows.add(filas).draw();
     }
+
 
 
     // Abrir modal de info
@@ -321,7 +385,7 @@ window.addEventListener('load', function () {
         }
     }
 
-    // Guardar seriales desde el modal con validación entre artículos
+// Guardar seriales desde el modal con validación entre artículos
     $('#form_proceso_recepcion_seriales').on('submit', function (e) {
         e.preventDefault();
 
@@ -330,25 +394,22 @@ window.addEventListener('load', function () {
             return;
         }
 
+        // 1) Leer los inputs en un arreglo temporal (NO escribir aún en estado.buffer)
+        const serialesNuevos = [];
         $('#procesoRecepcionSerialTabla tbody .input_serial').each(function () {
-            const articuloId = $(this).data('articulo');
             const index = $(this).data('index');
-            const valor = String($(this).val() || '').trim();
-
-            if (estado.buffer[articuloId]) {
-                estado.buffer[articuloId].seriales[index] = valor;
-            }
+            serialesNuevos[index] = String($(this).val() || '').trim();
         });
 
-        const serialesNoVacios = (estado.buffer[estado.articuloActivo].seriales || []).filter(s => s !== '');
+        // 2) Validación: duplicados dentro del artículo
+        const serialesNoVacios = serialesNuevos.filter(s => s !== '');
         const setLocal = new Set(serialesNoVacios);
-
         if (setLocal.size !== serialesNoVacios.length) {
             setErrorSerial('Hay seriales repetidos dentro del artículo. Corrija antes de guardar.');
             return;
         }
 
-        // Validación contra otros artículos en el mismo proceso
+        // 3) Validación: duplicados contra otros artículos del mismo proceso
         for (const [artId, item] of Object.entries(estado.buffer)) {
             if (parseInt(artId) !== estado.articuloActivo && Array.isArray(item.seriales)) {
                 for (const s of item.seriales) {
@@ -361,6 +422,7 @@ window.addEventListener('load', function () {
             }
         }
 
+        // 4) Validación contra BD (solo si hay seriales no vacíos)
         if (serialesNoVacios.length > 0) {
             $.post('php/recepcion_ajax.php', {
                 accion: 'validar_seriales',
@@ -368,12 +430,19 @@ window.addEventListener('load', function () {
             }, function (resp) {
                 if (resp && resp.exito && Array.isArray(resp.repetidos) && resp.repetidos.length > 0) {
                     setErrorSerial('Los siguientes seriales ya existen en el inventario: ' + resp.repetidos.join(', '));
-                } else {
-                    resetErrorSerial();
-                    closeDialog('dialog[data-modal="seriales_articulo"]');
+                    return;
                 }
+
+                // 5) Solo si todas las validaciones pasan, escribir en estado.buffer
+                if (estado.buffer[estado.articuloActivo]) {
+                    estado.buffer[estado.articuloActivo].seriales = serialesNuevos;
+                }
+
+                resetErrorSerial();
+                closeDialog('dialog[data-modal="seriales_articulo"]');
             }, 'json');
         } else {
+            // No hay seriales; cerrar sin persistir
             resetErrorSerial();
             closeDialog('dialog[data-modal="seriales_articulo"]');
         }
@@ -400,20 +469,65 @@ window.addEventListener('load', function () {
         return null;
     }
 
+    function setTodayDate(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        input.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Al abrir el modal de recepción
     document.querySelectorAll('[data-modal-target="modal_proceso_recepcion"]').forEach(el => {
         el.addEventListener('click', function () {
+            setTodayDate('proceso_recepcion_fecha'); // fuerza la fecha aquí
+            
             actualizarResumenRecepcion();
             clearError('error-container-proceso-recepcion');
             showDialog('dialog[data-modal="modal_proceso_recepcion"]');
         });
     });
 
+
+
     $('#form_proceso_recepcion').on('submit', function (e) {
         e.preventDefault();
-        clearError('error-container-proceso-recepcion');
+        limpiarError('error-container-proceso-recepcion');
 
         const fecha = String($('#proceso_recepcion_fecha').val() || '').trim();
         const descripcion = String($('#proceso_recepcion_descripcion').val() || '').trim();
+
+        if (!fecha) {
+            mostrarError('error-container-proceso-recepcion', 'Debe ingresar la fecha de la recepción');
+            return;
+        }
+
+        // Validación de formato y rango
+        const regexFecha = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regexFecha.test(fecha)) {
+            mostrarError('error-container-proceso-recepcion', 'La fecha debe tener formato YYYY-MM-DD');
+            return;
+        }
+
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        const fechaHoy = `${yyyy}-${mm}-${dd}`;
+
+        if (fecha > fechaHoy) {
+            mostrarError('error-container-proceso-recepcion', 'La fecha no puede ser posterior al día de hoy');
+            return;
+        }
+
+        const minFecha = '1998-01-01';
+        if (fecha < minFecha) {
+            mostrarError('error-container-proceso-recepcion', 'La fecha no es correcta');
+            return;
+        }
         const tipo = 1;
 
         const articulos = Object.values(estado.buffer)
@@ -425,7 +539,7 @@ window.addEventListener('load', function () {
             }));
 
         if (articulos.length === 0) {
-            setError('error-container-proceso-recepcion', 'Debe ingresar al menos un artículo con cantidad.');
+            setError('error-container-proceso-recepcion', 'Debe ingresar alguna cantidad de un artículo');
             return;
         }
 
@@ -454,6 +568,12 @@ window.addEventListener('load', function () {
                 showDialog('dialog[data-modal="success"]');
 
                 tablaArticulos.ajax.reload(null, false);
+
+                // Redirigir a la lista de recepciones después de unos segundos
+                setTimeout(function() {
+                    window.location.href = "index.php?vista=listar_recepcion";
+                }, 1000);
+
             } else if (resp && resp.error) {
                 setError('error-container-proceso-recepcion', resp.mensaje || 'Ocurrió un error al registrar la recepción.');
                 console.error('Detalle de error (backend):', resp.detalle || resp);
@@ -461,6 +581,7 @@ window.addEventListener('load', function () {
                 setError('error-container-proceso-recepcion', 'Respuesta inesperada del servidor.');
             }
         }, 'json');
+
     });
 
     $('#close-success-proceso-recepcion').on('click', function () {

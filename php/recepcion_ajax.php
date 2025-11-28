@@ -163,7 +163,7 @@ switch ($accion) {
                 'articulos'          => $articulos
             ];
 
-            // ✅ Validación integral
+            //  Validación integral
             $validacion = validarRecepcion($datos, 'crear');
             if (isset($validacion['error'])) {
                 echo json_encode($validacion);

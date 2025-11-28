@@ -14,6 +14,7 @@ function mostrarModalExito(mensaje) {
     }
 }
 
+
 //Función global: mostrar errores
 function mostrarError(containerId, mensaje) {
     const el = document.getElementById(containerId);
@@ -28,36 +29,6 @@ function limpiarError(containerId) {
     el.innerHTML = '';
     el.style.display = 'none';
 }
-
-// Función global: asignar fecha de hoy a un input date
-function asignarFechaHoy(inputDate) {
-    if (!inputDate) return;
-    const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dd = String(hoy.getDate()).padStart(2, '0');
-    const fechaHoy = `${yyyy}-${mm}-${dd}`;
-    inputDate.value = fechaHoy;
-    inputDate.setAttribute('max', fechaHoy);
-}
-
-// Función global: validar fecha (no vacía, formato correcto, no futura)
-function validarFecha(fecha) {
-    if (!fecha) return 'Debe rellenar la fecha del ajuste';
-    const regexFecha = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regexFecha.test(fecha)) return 'La fecha debe tener formato YYYY-MM-DD';
-
-    const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dd = String(hoy.getDate()).padStart(2, '0');
-    const fechaHoy = `${yyyy}-${mm}-${dd}`;
-
-    if (fecha > fechaHoy) return 'La fecha no puede ser posterior al día de hoy';
-    return null;
-}
-
-
 
 //Editar perfil de usuario al presionar a su foto de perfil
 function activarEdicionPerfil() {
@@ -803,6 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btncrear = document.getElementById('btn_crear');
     if (btncrear) btncrear.disabled = false;
 
+    inicializarFechasHoy();
     cargarCategorias();
     cargarRol();
     cargarClasificacion();
@@ -2971,27 +2943,45 @@ function mostrarInfoPersona(data) {
 }
 
 function mostrarConfirmacionPersona(persona, accion) {
-    const dialog = document.querySelector('dialog[data-modal="eliminar_persona"]');
-    if (!dialog) return;
+    let dialog;
+    if (accion === 'eliminar') {
+        dialog = document.querySelector('dialog[data-modal="eliminar_persona"]');
+        if (!dialog) return;
 
-    // Rellenar datos en el modal
-    document.getElementById('delete_persona_nombre_completo').textContent = persona.nombre + ' ' + persona.apellido;
-    document.getElementById('delete_persona_cargo').textContent = persona.cargo;
-    document.getElementById('delete_foto_persona').src = persona.foto || 'img/icons/perfil.png';
+        // Rellenar datos en el modal de eliminar
+        document.getElementById('delete_persona_nombre_completo').textContent =
+            persona.persona_nombre + ' ' + persona.persona_apellido;
+        document.getElementById('delete_persona_cargo').textContent = persona.cargo_nombre;
+        document.getElementById('delete_foto_persona').src = persona.persona_foto || 'img/icons/perfil.png';
 
-    // Guardar el id en el formulario
-    const form = document.getElementById('form_delete_persona');
-    form.dataset.personaId = persona.id;
+        // Guardar el id en el formulario
+        const form = document.getElementById('form_delete_persona');
+        form.dataset.personaId = persona.persona_id;
 
-    // Abrir el modal
-    dialog.showModal();
+        dialog.showModal();
+    } else if (accion === 'recuperar') {
+        dialog = document.querySelector('dialog[data-modal="confirmar_persona"]');
+        if (!dialog) return;
+
+        // Rellenar datos en el modal de recuperar
+        document.getElementById('confirmar_persona_nombre_completo').textContent =
+            persona.persona_nombre + ' ' + persona.persona_apellido;
+        document.getElementById('confirmar_persona_cargo').textContent = persona.cargo_nombre;
+        document.getElementById('confirmar_foto_persona').src = persona.persona_foto || 'img/icons/perfil.png';
+
+        // Guardar el id en el formulario de recuperar
+        const form = document.getElementById('form_confirmar_persona');
+        form.dataset.personaId = persona.persona_id;
+
+        dialog.showModal();
+    }
 }
 
 
 // Eliminar personal
 document.getElementById('form_delete_persona')?.addEventListener('submit', function (e) {
     e.preventDefault();
-    const id = this.dataset.personaId; // ahora sí tendrá valor
+    const id = this.dataset.personaId;
     if (!id) return;
 
     fetch('php/personal_ajax.php', {
@@ -3004,10 +2994,12 @@ document.getElementById('form_delete_persona')?.addEventListener('submit', funct
             document.querySelector('dialog[data-modal="eliminar_persona"]')?.close();
             mostrarModalExito(data.mensaje || 'Personal deshabilitado');
             $('#personaTabla').DataTable().ajax.reload(null, false);
+        } else {
+            alert(data.mensaje || 'No se pudo deshabilitar el personal');
         }
-    });
+    })
+    .catch(err => console.error('Error en la petición:', err));
 });
-
 
 // Recuperar personal
 document.getElementById('form_confirmar_persona')?.addEventListener('submit', function (e) {
@@ -3024,11 +3016,14 @@ document.getElementById('form_confirmar_persona')?.addEventListener('submit', fu
         if (data.exito) {
             document.querySelector('dialog[data-modal="confirmar_persona"]')?.close();
             mostrarModalExito(data.mensaje || 'Personal recuperado');
-            estadoActual = 1;
             $('#personaTabla').DataTable().ajax.reload(null, false);
+        } else {
+            alert(data.mensaje || 'No se pudo recuperar el personal');
         }
-    });
+    })
+    .catch(err => console.error('Error en la petición:', err));
 });
+
 
 //Filtros de cargos
 document.addEventListener('change', function (e) {

@@ -43,20 +43,19 @@
             <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_proceso_recepcion">
         </form>
 
-        <div class="separador"></div>
-
         <!-- Columna derecha: tabla resumen -->
         <div class="resumen_container">
             <div class="container_table_box-recepcion">
                 <table id="procesoRecepcionResumenTabla" class="display">
                     <thead>
                         <tr>
-                            <th colspan="3" class="title">Resumen de la Recepción</th>
+                            <th colspan="4" class="title">Resumen de la Recepción</th>
                         </tr>
                         <tr>
                             <th class="header">Código</th>
                             <th class="header">Nombre</th>
                             <th class="header">Cantidad</th>
+                            <th class="header">Seriales</th>
                         </tr>
                     </thead>
                 </table>
@@ -64,6 +63,22 @@
         </div>
     </div>
 </dialog>
+
+<!-- Confirmación de descartar recepción -->
+<dialog data-modal="confirmar_regresar_recepcion" class="modal modal_confirmar">
+    <div class="modal_header-confirmar">
+        <h2 class="modal_title">¿Desea cancelar la recepción?</h2>
+    </div>
+    <div class="modal_delete-buttons">
+        <form method="dialog">
+            <button class="modal__close modal__close-confirm">Cancelar</button>
+        </form>
+        <form id="form_confirmar_regresar" method="POST">
+            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar_regresar">
+        </form>
+    </div>
+</dialog>
+
 
 <!-- Modal: Información -->
 <dialog data-modal="info_articulo" class="modal modal_info">
