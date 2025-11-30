@@ -102,6 +102,7 @@ CREATE TABLE articulo_serial (
     articulo_serial_id INT NOT NULL AUTO_INCREMENT,
     articulo_id INT NOT NULL,
     articulo_serial VARCHAR(100),
+    articulo_serial_observacion VARCHAR(200),
     estado_id INT DEFAULT 1,
     PRIMARY KEY (articulo_serial_id)
 );

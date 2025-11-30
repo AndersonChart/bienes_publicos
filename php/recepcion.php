@@ -25,10 +25,12 @@ class recepcion {
             $ajuste_id = $this->pdo->lastInsertId();
 
             if (!empty($articulos)) {
+                //  ahora incluimos articulo_serial_observacion en el insert y lo fijamos vacío
                 $stmtSerial = $this->pdo->prepare(
-                    "INSERT INTO articulo_serial (articulo_id, articulo_serial, estado_id)
-                    VALUES (?, ?, 1)"
+                    "INSERT INTO articulo_serial (articulo_id, articulo_serial, articulo_serial_observacion, estado_id)
+                    VALUES (?, ?, '', 1)"
                 );
+
                 $stmtAjusteArticulo = $this->pdo->prepare(
                     "INSERT INTO ajuste_articulo (articulo_serial_id, ajuste_id)
                     VALUES (?, ?)"
@@ -81,8 +83,10 @@ class recepcion {
                             throw new Exception("El serial {$valorSerial} ya existe en el inventario.");
                         }
 
+                        //  Insertamos siempre observación vacía
                         $stmtSerial->execute([$articuloId, $valorSerial]);
                         $serialId = $this->pdo->lastInsertId();
+
                         $stmtAjusteArticulo->execute([$serialId, $ajuste_id]);
                     }
                 }
@@ -96,6 +100,7 @@ class recepcion {
             throw $e;
         }
     }
+
 
     // Validar si un serial ya existe en la BD (excepto estado 4)
     public function existe_serial($serial) {
