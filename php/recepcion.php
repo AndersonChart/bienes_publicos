@@ -200,7 +200,7 @@ class recepcion {
 
             // Buscar seriales asociados a la recepción
             $stmt = $this->pdo->prepare(
-                "SELECT s.articulo_serial_id, s.articulo_serial, s.estado_id
+                "SELECT s.articulo_serial_id, s.articulo_serial
                 FROM ajuste_articulo aa
                 INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
                 WHERE aa.ajuste_id = ?"
@@ -212,19 +212,32 @@ class recepcion {
                 throw new Exception('No hay seriales asociados a la recepción');
             }
 
-            // Validar que ninguno esté ya en inventario (estado distinto de 4)
+            // Recopilar y normalizar seriales con contenido
+            $listaSeriales = [];
             foreach ($seriales as $s) {
-                if ((int)$s['estado_id'] !== 4) {
-                    throw new Exception('No se puede recuperar: algunos seriales ya están en inventario');
+                $val = trim($s['articulo_serial']);
+                if ($val !== '') {
+                    $listaSeriales[] = strtoupper($val); // normaliza
                 }
             }
 
-            // Validar duplicados en BD (ignora estado 4)
-            $listaSeriales = array_filter(array_map(fn($s) => trim($s['articulo_serial']), $seriales));
+            // Validar duplicados en inventario activo (estado <> 4)
             if (!empty($listaSeriales)) {
-                $repetidos = $this->validar_seriales($listaSeriales);
+                // Consulta directa para evitar falsos positivos
+                $placeholders = implode(',', array_fill(0, count($listaSeriales), '?'));
+                $sql = "SELECT articulo_serial 
+                        FROM articulo_serial 
+                        WHERE articulo_serial IN ($placeholders) 
+                        AND estado_id <> 4";
+                $stmtDup = $this->pdo->prepare($sql);
+                $stmtDup->execute($listaSeriales);
+                $repetidos = $stmtDup->fetchAll(PDO::FETCH_COLUMN);
+
                 if (!empty($repetidos)) {
-                    throw new Exception('No se puede recuperar: existen seriales repetidos en inventario');
+                    throw new Exception(
+                        'No se puede recuperar: existen seriales repetidos en inventario (' .
+                        implode(', ', $repetidos) . ')'
+                    );
                 }
             }
 
@@ -249,9 +262,12 @@ class recepcion {
             return true;
         } catch (Exception $e) {
             $this->pdo->rollBack();
+            // opcional: log para depuración
+            // error_log("Error al recuperar recepción $id: " . $e->getMessage());
             return false;
         }
     }
+
 
     // Listar artículos disponibles
     public function leer_articulos_disponibles($estado = 1, $categoriaId = '', $clasificacionId = '') {

@@ -3144,18 +3144,22 @@ document.getElementById('form_recuperar_recepcion')?.addEventListener('submit', 
     })
     .then(res => res.json())
     .then(data => {
-        if (data.exito) {
-            const modal = document.querySelector('dialog[data-modal="recuperar_recepcion"]');
-            if (modal?.open) modal.close();
+        const modal = document.querySelector('dialog[data-modal="recuperar_recepcion"]');
 
+        if (data.exito) {
+            if (modal?.open) modal.close();
             mostrarModalExito(data.mensaje || 'Recepción recuperada');
-            estadoRecepcion = 1; // volvemos a habilitadas
+            estadoRecepcion = 1;
             $('#recepcionTabla').DataTable().ajax.reload(null, false);
         } else {
+            if (modal?.open) modal.close();   //  cerrar confirmación también en error
             mostrarModalError(data.mensaje || 'No se pudo recuperar la recepción');
         }
     })
     .catch(() => {
+        const modal = document.querySelector('dialog[data-modal="recuperar_recepcion"]');
+        if (modal?.open) modal.close();       //  cerrar confirmación también en error de conexión
         mostrarModalError('Error de conexión con el servidor');
     });
 });
+
