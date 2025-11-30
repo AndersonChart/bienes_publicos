@@ -116,8 +116,6 @@ function validarRecepcion($datos, $modo = 'crear', $id = null) {
     return ['valido' => true];
 }
 
-
-
 // Router de acciones
 switch ($accion) {
     case 'leer_todos':
@@ -129,7 +127,8 @@ switch ($accion) {
                 return [
                     'recepcion_id'          => $row['ajuste_id'],
                     'recepcion_fecha'       => $row['ajuste_fecha'],
-                    'recepcion_descripcion' => $row['ajuste_descripcion']
+                    'recepcion_descripcion' => $row['ajuste_descripcion'],
+                    'recepcion_estado'      => $row['ajuste_estado'] // <-- necesario
                 ];
             }, $registros);
 
@@ -339,6 +338,37 @@ switch ($accion) {
     }
     break;
 
+    case 'recuperar':
+    try {
+        $id = $_POST['id'] ?? '';
+        if (!$id) {
+            throw new Exception('No se proporcionó el identificador de la recepción');
+        }
+
+        $exito = $recepcion->recuperar($id);
+
+        if ($exito) {
+            echo json_encode([
+                'exito'   => true,
+                'mensaje' => 'La recepción fue recuperada correctamente'
+            ]);
+        } else {
+            echo json_encode([
+                'exito'   => false,
+                'mensaje' => 'No se pudo recuperar la recepción: seriales comprometidos o duplicados'
+            ]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'exito'   => false,
+            'mensaje' => 'Error al recuperar la recepción',
+            'detalle' => $e->getMessage()
+        ]);
+    }
+    break;
+
+
     case 'listar_articulos_por_ajuste':
         try {
             $id = $_POST['id'] ?? '';
@@ -399,7 +429,7 @@ switch ($accion) {
                 exit;
             }
 
-            // ✅ Validación contra BD (ignora estado_id = 4)
+            // Validación contra BD (ignora estado_id = 4)
             $repetidos = $recepcion->validar_seriales($seriales);
             echo json_encode(['exito' => true, 'repetidos' => $repetidos]);
         } catch (Exception $e) {

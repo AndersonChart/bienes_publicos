@@ -1196,13 +1196,20 @@ a {
     outline: none;
 }
 
-.modal_icon {
-    background: url("../img/icons/success.png") center / contain no-repeat;
+.modal_icon, .modal_icon-error {
     text-align: center;
     margin: 10px auto;
     width: 100px;
     height: 100px;
     object-fit: contain; /* evita distorsión */
+}
+
+.modal_icon {
+    background: url("../img/icons/success.png") center / contain no-repeat;
+}
+
+.modal_icon-error {
+    background: url("../img/icons/error.png") center / contain no-repeat;
 }
 
 .modal_success {
@@ -1236,13 +1243,20 @@ a {
 }
 
 /* Mensaje dentro del modal */
-.modal_success-message {
+.modal_success-message, .modal_error-message {
     flex: 1 1 100%;
     text-align: center;
     font-size: 18px;
     font-weight: bold;
     margin-top: 10px;
+}
+
+.modal_success-message {
     color: #28a745;
+}
+
+.modal_error-message {
+    color: #d93025;
 }
 
 /* Estilo general para ventanas de confirmación */

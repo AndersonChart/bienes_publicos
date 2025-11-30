@@ -194,6 +194,64 @@ class recepcion {
         }
     }
 
+    public function recuperar($id) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // Buscar seriales asociados a la recepción
+            $stmt = $this->pdo->prepare(
+                "SELECT s.articulo_serial_id, s.articulo_serial, s.estado_id
+                FROM ajuste_articulo aa
+                INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
+                WHERE aa.ajuste_id = ?"
+            );
+            $stmt->execute([(int)$id]);
+            $seriales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($seriales)) {
+                throw new Exception('No hay seriales asociados a la recepción');
+            }
+
+            // Validar que ninguno esté ya en inventario (estado distinto de 4)
+            foreach ($seriales as $s) {
+                if ((int)$s['estado_id'] !== 4) {
+                    throw new Exception('No se puede recuperar: algunos seriales ya están en inventario');
+                }
+            }
+
+            // Validar duplicados en BD (ignora estado 4)
+            $listaSeriales = array_filter(array_map(fn($s) => trim($s['articulo_serial']), $seriales));
+            if (!empty($listaSeriales)) {
+                $repetidos = $this->validar_seriales($listaSeriales);
+                if (!empty($repetidos)) {
+                    throw new Exception('No se puede recuperar: existen seriales repetidos en inventario');
+                }
+            }
+
+            // Marcar cabecera como vigente
+            $stmtCab = $this->pdo->prepare(
+                "UPDATE ajuste SET ajuste_estado = 1
+                WHERE ajuste_id = ? AND ajuste_tipo = 1"
+            );
+            $stmtCab->execute([(int)$id]);
+
+            // Marcar todos los seriales asociados como estado 1 (activo)
+            $stmtSeriales = $this->pdo->prepare(
+                "UPDATE articulo_serial
+                SET estado_id = 1
+                WHERE articulo_serial_id IN (
+                    SELECT articulo_serial_id FROM ajuste_articulo WHERE ajuste_id = ?
+                )"
+            );
+            $stmtSeriales->execute([(int)$id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
 
     // Listar artículos disponibles
     public function leer_articulos_disponibles($estado = 1, $categoriaId = '', $clasificacionId = '') {
@@ -245,17 +303,17 @@ class recepcion {
     }
     // Listar artículos asociados a una recepción
     public function leer_articulos_por_recepcion($ajuste_id) {
-        $sql = "SELECT
-                    aa.ajuste_articulo_id,
-                    aa.articulo_serial_id,
+        $sql = "SELECT 
                     a.articulo_codigo,
                     a.articulo_nombre,
-                    s.articulo_serial
+                    COUNT(s.articulo_serial_id) AS cantidad,
+                    GROUP_CONCAT(COALESCE(NULLIF(s.articulo_serial,''),'(sin serial)') ORDER BY s.articulo_serial_id SEPARATOR ', ') AS seriales
                 FROM ajuste_articulo aa
                 INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
                 INNER JOIN articulo a ON s.articulo_id = a.articulo_id
                 WHERE aa.ajuste_id = ?
-                ORDER BY aa.ajuste_articulo_id ASC";
+                GROUP BY a.articulo_codigo, a.articulo_nombre
+                ORDER BY a.articulo_nombre ASC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([(int)$ajuste_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

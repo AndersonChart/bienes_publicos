@@ -31,9 +31,6 @@ function mostrarModalError(mensaje) {
 }
 
 
-
-
-
 //Función global: mostrar errores
 function mostrarError(containerId, mensaje) {
     const el = document.getElementById(containerId);
@@ -3053,11 +3050,27 @@ document.addEventListener('change', function (e) {
 
 /*MODULO: RECEPCION*/
 
-// Mostrar información de recepción
+// Mostrar información de recepción + resumen de artículos
 function mostrarInfoRecepcion(data) {
     document.getElementById('info_recepcion_id').textContent = data.recepcion_id || '';
     document.getElementById('info_recepcion_fecha').textContent = data.recepcion_fecha || '';
     document.getElementById('info_recepcion_descripcion').textContent = data.recepcion_descripcion || '';
+
+    // Poblar tabla resumen con artículos asociados
+    fetch('php/recepcion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'listar_articulos_por_ajuste', id: data.recepcion_id })
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (resp.data) {
+            const tabla = $('#recepcionResumenTabla').DataTable();
+            tabla.clear().rows.add(resp.data).draw();
+        }
+    })
+    .catch(() => {
+        mostrarModalError('Error al cargar artículos de la recepción');
+    });
 
     const modal = document.querySelector('dialog[data-modal="info_recepcion"]');
     if (modal && typeof modal.showModal === 'function') {
@@ -3078,8 +3091,8 @@ function mostrarConfirmacionRecepcion(data, modo = 'anular') {
         const modal = document.querySelector('dialog[data-modal="anular_recepcion"]');
         if (modal?.showModal) modal.showModal();
     } else if (modo === 'recuperar') {
-        document.getElementById('confirmar_recepcion_id').textContent = data.recepcion_id || '';
-        document.getElementById('confirmar_recepcion_descripcion').textContent = data.recepcion_descripcion || '';
+        document.getElementById('recuperar_recepcion_id').textContent = data.recepcion_id || '';
+        document.getElementById('recuperar_recepcion_descripcion').textContent = data.recepcion_descripcion || '';
 
         const form = document.getElementById('form_recuperar_recepcion');
         form.dataset.recepcionId = data.recepcion_id;

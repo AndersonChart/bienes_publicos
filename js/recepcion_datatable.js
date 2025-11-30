@@ -1,3 +1,4 @@
+// recepcion_datatable.js
 window.addEventListener('load', function () {
     if (typeof $ !== 'function') {
         console.error('jQuery no está disponible');
@@ -28,6 +29,7 @@ window.addEventListener('load', function () {
         });
     }
 
+    // Tabla principal de recepciones
     const tabla = $('#recepcionTabla').DataTable({
         scrollY: '500px',
         scrollCollapse: true,
@@ -37,7 +39,7 @@ window.addEventListener('load', function () {
             type: 'POST',
             data: function (d) {
                 d.accion = 'leer_todos';
-                d.estado = estadoRecepcion; // se envía al backend para filtrar habilitadas/anuladas
+                d.estado = estadoRecepcion;
             },
             dataSrc: 'data',
             error: function (xhr, status, error) {
@@ -47,7 +49,12 @@ window.addEventListener('load', function () {
         },
         columns: [
             { data: 'recepcion_id' },
-            { data: 'recepcion_fecha' },
+            { data: 'recepcion_fecha',
+            render: function (data) {
+                const fecha = new Date(data);
+                return fecha.toLocaleDateString('es-VE');
+            }
+            },
             {
                 data: 'recepcion_descripcion',
                 render: function (data) {
@@ -65,10 +72,9 @@ window.addEventListener('load', function () {
                     let botones = '';
 
                     if (estado === 1) {
-                        // Recepción habilitada → Info + Anular
                         botones += `
                             <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-modal-target="info_recepcion" data-id="${row.recepcion_id}" title="Info">
+                                <div class="icon-action btn_ver_info" data-id="${row.recepcion_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
                                 </div>
                                 <div class="icon-action btn_anular" data-id="${row.recepcion_id}" title="Anular">
@@ -77,10 +83,9 @@ window.addEventListener('load', function () {
                             </div>
                         `;
                     } else {
-                        // Recepción anulada → Info + Recuperar
                         botones += `
                             <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-modal-target="info_recepcion" data-id="${row.recepcion_id}" title="Info">
+                                <div class="icon-action btn_ver_info" data-id="${row.recepcion_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
                                 </div>
                                 <div class="icon-action btn_recuperar" data-id="${row.recepcion_id}" title="Recuperar">
@@ -112,11 +117,12 @@ window.addEventListener('load', function () {
         pageLength: 15,
     });
 
-    // Acción: Ver info
+    // Acción: Ver info + cargar resumen
     $('#recepcionTabla tbody').on('click', '.btn_ver_info', function () {
         const id = $(this).data('id');
         if (!id) return;
 
+        // Primero obtener datos de la recepción
         fetch('php/recepcion_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_recepcion', id })
@@ -124,10 +130,32 @@ window.addEventListener('load', function () {
         .then(res => res.json())
         .then(data => {
             if (data.exito && data.recepcion) {
-                mostrarInfoRecepcion(data.recepcion);
+                // rellenar los spans
+                document.getElementById('info_recepcion_id').textContent = data.recepcion.recepcion_id;
+                document.getElementById('info_recepcion_fecha').textContent = data.recepcion.recepcion_fecha;
+                document.getElementById('info_recepcion_descripcion').textContent = data.recepcion.recepcion_descripcion;
+
+                // abrir modal
+                const modal = document.querySelector('dialog[data-modal="info_recepcion"]');
+                if (modal?.showModal) modal.showModal();
+
+                // cargar artículos asociados
+                fetch('php/recepcion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'listar_articulos_por_ajuste', id })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if (resp.data) {
+                        const resumenTabla = $('#recepcionResumenTabla').DataTable();
+                        resumenTabla.clear().rows.add(resp.data).draw();
+                    }
+                });
             }
         });
     });
+
+
 
     // Acción: Anular
     $('#recepcionTabla tbody').on('click', '.btn_anular', function () {
@@ -161,5 +189,58 @@ window.addEventListener('load', function () {
                 mostrarConfirmacionRecepcion(data.recepcion, 'recuperar');
             }
         });
+    });
+
+    // Tabla resumen de artículos asociados (con cantidad y child rows para seriales)
+    const resumenTabla = $('#recepcionResumenTabla').DataTable({
+        data: [],
+        columns: [
+            { data: 'articulo_codigo', title: 'Código' },
+            { data: 'articulo_nombre', title: 'Nombre' },
+            { data: 'cantidad', title: 'Cantidad' },
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<span class="toggle-details">▶</span>',
+                title: 'Seriales'
+            }
+        ],
+        ordering: true,
+        scrollY: '300px',       // altura fija para que no se expanda
+        scrollCollapse: true,
+        responsive: true,       //  adapta columnas al ancho
+        paging: false,
+        searching: false,
+        info: false,
+        language: { emptyTable: 'No se encuentran registros' }
+    });
+
+
+    // child rows para seriales
+    function formatSeriales(rowData) {
+        if (!rowData.seriales) return '<div>No se ingresaron seriales</div>';
+        const lista = rowData.seriales.split(',').map(s => s.trim());
+        let html = '<ul>';
+        lista.forEach((s, i) => {
+            html += `<li><strong>${i + 1}:</strong> ${s}</li>`;
+        });
+        html += '</ul>';
+        return html;
+    }
+
+    $('#recepcionResumenTabla tbody').on('click', 'td.dt-control', function () {
+        const tr = $(this).closest('tr');
+        const row = resumenTabla.row(tr);
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('.toggle-details').text('▶');
+        } else {
+            row.child(formatSeriales(row.data())).show();
+            tr.addClass('shown');
+            $(this).find('.toggle-details').text('▼');
+        }
     });
 });
