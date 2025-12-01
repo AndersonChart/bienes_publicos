@@ -5,6 +5,9 @@ window.addEventListener('load', function () {
     }
 
     let estadoActual = 1;
+    let estadoArticuloActivo = null;
+    let idsSeriales = [];
+
     const toggleBtn = document.getElementById('toggleEstado');
 
     if (toggleBtn) {
@@ -51,8 +54,8 @@ window.addEventListener('load', function () {
             { data: 'articulo_nombre', title: 'Nombre' },
             { data: 'categoria_nombre', title: 'Categoría' },
             { data: 'clasificacion_nombre', title: 'Clasificación' },
-            { data: 'articulo_modelo', title: 'Modelo' }, // índice 4
-            { data: 'marca_nombre', title: 'Marca' },     // índice 5
+            { data: 'articulo_modelo', title: 'Modelo' },
+            { data: 'marca_nombre', title: 'Marca' },
             { data: 'articulo_imagen', title: 'Imagen',
                 render: function (data) {
                     if (!data || data.trim() === '') return '';
@@ -77,6 +80,9 @@ window.addEventListener('load', function () {
                                 <div class="icon-action btn_ver_info" data-modal-target="info_articulo" data-id="${row.articulo_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
                                 </div>
+                                <div class="icon-action btn_ver" data-modal-target="ver_serial" data-id="${row.articulo_id}" title="Ver">
+                                    <img src="img/icons/ver.png" alt="Ver Seriales">
+                                </div>
                                 <div class="icon-action btn_eliminar" data-id="${row.articulo_id}" title="Eliminar">
                                     <img src="img/icons/eliminar.png" alt="Eliminar">
                                 </div>
@@ -87,6 +93,9 @@ window.addEventListener('load', function () {
                             <div class="acciones">
                                 <div class="icon-action btn_ver_info" data-modal-target="info_articulo" data-id="${row.articulo_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
+                                </div>
+                                <div class="icon-action btn_ver" data-modal-target="ver_serial" data-id="${row.articulo_id}" title="Ver">
+                                    <img src="img/icons/ver.png" alt="Ver Seriales">
                                 </div>
                                 <div class="icon-action btn_recuperar" data-id="${row.articulo_id}" title="Recuperar">
                                     <img src="img/icons/recuperar.png" alt="Recuperar">
@@ -119,7 +128,6 @@ window.addEventListener('load', function () {
         lengthMenu: [[5, 10, 15, 20, 30], [5, 10, 15, 20, 30]],
         pageLength: 15,
 
-        // Ajustar columnas después de cada draw
         drawCallback: function(settings) {
             const api = this.api();
             const data = api.rows({ page: 'current' }).data();
@@ -147,8 +155,8 @@ window.addEventListener('load', function () {
             const todasCompletas = tipos.every(t => t === 1);
 
             if (todasBasicas) {
-                api.column(4).visible(false); // Modelo
-                api.column(5).visible(false); // Marca
+                api.column(4).visible(false);
+                api.column(5).visible(false);
             } else {
                 api.column(4).visible(true);
                 api.column(5).visible(true);
@@ -156,7 +164,8 @@ window.addEventListener('load', function () {
         }
     });
 
-    // Eventos de acción
+    // Eventos de articulos
+
     $('#articuloTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
         if (fila && fila.articulo_id) {
@@ -196,7 +205,7 @@ window.addEventListener('load', function () {
         });
     });
 
-        $('#articuloTabla tbody').on('click', '.btn_recuperar', function () {
+    $('#articuloTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
         if (!id) return;
 
@@ -210,5 +219,98 @@ window.addEventListener('load', function () {
                 mostrarConfirmacionArticulo(data.articulo, 'recuperar');
             }
         });
+    });
+
+    // NUEVO: Evento para abrir modal de seriales
+
+    // Inicializar DataTable para seriales
+    const tablaSeriales = $('#articuloSerialTabla').DataTable({
+        paging: false,
+        searching: false,
+        info: false,
+        ordering: false,
+        scrollY: '300px',
+        scrollCollapse: true,
+        columns: [
+            { data: 'numero', title: 'No.' },
+            { data: 'serial', title: 'Serial' },
+            { data: 'observacion', title: 'Observaciones' },
+            { data: 'estado', title: 'Estado' }
+        ],
+        language: { emptyTable: 'No se encontraron seriales' }
+    });
+
+
+    // Abrir modal de seriales
+    $('#articuloTabla tbody').on('click', '.btn_ver', function () {
+        const id = $(this).data('id');
+        if (!id) return;
+
+        estadoArticuloActivo = id;
+        idsSeriales = [];
+
+        // 1) Cargar seriales con DataTable
+        fetch('php/articulo_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'listar_seriales', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.data) {
+                const filas = data.data.map((s, i) => {
+                    idsSeriales[i] = s.id;
+                    const disabled = (parseInt(s.estado) === 2);
+                    return {
+                        numero: i + 1,
+                        serial: `<input type="text" class="input_serial" value="${s.serial}" ${disabled ? 'disabled' : ''}>`,
+                        observacion: `<input type="text" class="input_serial" value="${s.observacion || ''}" ${disabled ? 'disabled' : ''}>`,
+                        estado: `<select class="input_serial" ${disabled ? 'disabled' : ''}>
+                                    <option value="1" ${s.estado == 1 ? 'selected' : ''}>Activo</option>
+                                    <option value="2" ${s.estado == 2 ? 'selected' : ''}>Asignado</option>
+                                    <option value="3" ${s.estado == 3 ? 'selected' : ''}>Mantenimiento</option>
+                                </select>`
+                    };
+                });
+
+                tablaSeriales.clear().rows.add(filas).draw();
+            }
+        });
+
+        // 2) Cargar stock
+        fetch('php/articulo_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'stock_articulo', id })
+        })
+        .then(res => res.json())
+        .then(resp => {
+            if (resp.exito && resp.stock) {
+                $('.cantidad_seriales-total').text('Total: ' + resp.stock.total);
+                $('.cantidad_seriales.activos').text('Activos: ' + resp.stock.activos);
+                $('.cantidad_seriales.asignados').text('Asignados: ' + resp.stock.asignados);
+                $('.cantidad_seriales.mantenimiento').text('Mantenimiento: ' + resp.stock.mantenimiento);
+            }
+        });
+
+        // 3) Cargar info del artículo
+        fetch('php/articulo_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_articulo', id })
+        })
+        .then(res => res.json())
+        .then(resp => {
+            if (resp.exito && resp.articulo) {
+                $('#serial_codigo_articulo').text(resp.articulo.articulo_codigo || '');
+                $('#serial_nombre_articulo').text(resp.articulo.articulo_nombre || '');
+                const imgEl = document.getElementById('serial_imagen_articulo');
+                if (imgEl) {
+                    imgEl.src = resp.articulo.articulo_imagen ? resp.articulo.articulo_imagen + '?t=' + Date.now() : 'img/icons/articulo.png';
+                    imgEl.alt = 'Imagen del artículo';
+                }
+            }
+        });
+
+        // 4) Abrir modal
+        const dlg = document.querySelector('dialog[data-modal="seriales_articulo"]');
+        if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
     });
 });

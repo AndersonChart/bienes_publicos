@@ -191,52 +191,6 @@ switch ($accion) {
         }
         break;
 
-        try {
-            // Decodificar artículos enviados como JSON
-            $articulos = [];
-            if (isset($_POST['articulos'])) {
-                $decoded = json_decode($_POST['articulos'], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $articulos = $decoded;
-                }
-            }
-
-            $datos = [
-                'ajuste_fecha'       => $_POST['ajuste_fecha'] ?? '',
-                'ajuste_descripcion' => $_POST['ajuste_descripcion'] ?? '',
-                'ajuste_tipo'        => (int)($_POST['ajuste_tipo'] ?? 1),
-                'articulos'          => $articulos
-            ];
-
-            // Validación integral
-            $validacion = validarRecepcion($datos, 'crear');
-            if (isset($validacion['error'])) {
-                echo json_encode($validacion);
-                exit;
-            }
-
-            // Crear recepción
-            $recepcionId = $recepcion->crear(
-                $datos['ajuste_fecha'],
-                $datos['ajuste_descripcion'],
-                $datos['articulos']
-            );
-
-            echo json_encode([
-                'exito'        => true,
-                'mensaje'      => 'La recepción fue registrada correctamente',
-                'recepcion_id' => $recepcionId
-            ]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'error'   => true,
-                'mensaje' => 'Error al registrar la recepción',
-                'detalle' => $e->getMessage()
-            ]);
-        }
-        break;
-
     case 'listar_articulos_recepcion':
         try {
             $categoriaId     = $_POST['categoria_id'] ?? '';

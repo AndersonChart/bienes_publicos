@@ -1719,3 +1719,25 @@ a {
     pointer-events: none;
     cursor: not-allowed;
 }
+
+.ver_seriales {
+    display: flex;              /* activa flexbox */
+    flex-direction: row;        /* columnas lado a lado */
+    justify-content: space-evenly;/* que se alineen al inicio */
+    align-items: center;    /* alineación superior */
+    gap: 40px;                  /* espacio mínimo entre columnas */
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.serial_datos {
+    display: flex;
+    align-items: center;
+}
+
+.ver_seriales .serial_datos {
+    flex: 1;                    /* cada bloque ocupa mismo ancho */
+    flex-flow: column nowrap;
+    min-width: 0;               /* evita desbordes */
+}

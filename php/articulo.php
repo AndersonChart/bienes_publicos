@@ -171,9 +171,6 @@ class articulo {
     }
 
 
-
-
-
     // Actualizar articulo
     public function actualizar($codigo, $nombre, $modelo, $marcaId, $clasificacionId, $descripcion, $estadoId, $imagen, $id) {
         try {
@@ -236,6 +233,98 @@ class articulo {
             throw $e;
         }
     }
+
+    //METODOS PARA LOS SERIALES
+
+        // 1. Validar serial duplicado en BD (ignora desincorporados estado_id = 4)
+    public function existeSerial($serial, $excluirId = null) {
+        try {
+            $sql = "SELECT COUNT(*) FROM articulo_serial 
+                    WHERE articulo_serial = ? AND estado_id != 4";
+            $params = [$serial];
+
+            if ($excluirId !== null) {
+                $sql .= " AND articulo_serial_id != ?";
+                $params[] = $excluirId;
+            }
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchColumn() > 0;
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    // 2. Mostrar todos los seriales por artículo (excepto desincorporados)
+    public function leer_seriales_articulo($articuloId) {
+        try {
+            $sql = "SELECT articulo_serial_id AS id,
+                            articulo_serial AS serial,
+                            articulo_serial_observacion AS observacion,
+                            estado_id AS estado
+                    FROM articulo_serial
+                    WHERE articulo_id = ? AND estado_id != 4
+                    ORDER BY articulo_serial_id ASC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([(int)$articuloId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    // 3. Actualizar seriales (buffer → BD)
+    public function actualizar_seriales($articuloId, $seriales) {
+        try {
+            $this->pdo->beginTransaction();
+
+            foreach ($seriales as $s) {
+                $id = (int)$s['id'];
+                $serial = trim($s['serial']);
+                $observacion = trim($s['observacion']);
+                $estado = (int)$s['estado'];
+
+                // Validar duplicado en BD
+                if ($serial !== '' && $this->existeSerial($serial, $id)) {
+                    throw new Exception("El serial {$serial} ya existe en el inventario.");
+                }
+
+                $sql = "UPDATE articulo_serial
+                        SET articulo_serial = ?, 
+                            articulo_serial_observacion = ?, 
+                            estado_id = ?
+                        WHERE articulo_serial_id = ? AND articulo_id = ?";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute([$serial, $observacion, $estado, $id, $articuloId]);
+            }
+
+            $this->pdo->commit();
+            return ['exito' => true];
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return ['exito' => false, 'mensaje' => $e->getMessage()];
+        }
+    }
+
+    // 4. Stock por estado (activos=1, asignados=2, mantenimiento=3, total excluye desincorporados=4)
+    public function obtener_stock_articulo($articuloId) {
+        try {
+            $sql = "SELECT 
+                        SUM(CASE WHEN estado_id = 1 THEN 1 ELSE 0 END) AS activos,
+                        SUM(CASE WHEN estado_id = 2 THEN 1 ELSE 0 END) AS asignados,
+                        SUM(CASE WHEN estado_id = 3 THEN 1 ELSE 0 END) AS mantenimiento,
+                        SUM(CASE WHEN estado_id != 4 THEN 1 ELSE 0 END) AS total
+                    FROM articulo_serial
+                    WHERE articulo_id = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([(int)$articuloId]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
 }
 
 ?>

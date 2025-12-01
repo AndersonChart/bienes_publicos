@@ -113,6 +113,71 @@
     </div>
 </dialog>
 
+<!-- Modal: Seriales Inventario -->
+<dialog data-modal="seriales_articulo" class="modal modal_confirmar modal_serial">
+    <div class="modal_header-info">
+        <form method="dialog"><button class="modal__close">X</button></form>
+        <h2 class="modal_title">Añadir seriales</h2>
+    </div>
+
+    <!-- Imagen del artículo -->
+    <div class="ver_seriales">
+        <div class="serial_datos">
+            <div class="img_info">
+                <img id="serial_imagen_articulo" class="foto_info imagen_info" src="img/icons/articulo.png" alt="Imagen del artículo">
+            </div>
+
+            <!-- Código y nombre -->
+            <div class="delete_container">
+                <span class="delete_data-title" id="serial_codigo_articulo"></span>
+                <span class="delete_data" id="serial_nombre_articulo"></span>
+            </div>
+        </div>
+        <div class="serial_datos">
+            <div class="cantidad_container">
+                <div class="cantidad_seriales">
+                    <span class="delete_data-title">Activos</span>
+                    <span class="delete_data" id="stock_activos"></span>
+                </div>
+                <div class="cantidad_seriales">
+                    <span class="delete_data-title">Asignados</span>
+                    <span class="delete_data" id="stock_asignados"></span>
+                </div>
+                <div class="cantidad_seriales">
+                    <span class="delete_data-title">Mantenimiento</span>
+                    <span class="delete_data" id="stock_mantenimiento"></span>
+                </div>
+                <div class="cantidad_seriales">
+                    <span class="delete_data-title">Total</span>
+                    <span class="delete_data" id="stock_total"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de seriales -->
+    <div class="seriales_container">
+        <table id="articuloSerialTabla" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th class="header">Número</th>
+                    <th class="header">Serial</th>
+                    <th class="header">Observaciones</th>
+                    <th class="header">Estado</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <!-- Contenedor de errores -->
+    <div id="error-container-inventario-serial" class="error-container error-container-serial"></div>
+
+    <!-- Botón de guardar -->
+    <form id="form_inventario_seriales" method="POST">
+        <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_inventario_seriales">
+    </form>
+</dialog>
+
 <!-- Modal: Éxito -->
 <dialog data-modal="success" class="modal modal_success">
     <form method="dialog">

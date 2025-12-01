@@ -118,8 +118,6 @@ function validarArticulo($datos, $modo = 'crear', $id = null) {
 }
 
 $accion = $_POST['accion'] ?? '';
-$articulo = new articulo();
-
 switch ($accion) {
     case 'leer_todos':
         try {
@@ -334,6 +332,109 @@ switch ($accion) {
             ]);
         }
     break;
+
+    // acciones de seriales
+    case 'listar_seriales':
+        try {
+            $id = $_POST['id'] ?? '';
+            if (!$id) {
+                echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'No se proporcionó el identificador del artículo']);
+                exit;
+            }
+            $seriales = $articulo->leer_seriales_articulo($id);
+            echo json_encode(['data' => $seriales]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'data'    => [],
+                'error'   => true,
+                'mensaje' => 'Error al listar los seriales del artículo',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'validar_seriales':
+        try {
+            $seriales = [];
+            if (isset($_POST['seriales'])) {
+                $decoded = json_decode($_POST['seriales'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $seriales = array_values(array_filter(array_map(function ($s) {
+                        return is_string($s) ? trim($s) : '';
+                    }, $decoded), fn($s) => $s !== '' ));
+                }
+            }
+
+            if (empty($seriales)) {
+                echo json_encode(['exito' => true, 'repetidos' => []]);
+                exit;
+            }
+
+            // Validación contra BD (ignora estado_id = 4)
+            $repetidos = [];
+            foreach ($seriales as $s) {
+                if ($articulo->existeSerial($s)) {
+                    $repetidos[] = $s;
+                }
+            }
+            echo json_encode(['exito' => true, 'repetidos' => $repetidos]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'error'   => true,
+                'mensaje' => 'Error al validar los seriales',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'actualizar_seriales':
+        try {
+            $id = $_POST['id'] ?? '';
+            $seriales = [];
+            if (isset($_POST['seriales'])) {
+                $decoded = json_decode($_POST['seriales'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $seriales = $decoded;
+                }
+            }
+
+            if (!$id || empty($seriales)) {
+                echo json_encode(['error' => true, 'mensaje' => 'Datos insuficientes para actualizar']);
+                exit;
+            }
+
+            $resultado = $articulo->actualizar_seriales((int)$id, $seriales);
+            echo json_encode($resultado);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'error'   => true,
+                'mensaje' => 'Error al actualizar los seriales',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'stock_articulo':
+        try {
+            $id = $_POST['id'] ?? '';
+            if (!$id) {
+                echo json_encode(['error' => true, 'mensaje' => 'No se proporcionó el identificador del artículo']);
+                exit;
+            }
+            $stock = $articulo->obtener_stock_articulo($id);
+            echo json_encode(['exito' => true, 'stock' => $stock]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'error'   => true,
+                'mensaje' => 'Error al obtener el stock del artículo',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+        break;
 
     default:
         echo json_encode([
