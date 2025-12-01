@@ -355,68 +355,71 @@ switch ($accion) {
         break;
 
     case 'validar_seriales':
-        try {
-            $seriales = [];
-            if (isset($_POST['seriales'])) {
-                $decoded = json_decode($_POST['seriales'], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $seriales = array_values(array_filter(array_map(function ($s) {
-                        return is_string($s) ? trim($s) : '';
-                    }, $decoded), fn($s) => $s !== '' ));
-                }
+    try {
+        $seriales = [];
+        if (isset($_POST['seriales'])) {
+            $decoded = json_decode($_POST['seriales'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $seriales = array_values(array_filter($decoded, function ($s) {
+                    return is_array($s) && isset($s['serial']) && trim($s['serial']) !== '';
+                }));
             }
-
-            if (empty($seriales)) {
-                echo json_encode(['exito' => true, 'repetidos' => []]);
-                exit;
-            }
-
-            // Validación contra BD (ignora estado_id = 4)
-            $repetidos = [];
-            foreach ($seriales as $s) {
-                if ($articulo->existeSerial($s)) {
-                    $repetidos[] = $s;
-                }
-            }
-            echo json_encode(['exito' => true, 'repetidos' => $repetidos]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'error'   => true,
-                'mensaje' => 'Error al validar los seriales',
-                'detalle' => $e->getMessage()
-            ]);
         }
-        break;
+
+        if (empty($seriales)) {
+            echo json_encode(['exito' => true, 'repetidos' => []]);
+            exit;
+        }
+
+        $repetidos = [];
+        foreach ($seriales as $s) {
+            $serialTxt = trim($s['serial']);
+            $id = isset($s['id']) ? (int)$s['id'] : null;
+            if ($serialTxt !== '' && $articulo->existeSerial($serialTxt, $id)) {
+                $repetidos[] = $serialTxt;
+            }
+        }
+        echo json_encode(['exito' => true, 'repetidos' => $repetidos]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'error'   => true,
+            'mensaje' => 'Error al validar los seriales',
+            'detalle' => $e->getMessage()
+        ]);
+    }
+    break;
+
+
 
     case 'actualizar_seriales':
-        try {
-            $id = $_POST['id'] ?? '';
-            $seriales = [];
-            if (isset($_POST['seriales'])) {
-                $decoded = json_decode($_POST['seriales'], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $seriales = $decoded;
-                }
+    try {
+        $id = $_POST['id'] ?? '';
+        $seriales = [];
+        if (isset($_POST['seriales'])) {
+            $decoded = json_decode($_POST['seriales'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $seriales = $decoded;
             }
-
-            if (!$id || empty($seriales)) {
-                echo json_encode(['error' => true, 'mensaje' => 'Datos insuficientes para actualizar']);
-                exit;
-            }
-
-            $resultado = $articulo->actualizar_seriales((int)$id, $seriales);
-            echo json_encode($resultado);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'error'   => true,
-                'mensaje' => 'Error al actualizar los seriales',
-                'detalle' => $e->getMessage()
-            ]);
         }
-        break;
 
+        if (!$id) {
+            echo json_encode(['error' => true, 'mensaje' => 'ID de artículo faltante']);
+            exit;
+        }
+
+        $resultado = $articulo->actualizar_seriales((int)$id, $seriales);
+        echo json_encode($resultado);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'error'   => true,
+            'mensaje' => 'Error al actualizar los seriales',
+            'detalle' => $e->getMessage()
+        ]);
+    }
+    break;
+    
     case 'stock_articulo':
         try {
             $id = $_POST['id'] ?? '';

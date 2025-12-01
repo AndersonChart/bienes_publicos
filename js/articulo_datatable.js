@@ -224,93 +224,271 @@ window.addEventListener('load', function () {
     // NUEVO: Evento para abrir modal de seriales
 
     // Inicializar DataTable para seriales
-    const tablaSeriales = $('#articuloSerialTabla').DataTable({
-        paging: false,
-        searching: false,
-        info: false,
-        ordering: false,
-        scrollY: '300px',
-        scrollCollapse: true,
-        columns: [
-            { data: 'numero', title: 'No.' },
-            { data: 'serial', title: 'Serial' },
-            { data: 'observacion', title: 'Observaciones' },
-            { data: 'estado', title: 'Estado' }
-        ],
-        language: { emptyTable: 'No se encontraron seriales' }
+const tablaSeriales = $('#articuloSerialTabla').DataTable({
+    paging: false,
+    searching: false,
+    info: false,
+    ordering: true,
+    scrollY: '300px',
+    scrollCollapse: true,
+    columns: [
+        { data: 'numero', title: 'No.' },
+        { data: 'serial', title: 'Serial' },
+        { data: 'observacion', title: 'Observaciones' },
+        { data: 'estado', title: 'Estado' }
+    ],
+    language: { emptyTable: 'No se encontraron seriales' }
+});
+
+// Generar botón de estado
+function generarBotonEstado(estado, esAsignado) {
+    let clase = '';
+    let texto = '';
+
+    switch (parseInt(estado)) {
+        case 1: clase = 'btn-estado activo'; texto = 'Activo'; break;
+        case 2: clase = 'btn-estado asignado'; texto = 'Asignado'; break;
+        case 3: clase = 'btn-estado mantenimiento'; texto = 'Mantenimiento'; break;
+        default: clase = 'btn-estado'; texto = 'Desconocido';
+    }
+
+    return `<button class="${clase}" data-estado="${estado}" ${esAsignado ? 'disabled' : ''}>${texto}</button>`;
+}
+
+// Abrir modal de seriales
+$('#articuloTabla tbody').on('click', '.btn_ver', function () {
+    const id = $(this).data('id');
+    if (!id) return;
+
+    estadoArticuloActivo = id;
+    idsSeriales = [];
+
+    // Guardar el id en el hidden input
+    $('#articulo_id_hidden').val(id);
+
+    limpiarError('error-container-inventario-serial'); // limpiar errores al abrir
+
+    // 1) Cargar seriales
+    fetch('php/articulo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'listar_seriales', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data || !Array.isArray(data.data)) {
+            mostrarError('error-container-inventario-serial', 'No se pudo cargar la lista de seriales.');
+            tablaSeriales.clear().draw();
+            return;
+        }
+
+        const filas = data.data.map((s, i) => {
+            idsSeriales[i] = s.id;
+            const esAsignado = parseInt(s.estado) === 2;
+
+            return {
+                DT_RowClass: esAsignado ? 'fila-asignada' : '',
+                numero: i + 1,
+                serial: `<input type="text" class="input_serial" value="${s.serial || ''}" ${esAsignado ? 'disabled' : ''}>`,
+                observacion: `<input type="text" class="input_serial" value="${s.observacion || ''}" ${esAsignado ? 'disabled' : ''}>`,
+                estado: generarBotonEstado(s.estado, esAsignado)
+            };
+        });
+
+        tablaSeriales.clear().rows.add(filas).draw();
+    })
+    .catch(() => {
+        mostrarError('error-container-inventario-serial', 'Error de conexión al cargar seriales.');
+        tablaSeriales.clear().draw();
     });
 
+    // 2) Cargar stock
+    fetch('php/articulo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'stock_articulo', id })
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (resp.exito && resp.stock) {
+            $('#stock_total').text(resp.stock.total || 0);
+            $('#stock_activos').text(resp.stock.activos || 0);
+            $('#stock_asignados').text(resp.stock.asignados || 0);
+            $('#stock_mantenimiento').text(resp.stock.mantenimiento || 0);
+        } else {
+            $('#stock_total').text(0);
+            $('#stock_activos').text(0);
+            $('#stock_asignados').text(0);
+            $('#stock_mantenimiento').text(0);
+        }
+    })
+    .catch(() => {
+        $('#stock_total').text(0);
+        $('#stock_activos').text(0);
+        $('#stock_asignados').text(0);
+        $('#stock_mantenimiento').text(0);
+    });
 
-    // Abrir modal de seriales
-    $('#articuloTabla tbody').on('click', '.btn_ver', function () {
-        const id = $(this).data('id');
-        if (!id) return;
+    // 3) Cargar info del artículo
+    fetch('php/articulo_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'obtener_articulo', id })
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (resp.exito && resp.articulo) {
+            $('#serial_codigo_articulo').text(resp.articulo.articulo_codigo || '');
+            $('#serial_nombre_articulo').text(resp.articulo.articulo_nombre || '');
+            const imgEl = document.getElementById('serial_imagen_articulo');
+            if (imgEl) {
+                imgEl.src = resp.articulo.articulo_imagen ? resp.articulo.articulo_imagen + '?t=' + Date.now() : 'img/icons/articulo.png';
+                imgEl.alt = 'Imagen del artículo';
+            }
+        }
+    });
 
-        estadoArticuloActivo = id;
+    // 4) Abrir modal
+    const dlg = document.querySelector('dialog[data-modal="seriales_articulo"]');
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+});
+
+// Limpiar tabla al cerrar modal
+const dlgSeriales = document.querySelector('dialog[data-modal="seriales_articulo"]');
+if (dlgSeriales) {
+    dlgSeriales.addEventListener('close', () => {
+        tablaSeriales.clear().draw();
         idsSeriales = [];
-
-        // 1) Cargar seriales con DataTable
-        fetch('php/articulo_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({ accion: 'listar_seriales', id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.data) {
-                const filas = data.data.map((s, i) => {
-                    idsSeriales[i] = s.id;
-                    const disabled = (parseInt(s.estado) === 2);
-                    return {
-                        numero: i + 1,
-                        serial: `<input type="text" class="input_serial" value="${s.serial}" ${disabled ? 'disabled' : ''}>`,
-                        observacion: `<input type="text" class="input_serial" value="${s.observacion || ''}" ${disabled ? 'disabled' : ''}>`,
-                        estado: `<select class="input_serial" ${disabled ? 'disabled' : ''}>
-                                    <option value="1" ${s.estado == 1 ? 'selected' : ''}>Activo</option>
-                                    <option value="2" ${s.estado == 2 ? 'selected' : ''}>Asignado</option>
-                                    <option value="3" ${s.estado == 3 ? 'selected' : ''}>Mantenimiento</option>
-                                </select>`
-                    };
-                });
-
-                tablaSeriales.clear().rows.add(filas).draw();
-            }
-        });
-
-        // 2) Cargar stock
-        fetch('php/articulo_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({ accion: 'stock_articulo', id })
-        })
-        .then(res => res.json())
-        .then(resp => {
-            if (resp.exito && resp.stock) {
-                $('.cantidad_seriales-total').text('Total: ' + resp.stock.total);
-                $('.cantidad_seriales.activos').text('Activos: ' + resp.stock.activos);
-                $('.cantidad_seriales.asignados').text('Asignados: ' + resp.stock.asignados);
-                $('.cantidad_seriales.mantenimiento').text('Mantenimiento: ' + resp.stock.mantenimiento);
-            }
-        });
-
-        // 3) Cargar info del artículo
-        fetch('php/articulo_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({ accion: 'obtener_articulo', id })
-        })
-        .then(res => res.json())
-        .then(resp => {
-            if (resp.exito && resp.articulo) {
-                $('#serial_codigo_articulo').text(resp.articulo.articulo_codigo || '');
-                $('#serial_nombre_articulo').text(resp.articulo.articulo_nombre || '');
-                const imgEl = document.getElementById('serial_imagen_articulo');
-                if (imgEl) {
-                    imgEl.src = resp.articulo.articulo_imagen ? resp.articulo.articulo_imagen + '?t=' + Date.now() : 'img/icons/articulo.png';
-                    imgEl.alt = 'Imagen del artículo';
-                }
-            }
-        });
-
-        // 4) Abrir modal
-        const dlg = document.querySelector('dialog[data-modal="seriales_articulo"]');
-        if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+        limpiarError('error-container-inventario-serial');
     });
+}
+
+// Listener para alternar estado
+$('#articuloSerialTabla tbody').on('click', '.btn-estado', function () {
+    if ($(this).prop('disabled')) return;
+
+    let estadoActual = parseInt($(this).data('estado'));
+    let nuevoEstado = estadoActual === 1 ? 3 : 1;
+
+    $(this).data('estado', nuevoEstado);
+    if (nuevoEstado === 1) {
+        $(this).removeClass('mantenimiento').addClass('activo').text('Activo');
+    } else {
+        $(this).removeClass('activo').addClass('mantenimiento').text('Mantenimiento');
+    }
+});
+
+// Guardar cambios
+$('#form_inventario_seriales').on('submit', function (e) {
+    e.preventDefault();
+    limpiarError('error-container-inventario-serial');
+
+    const filas = tablaSeriales.rows().nodes();
+    const seriales = [];
+    const serialSet = new Set();
+    let hayDuplicadoLocal = false;
+
+    $(filas).each(function (i, fila) {
+        const id = idsSeriales[i];
+        const $fila = $(fila);
+
+        const serialInput = $fila.find('input.input_serial').eq(0);
+        const obsInput = $fila.find('input.input_serial').eq(1);
+        const estadoBtn = $fila.find('button.btn-estado');
+
+        const serial = String(serialInput.val() || '').trim();
+        const observacion = String(obsInput.val() || '').trim();
+        const estado = parseInt(estadoBtn.data('estado'));
+
+        if (serial !== '') {
+            if (serialSet.has(serial)) {
+                hayDuplicadoLocal = true;
+                return false;
+            }
+            serialSet.add(serial);
+        }
+
+        seriales.push({ id, serial, observacion, estado });
+    });
+
+    if (hayDuplicadoLocal) {
+        mostrarError('error-container-inventario-serial', 'Hay seriales repetidos dentro de este artículo.');
+        return;
+    }
+
+    const articuloId = $('#articulo_id_hidden').val();
+
+    // Validación contra BD solo con los no vacíos
+    const serialesNoVacios = seriales
+        .filter(s => s.serial !== '')
+        .map(s => ({ id: s.id, serial: s.serial }));
+
+    if (serialesNoVacios.length > 0) {
+        $.post('php/articulo_ajax.php', {
+            accion: 'validar_seriales',
+            seriales: JSON.stringify(serialesNoVacios)
+        }, function (resp) {
+            if (resp && resp.exito && Array.isArray(resp.repetidos) && resp.repetidos.length > 0) {
+                mostrarError('error-container-inventario-serial', 'Hay seriales repetidos en la base de datos.');
+                return;
+            }
+
+            // Actualizar usando URLSearchParams
+            fetch('php/articulo_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    accion: 'actualizar_seriales',
+                    id: articuloId,
+                    seriales: JSON.stringify(seriales)
+                })
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.exito) {
+                    limpiarError('error-container-inventario-serial');
+                    closeDialog('dialog[data-modal="seriales_articulo"]');
+                    $('#articuloTabla').DataTable().ajax.reload(null, false);
+                } else {
+                    mostrarError('error-container-inventario-serial', resp.mensaje || 'Error al actualizar los seriales.');
+                }
+            })
+            .catch(() => {
+                mostrarError('error-container-inventario-serial', 'Error de conexión al actualizar seriales.');
+            });
+        }, 'json');
+    } else {
+        // Actualizar usando URLSearchParams
+        fetch('php/articulo_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({
+                accion: 'actualizar_seriales',
+                id: articuloId,
+                seriales: JSON.stringify(seriales)
+            })
+        })
+        .then(res => {
+            console.log("HTTP status:", res.status);
+            return res.text(); // lee como texto primero
+        })
+        .then(text => {
+            console.log("Respuesta cruda:", text);
+            let resp;
+            try {
+                resp = JSON.parse(text);
+            } catch (e) {
+                mostrarError('error-container-inventario-serial', 'Respuesta no es JSON: ' + text);
+                return;
+            }
+            if (resp.exito) {
+                limpiarError('error-container-inventario-serial');
+                closeDialog('dialog[data-modal="seriales_articulo"]');
+                $('#articuloTabla').DataTable().ajax.reload(null, false);
+            } else {
+                mostrarError('error-container-inventario-serial', resp.mensaje || 'Error al actualizar los seriales.');
+            }
+        })
+        .catch(err => {
+            mostrarError('error-container-inventario-serial', 'Error de conexión: ' + err.message);
+        });
+
+    }
+});
+
 });

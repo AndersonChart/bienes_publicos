@@ -134,23 +134,25 @@
             </div>
         </div>
         <div class="serial_datos">
-            <div class="cantidad_container">
-                <div class="cantidad_seriales">
-                    <span class="delete_data-title">Activos</span>
-                    <span class="delete_data" id="stock_activos"></span>
-                </div>
-                <div class="cantidad_seriales">
-                    <span class="delete_data-title">Asignados</span>
-                    <span class="delete_data" id="stock_asignados"></span>
-                </div>
-                <div class="cantidad_seriales">
-                    <span class="delete_data-title">Mantenimiento</span>
-                    <span class="delete_data" id="stock_mantenimiento"></span>
-                </div>
-                <div class="cantidad_seriales">
-                    <span class="delete_data-title">Total</span>
-                    <span class="delete_data" id="stock_total"></span>
-                </div>
+
+            <div class="cantidad_seriales activos">
+                <span class="stock_title">Activos</span>
+                <span class="stock_data" id="stock_activos"></span>
+            </div>
+
+            <div class="cantidad_seriales asignados">
+                <span class="stock_title">Asignados</span>
+                <span class="stock_data" id="stock_asignados"></span>
+            </div>
+
+            <div class="cantidad_seriales mantenimiento">
+                <span class="stock_title">Mantenimiento</span>
+                <span class="stock_data" id="stock_mantenimiento"></span>
+            </div>
+
+            <div class="cantidad_seriales total">
+                <span class="stock_title">Total</span>
+                <span class="stock_data" id="stock_total"></span>
             </div>
         </div>
     </div>
@@ -170,13 +172,17 @@
     </div>
 
     <!-- Contenedor de errores -->
-    <div id="error-container-inventario-serial" class="error-container error-container-serial"></div>
+    <div id="error-container-inventario-serial" class="error-container"></div>
 
     <!-- Botón de guardar -->
     <form id="form_inventario_seriales" method="POST">
-        <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_inventario_seriales">
+        <!-- Campo oculto para el ID del artículo -->
+        <input type="hidden" id="articulo_id_hidden" name="articulo_id">
+
+        <input type="submit" value="Actualizar" class="register_submit" id="btn_guardar_inventario_seriales">
     </form>
 </dialog>
+
 
 <!-- Modal: Éxito -->
 <dialog data-modal="success" class="modal modal_success">

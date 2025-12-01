@@ -125,11 +125,11 @@ a {
     cursor: pointer;
 }
 
-.error-container, .error-container-serial {
+.error-container {
     display: block;
     min-width: 300px;
-    max-width: 60%;
-    padding: 10px 20px;
+    max-width: 50%;
+    padding: 5px 5px;
     border-radius: 8px;
     font-weight: bold;
     font-size: 18px;
@@ -141,10 +141,6 @@ a {
     /*  Estas son las claves para centrarlo dentro de un contenedor flex */
     align-self: center;       /* Centra dentro del flex padre */
     order: 2;                /* Lo coloca antes que los inputs si es necesario */
-}
-
-.error-container-serial {
-    max-width: 40%;
 }
 
 #error-container:empty {
@@ -690,7 +686,6 @@ a {
     border-radius: 20px;
     background: #f9f9f9;  /* opcional para distinguir */
     box-sizing: border-box;
-    margin-bottom: 10px;
     gap: 50px;
     overflow-y: auto;
 }
@@ -1081,8 +1076,8 @@ a {
     position: relative;
     box-sizing: border-box;
     display: flex;
-    flex-flow: row wrap;
-    min-width: 40%;
+    flex-flow: row nowrap;
+    min-width: 55%;
     max-width: 600px;
     padding: 20px;
     border: transparent;
@@ -1092,6 +1087,7 @@ a {
     opacity: 0;
     animation: slideDown 0.7s ease forwards;
     z-index: 1;
+    overflow-y: auto;
 }
 
 /* Fondo oscuro de superposición */
@@ -1120,6 +1116,7 @@ a {
 .modal_serial {
     height: auto;
     max-height: 800px;
+    overflow-y: auto;
 }
 
 
@@ -1266,7 +1263,8 @@ a {
     align-items: center;
     padding: 20px;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-y: auto;
+    min-height: auto;
 }
 
 /* Encabezado */
@@ -1442,7 +1440,7 @@ a {
     cursor: pointer;
     color: #fff;
     font-weight: bold;
-    padding: 5px 15px;
+    padding: 10px 15px;
     font-size: 18px;
     background: #3a3;
     border: none;
@@ -1726,18 +1724,104 @@ a {
     justify-content: space-evenly;/* que se alineen al inicio */
     align-items: center;    /* alineación superior */
     gap: 40px;                  /* espacio mínimo entre columnas */
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
     text-align: center;
 }
 
 .serial_datos {
     display: flex;
+    width: 200px;
+    flex-direction: column; /* apila las filas */
+    gap: 5px;              /* espacio entre filas */
     align-items: center;
 }
 
-.ver_seriales .serial_datos {
-    flex: 1;                    /* cada bloque ocupa mismo ancho */
-    flex-flow: column nowrap;
-    min-width: 0;               /* evita desbordes */
+.cantidad_container {
+    display: flex;
+    width: 100%;
+}
+
+/* Fila detalle: tres bloques compartiendo espacio */
+.fila_detalle .cantidad_seriales {
+    flex: 1 1 0;
+    margin: 0 3px;
+}
+
+/* Bloques */
+.cantidad_seriales {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* título a la izquierda, dato a la derecha */
+    align-items: center;            /* centrado vertical */
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #999;
+}
+
+
+.stock_title {
+    font-weight: 900;
+    font-size: 15px;
+    color: #222;
+}
+
+.stock_data {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222;
+}
+
+.total {
+    background-color: #bbb;
+}
+
+.activos {
+    background-color: #afa;
+}
+
+.asignados {
+    background-color: #abf;
+}
+
+.mantenimiento {
+    background-color: #d72;
+}
+
+.stock_data {
+    font-weight: bold;
+}
+
+.btn-estado {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    user-select: none; /* no se puede seleccionar texto */
+    transition: background-color 0.2s ease;
+}
+
+/* Estados */
+.btn-estado.activo {
+    background-color: #28a745; /* verde */
+}
+.btn-estado.mantenimiento {
+    background-color: #ff9800; /* naranja */
+}
+.btn-estado.asignado {
+    background-color: #007bff77; /* azul */
+    cursor: default;
+}
+
+/* Hover solo en botones habilitados */
+.btn-estado:not([disabled]):hover {
+    filter: brightness(1.1);   /* efecto hover */
+}
+
+.fila-asignada {
+    background-color: #ddd !important; /* gris oscuro */
+    opacity: 0.8;
 }

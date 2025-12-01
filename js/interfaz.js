@@ -46,6 +46,35 @@ function limpiarError(containerId) {
     el.style.display = 'none';
 }
 
+//Función Inventario: cambio de estado de serial
+
+function generarBotonEstado(estado, esAsignado) {
+    let clase = '';
+    let texto = '';
+
+    switch (parseInt(estado)) {
+        case 1: // Activo
+            clase = 'btn-estado activo';
+            texto = 'Activo';
+            break;
+        case 2: // Asignado
+            clase = 'btn-estado asignado';
+            texto = 'Asignado';
+            break;
+        case 3: // Mantenimiento
+            clase = 'btn-estado mantenimiento';
+            texto = 'Mantenimiento';
+            break;
+        default:
+            clase = 'btn-estado';
+            texto = 'Desconocido';
+    }
+
+    // Si es asignado, el botón no permite cambios
+    return `<button class="${clase}" data-estado="${estado}" ${esAsignado ? 'disabled' : ''}>${texto}</button>`;
+}
+
+
 //Editar perfil de usuario al presionar a su foto de perfil
 function activarEdicionPerfil() {
     const btn = document.getElementById('btn_editar_perfil');

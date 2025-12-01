@@ -140,7 +140,7 @@
     </div>
 
     <!-- Contenedor de errores -->
-    <div id="error-container-proceso-recepcion-serial" class="error-container error-container-serial"></div>
+    <div id="error-container-proceso-recepcion-serial" class="error-container"></div>
 
     <!-- Botón de guardar -->
     <form id="form_proceso_recepcion_seriales" method="POST">
