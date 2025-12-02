@@ -244,29 +244,43 @@ const tablaSeriales = $('#articuloSerialTabla').DataTable({
 function generarBotonEstado(estado, esAsignado) {
     let clase = '';
     let texto = '';
-
     switch (parseInt(estado)) {
         case 1: clase = 'btn-estado activo'; texto = 'Activo'; break;
         case 2: clase = 'btn-estado asignado'; texto = 'Asignado'; break;
         case 3: clase = 'btn-estado mantenimiento'; texto = 'Mantenimiento'; break;
         default: clase = 'btn-estado'; texto = 'Desconocido';
     }
-
     return `<button class="${clase}" data-estado="${estado}" ${esAsignado ? 'disabled' : ''}>${texto}</button>`;
+}
+
+// Función para recalcular stock dinámicamente en el modal
+function actualizarStockEnModal() {
+    let activos = 0, asignados = 0, mantenimiento = 0, total = 0;
+    const filas = tablaSeriales.rows().nodes();
+    $(filas).each(function () {
+        const estadoBtn = $(this).find('button.btn-estado');
+        const estado = parseInt(estadoBtn.data('estado'));
+        if (estado !== 4) { // excluye desincorporados
+            total++;
+            if (estado === 1) activos++;
+            if (estado === 2) asignados++;
+            if (estado === 3) mantenimiento++;
+        }
+    });
+    $('#stock_total').text(total);
+    $('#stock_activos').text(activos);
+    $('#stock_asignados').text(asignados);
+    $('#stock_mantenimiento').text(mantenimiento);
 }
 
 // Abrir modal de seriales
 $('#articuloTabla tbody').on('click', '.btn_ver', function () {
     const id = $(this).data('id');
     if (!id) return;
-
     estadoArticuloActivo = id;
     idsSeriales = [];
-
-    // Guardar el id en el hidden input
     $('#articulo_id_hidden').val(id);
-
-    limpiarError('error-container-inventario-serial'); // limpiar errores al abrir
+    limpiarError('error-container-inventario-serial');
 
     // 1) Cargar seriales
     fetch('php/articulo_ajax.php', {
@@ -280,11 +294,9 @@ $('#articuloTabla tbody').on('click', '.btn_ver', function () {
             tablaSeriales.clear().draw();
             return;
         }
-
         const filas = data.data.map((s, i) => {
             idsSeriales[i] = s.id;
             const esAsignado = parseInt(s.estado) === 2;
-
             return {
                 DT_RowClass: esAsignado ? 'fila-asignada' : '',
                 numero: i + 1,
@@ -293,15 +305,11 @@ $('#articuloTabla tbody').on('click', '.btn_ver', function () {
                 estado: generarBotonEstado(s.estado, esAsignado)
             };
         });
-
         tablaSeriales.clear().rows.add(filas).draw();
-    })
-    .catch(() => {
-        mostrarError('error-container-inventario-serial', 'Error de conexión al cargar seriales.');
-        tablaSeriales.clear().draw();
+        actualizarStockEnModal(); // inicializa stock al abrir
     });
 
-    // 2) Cargar stock
+    // 2) Cargar stock desde BD
     fetch('php/articulo_ajax.php', {
         method: 'POST',
         body: new URLSearchParams({ accion: 'stock_articulo', id })
@@ -313,18 +321,7 @@ $('#articuloTabla tbody').on('click', '.btn_ver', function () {
             $('#stock_activos').text(resp.stock.activos || 0);
             $('#stock_asignados').text(resp.stock.asignados || 0);
             $('#stock_mantenimiento').text(resp.stock.mantenimiento || 0);
-        } else {
-            $('#stock_total').text(0);
-            $('#stock_activos').text(0);
-            $('#stock_asignados').text(0);
-            $('#stock_mantenimiento').text(0);
         }
-    })
-    .catch(() => {
-        $('#stock_total').text(0);
-        $('#stock_activos').text(0);
-        $('#stock_asignados').text(0);
-        $('#stock_mantenimiento').text(0);
     });
 
     // 3) Cargar info del artículo
@@ -360,22 +357,21 @@ if (dlgSeriales) {
     });
 }
 
-// Listener para alternar estado
+// Listener para alternar estado con stock dinámico
 $('#articuloSerialTabla tbody').on('click', '.btn-estado', function () {
     if ($(this).prop('disabled')) return;
-
     let estadoActual = parseInt($(this).data('estado'));
     let nuevoEstado = estadoActual === 1 ? 3 : 1;
-
     $(this).data('estado', nuevoEstado);
     if (nuevoEstado === 1) {
         $(this).removeClass('mantenimiento').addClass('activo').text('Activo');
     } else {
         $(this).removeClass('activo').addClass('mantenimiento').text('Mantenimiento');
     }
+    actualizarStockEnModal(); // recalcula stock al cambiar estado
 });
 
-// Guardar cambios
+// Guardar cambios en seriales del inventario
 $('#form_inventario_seriales').on('submit', function (e) {
     e.preventDefault();
     limpiarError('error-container-inventario-serial');
@@ -388,15 +384,12 @@ $('#form_inventario_seriales').on('submit', function (e) {
     $(filas).each(function (i, fila) {
         const id = idsSeriales[i];
         const $fila = $(fila);
-
         const serialInput = $fila.find('input.input_serial').eq(0);
         const obsInput = $fila.find('input.input_serial').eq(1);
         const estadoBtn = $fila.find('button.btn-estado');
-
         const serial = String(serialInput.val() || '').trim();
         const observacion = String(obsInput.val() || '').trim();
         const estado = parseInt(estadoBtn.data('estado'));
-
         if (serial !== '') {
             if (serialSet.has(serial)) {
                 hayDuplicadoLocal = true;
@@ -404,7 +397,6 @@ $('#form_inventario_seriales').on('submit', function (e) {
             }
             serialSet.add(serial);
         }
-
         seriales.push({ id, serial, observacion, estado });
     });
 
@@ -416,78 +408,54 @@ $('#form_inventario_seriales').on('submit', function (e) {
     const articuloId = $('#articulo_id_hidden').val();
 
     // Validación contra BD solo con los no vacíos
-    const serialesNoVacios = seriales
-        .filter(s => s.serial !== '')
-        .map(s => ({ id: s.id, serial: s.serial }));
+    const serialesNoVacios = seriales.filter(s => s.serial !== '');
+
+    // Función para actualizar seriales
+    const actualizarSeriales = () => {
+        $.post('php/articulo_ajax.php', {
+            accion: 'actualizar_seriales',
+            id: articuloId,
+            seriales: JSON.stringify(seriales)
+        }, function (resp) {
+            if (resp && resp.exito) {
+                limpiarError('error-container-inventario-serial');
+
+                // Cerrar modal de seriales
+                const dlgSeriales = document.querySelector('dialog[data-modal="seriales_articulo"]');
+                if (dlgSeriales && typeof dlgSeriales.close === 'function') dlgSeriales.close();
+
+                // Recargar tabla principal
+                $('#articuloTabla').DataTable().ajax.reload(null, false);
+
+                // Mostrar mensaje de éxito
+                document.getElementById('success-message').textContent = 'Seriales actualizados correctamente.';
+                const dlgSuccess = document.querySelector('dialog[data-modal="success"]');
+                if (dlgSuccess && typeof dlgSuccess.showModal === 'function') dlgSuccess.showModal();
+            } else {
+                mostrarError('error-container-inventario-serial', resp.mensaje || 'Error al actualizar los seriales.');
+            }
+        }, 'json')
+        .fail(() => {
+            mostrarError('error-container-inventario-serial', 'Error de conexión al actualizar seriales.');
+        });
+    };
 
     if (serialesNoVacios.length > 0) {
         $.post('php/articulo_ajax.php', {
             accion: 'validar_seriales',
-            seriales: JSON.stringify(serialesNoVacios)
+            seriales: JSON.stringify(serialesNoVacios) // aquí van con id y serial
         }, function (resp) {
             if (resp && resp.exito && Array.isArray(resp.repetidos) && resp.repetidos.length > 0) {
-                mostrarError('error-container-inventario-serial', 'Hay seriales repetidos en la base de datos.');
+                mostrarError('error-container-inventario-serial', 'Hay seriales repetidos en la base de datos: ' + resp.repetidos.join(', '));
                 return;
             }
-
-            // Actualizar usando URLSearchParams
-            fetch('php/articulo_ajax.php', {
-                method: 'POST',
-                body: new URLSearchParams({
-                    accion: 'actualizar_seriales',
-                    id: articuloId,
-                    seriales: JSON.stringify(seriales)
-                })
-            })
-            .then(res => res.json())
-            .then(resp => {
-                if (resp.exito) {
-                    limpiarError('error-container-inventario-serial');
-                    closeDialog('dialog[data-modal="seriales_articulo"]');
-                    $('#articuloTabla').DataTable().ajax.reload(null, false);
-                } else {
-                    mostrarError('error-container-inventario-serial', resp.mensaje || 'Error al actualizar los seriales.');
-                }
-            })
-            .catch(() => {
-                mostrarError('error-container-inventario-serial', 'Error de conexión al actualizar seriales.');
-            });
-        }, 'json');
-    } else {
-        // Actualizar usando URLSearchParams
-        fetch('php/articulo_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({
-                accion: 'actualizar_seriales',
-                id: articuloId,
-                seriales: JSON.stringify(seriales)
-            })
-        })
-        .then(res => {
-            console.log("HTTP status:", res.status);
-            return res.text(); // lee como texto primero
-        })
-        .then(text => {
-            console.log("Respuesta cruda:", text);
-            let resp;
-            try {
-                resp = JSON.parse(text);
-            } catch (e) {
-                mostrarError('error-container-inventario-serial', 'Respuesta no es JSON: ' + text);
-                return;
-            }
-            if (resp.exito) {
-                limpiarError('error-container-inventario-serial');
-                closeDialog('dialog[data-modal="seriales_articulo"]');
-                $('#articuloTabla').DataTable().ajax.reload(null, false);
-            } else {
-                mostrarError('error-container-inventario-serial', resp.mensaje || 'Error al actualizar los seriales.');
-            }
-        })
-        .catch(err => {
-            mostrarError('error-container-inventario-serial', 'Error de conexión: ' + err.message);
+            actualizarSeriales();
+        }, 'json')
+        .fail(() => {
+            mostrarError('error-container-inventario-serial', 'Error de conexión al validar seriales.');
         });
-
+    } else {
+        actualizarSeriales();
     }
 });
 

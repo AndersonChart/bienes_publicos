@@ -1076,8 +1076,8 @@ a {
     position: relative;
     box-sizing: border-box;
     display: flex;
-    flex-flow: row nowrap;
-    min-width: 55%;
+    flex-flow: row wrap;
+    min-width: 40%;
     max-width: 600px;
     padding: 20px;
     border: transparent;
@@ -1114,6 +1114,21 @@ a {
 }
 
 .modal_serial {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: row nowrap;
+    min-width: 55%;
+    max-width: 600px;
+    padding: 20px;
+    border: transparent;
+    border-radius: 30px;
+    background: #ddd;
+    transform: translateY(-50px);
+    opacity: 0;
+    animation: slideDown 0.7s ease forwards;
+    z-index: 1;
+    overflow-y: auto;
     height: auto;
     max-height: 800px;
     overflow-y: auto;
