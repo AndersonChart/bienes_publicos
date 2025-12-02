@@ -4,7 +4,7 @@ window.addEventListener('load', function () {
         return;
     }
 
-    let estadoActual = 1;
+    let estadoActual = 1; // habilitados/deshabilitados
     let estadoArticuloActivo = null;
     let idsSeriales = [];
 
@@ -42,6 +42,7 @@ window.addEventListener('load', function () {
                 d.estado = estadoActual;
                 d.categoria_id = document.getElementById('categoria_filtro')?.value || '';
                 d.clasificacion_id = document.getElementById('clasificacion_filtro')?.value || '';
+                d.estado_id = document.getElementById('estado_filtro')?.value || ''; //  nuevo filtro
             },
             dataSrc: 'data',
             error: function (xhr, status, error) {
@@ -67,6 +68,31 @@ window.addEventListener('load', function () {
                 },
                 orderable: false
             },
+            //  Nueva columna de stock
+            { data: null, title: 'Stock',
+                    render: function (row) {
+                        const estadoSeleccionado = document.getElementById('estado_filtro')?.value || '';
+
+                        if (estadoSeleccionado === '' || estadoSeleccionado === 'todos') {
+                            //  Mostrar solo el total en gris
+                            return `<span class="stock-badge total">${row.stock_total}</span>`;
+                        }
+
+                        if (estadoSeleccionado === '1') {
+                            return `<span class="stock-badge activos">${row.stock_activos}</span>`;
+                        }
+                        if (estadoSeleccionado === '2') {
+                            return `<span class="stock-badge asignados">${row.stock_asignados}</span>`;
+                        }
+                        if (estadoSeleccionado === '3') {
+                            return `<span class="stock-badge mantenimiento">${row.stock_mantenimiento}</span>`;
+                        }
+
+                        // fallback: mostrar total
+                        return `<span class="stock-badge total">${row.stock_total}</span>`;
+                    },
+                    orderable: false
+                },
             { data: null, title: 'Acciones',
                 render: function (row) {
                     const estado = parseInt(row.articulo_estado);
@@ -80,7 +106,7 @@ window.addEventListener('load', function () {
                                 <div class="icon-action btn_ver_info" data-modal-target="info_articulo" data-id="${row.articulo_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
                                 </div>
-                                <div class="icon-action btn_ver" data-modal-target="ver_serial" data-id="${row.articulo_id}" title="Ver">
+                                <div class="icon-action btn_ver" data-modal-target="ver_serial" data-id="${row.articulo_id}" title="Ver Seriales">
                                     <img src="img/icons/ver.png" alt="Ver Seriales">
                                 </div>
                                 <div class="icon-action btn_eliminar" data-id="${row.articulo_id}" title="Eliminar">
@@ -126,46 +152,15 @@ window.addEventListener('load', function () {
             }
         },
         lengthMenu: [[5, 10, 15, 20, 30], [5, 10, 15, 20, 30]],
-        pageLength: 15,
-
-        drawCallback: function(settings) {
-            const api = this.api();
-            const data = api.rows({ page: 'current' }).data();
-
-            if (!data || data.length === 0) return;
-
-            const tipos = [];
-            for (let i = 0; i < data.length; i++) {
-                const row = data[i];
-                const tipoFila = row.categoria_tipo;
-                const tipo = (tipoFila !== undefined && tipoFila !== null)
-                    ? Number(tipoFila)
-                    : Number(categoriaTipoMap[String(row.categoria_id)]);
-                if (!Number.isNaN(tipo)) tipos.push(tipo);
-            }
-
-            if (tipos.length === 0) {
-                api.column(4).visible(true);
-                api.column(5).visible(true);
-                console.warn('Sin categoria_tipo en filas ni mapa: columnas visibles por seguridad');
-                return;
-            }
-
-            const todasBasicas   = tipos.every(t => t === 0);
-            const todasCompletas = tipos.every(t => t === 1);
-
-            if (todasBasicas) {
-                api.column(4).visible(false);
-                api.column(5).visible(false);
-            } else {
-                api.column(4).visible(true);
-                api.column(5).visible(true);
-            }
-        }
+        pageLength: 15
     });
 
-    // Eventos de articulos
+    // Listener para filtros
+    $('#categoria_filtro, #clasificacion_filtro, #estado_filtro').on('change', function () {
+        tabla.ajax.reload(null, false);
+    });
 
+    // Eventos de articulos (igual que antes)
     $('#articuloTabla tbody').on('click', '.icon-action[title="Actualizar"]', function () {
         const fila = tabla.row($(this).closest('tr')).data();
         if (fila && fila.articulo_id) {
@@ -176,7 +171,6 @@ window.addEventListener('load', function () {
     $('#articuloTabla tbody').on('click', '.btn_ver_info', function () {
         const id = $(this).data('id');
         if (!id) return;
-
         fetch('php/articulo_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_articulo', id })
@@ -192,7 +186,6 @@ window.addEventListener('load', function () {
     $('#articuloTabla tbody').on('click', '.btn_eliminar', function () {
         const id = $(this).data('id');
         if (!id) return;
-
         fetch('php/articulo_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_articulo', id })
@@ -208,7 +201,6 @@ window.addEventListener('load', function () {
     $('#articuloTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
         if (!id) return;
-
         fetch('php/articulo_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_articulo', id })

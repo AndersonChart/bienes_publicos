@@ -10,6 +10,10 @@
         <select name="clasificacion_id" id="clasificacion_filtro" class="input_text input_select clasificacion_filtro">
             <option value="" selected disabled>Seleccione</option>
         </select>
+        <label for="clasificacion" class="input_label">Estado del stock:</label>
+        <select name="estado_id" id="estado_filtro" class="input_text input_select estado_filtro">
+            <option value="" selected disabled>Seleccione</option>
+        </select>
     </div>
     <div class="basics-container">
         <div class="new_user new_user-usuario" data-modal-target="new_articulo">+ Nuevo</div>
@@ -117,7 +121,7 @@
 <dialog data-modal="seriales_articulo" class="modal modal_confirmar modal_serial">
     <div class="modal_header-info">
         <form method="dialog"><button class="modal__close">X</button></form>
-        <h2 class="modal_title">Añadir seriales</h2>
+        <h2 class="modal_title">Seriales</h2>
     </div>
 
     <!-- Imagen del artículo -->
@@ -244,7 +248,7 @@
     <table id="articuloTabla" class="display" style="width:100%">
         <thead>
             <tr>
-                <th colspan="8" class="title">Artículos</th>
+                <th colspan="9" class="title">Artículos</th>
             </tr>
             <tr>
                 <th class="header">Código</th>
@@ -254,6 +258,7 @@
                 <th class="header">Modelo</th>
                 <th class="header">Marca</th>
                 <th class="header">Imagen</th>
+                <th class="header">Stock</th>
                 <th class="header">Acciones</th>
             </tr>
         </thead>

@@ -121,7 +121,10 @@ $accion = $_POST['accion'] ?? '';
 switch ($accion) {
     case 'leer_todos':
         try {
-            $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
+            // Si no se envía estado, por defecto trae todos
+            $estado = isset($_POST['estado']) && $_POST['estado'] !== '' 
+                        ? intval($_POST['estado']) 
+                        : null;
             $categoriaId = $_POST['categoria_id'] ?? '';
             $clasificacionId = $_POST['clasificacion_id'] ?? '';
 
@@ -136,7 +139,8 @@ switch ($accion) {
                 'detalle' => $e->getMessage()
             ]);
         }
-    break;
+        break;
+
 
     case 'crear':
         try {

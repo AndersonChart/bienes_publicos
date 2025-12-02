@@ -1840,3 +1840,16 @@ a {
     background-color: #ddd !important; /* gris oscuro */
     opacity: 0.8;
 }
+
+.stock-badge {
+    display: inline-block;
+    padding: 10px 15px;
+    margin-right: 4px;
+    border-radius: 10px;
+    font-weight: bold;
+    color: #fff;
+}
+.stock-badge.activos { background-color: #28a745; }       /* verde */
+.stock-badge.asignados { background-color: #007bff; }     /* azul */
+.stock-badge.mantenimiento { background-color: #dd9800; } /* amarillo */
+.stock-badge.total { background-color: #888; }         /* gris */

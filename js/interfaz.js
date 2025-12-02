@@ -296,6 +296,52 @@ function cargarRol(opciones = {}) {
     });
 }
 
+function cargarEstado(opciones = {}) {
+    fetch('php/estado_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todos' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!Array.isArray(data)) {
+            console.error('Respuesta inválida al cargar estados:', data);
+            return;
+        }
+
+        document.querySelectorAll('select.estado_filtro').forEach(select => {
+            select.innerHTML = '';
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Todos los estados';
+            if (!opciones.selected) {
+                defaultOption.selected = true;
+            }
+            select.appendChild(defaultOption);
+
+            data.forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado.estado_id;
+                option.textContent = estado.estado_nombre;
+
+                if (opciones.selected && opciones.selected == estado.estado_id) {
+                    option.selected = true;
+                }
+
+                select.appendChild(option);
+            });
+        });
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar estados:', err);
+    });
+}
+
+
 function cargarMarca(opciones = {}) {
     const params = new URLSearchParams({ accion: 'leer_todos' });
 
@@ -574,7 +620,6 @@ function aplicarDinamicaCategoria() {
     const inputModelo = formArticulo.querySelector('[name="articulo_modelo"]');
     const selectMarca = formArticulo.querySelector('[name="marca_id"]');
 
-    // Normalizar el tipo: solo aceptar "0" o "1"
     const rawTipo = (formArticulo.dataset.categoriaTipo ?? '').trim();
     const tipo = (rawTipo === '0' || rawTipo === '1') ? rawTipo : '';
 
@@ -596,34 +641,14 @@ function aplicarDinamicaCategoria() {
     };
 
     if (tipo === '0') {
-        // Básico: modelo y marca no aplican
-        if (inputModelo) {
-            borrarValor(inputModelo);
-            deshabilitar(inputModelo);
-        }
-        if (selectMarca) {
-            borrarValor(selectMarca);
-            deshabilitar(selectMarca);
-            selectMarca.dispatchEvent(new Event('change'));
-        }
+        if (inputModelo) { borrarValor(inputModelo); deshabilitar(inputModelo); }
+        if (selectMarca) { borrarValor(selectMarca); deshabilitar(selectMarca); selectMarca.dispatchEvent(new Event('change')); }
     } else if (tipo === '1') {
-        // Completo: ambos habilitados
-        if (inputModelo) {
-            habilitar(inputModelo);
-        }
-        if (selectMarca) {
-            habilitar(selectMarca);
-            selectMarca.dispatchEvent(new Event('change'));
-        }
+        if (inputModelo) habilitar(inputModelo);
+        if (selectMarca) { habilitar(selectMarca); selectMarca.dispatchEvent(new Event('change')); }
     } else {
-        // Sin tipo (no hay clasificación válida): habilitar sin requerir
-        if (inputModelo) {
-            habilitar(inputModelo);
-        }
-        if (selectMarca) {
-            habilitar(selectMarca);
-            selectMarca.dispatchEvent(new Event('change'));
-        }
+        if (inputModelo) habilitar(inputModelo);
+        if (selectMarca) { habilitar(selectMarca); selectMarca.dispatchEvent(new Event('change')); }
     }
 }
 
@@ -821,6 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cargarCategorias();
     cargarRol();
+    cargarEstado();
     cargarClasificacion();
     cargarMarca();
     cargarCargo();

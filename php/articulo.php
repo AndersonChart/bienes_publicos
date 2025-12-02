@@ -96,31 +96,33 @@ class articulo {
                         cat.categoria_nombre,
                         cat.categoria_tipo,
                         a.marca_id,
-                        m.marca_nombre
+                        m.marca_nombre,
+                        --  columnas de stock
+                        SUM(CASE WHEN s.estado_id = 1 THEN 1 ELSE 0 END) AS stock_activos,
+                        SUM(CASE WHEN s.estado_id = 2 THEN 1 ELSE 0 END) AS stock_asignados,
+                        SUM(CASE WHEN s.estado_id = 3 THEN 1 ELSE 0 END) AS stock_mantenimiento,
+                        SUM(CASE WHEN s.estado_id != 4 THEN 1 ELSE 0 END) AS stock_total
                     FROM articulo a
-                    LEFT JOIN clasificacion cl 
-                        ON a.clasificacion_id = cl.clasificacion_id
-                    LEFT JOIN categoria cat 
-                        ON cl.categoria_id = cat.categoria_id
-                    LEFT JOIN marca m 
-                        ON a.marca_id = m.marca_id
+                    LEFT JOIN clasificacion cl ON a.clasificacion_id = cl.clasificacion_id
+                    LEFT JOIN categoria cat ON cl.categoria_id = cat.categoria_id
+                    LEFT JOIN marca m ON a.marca_id = m.marca_id
+                    LEFT JOIN articulo_serial s ON a.articulo_id = s.articulo_id
                     WHERE a.articulo_estado = ?";
             
             $params = [$estado];
 
-            // Filtro por categoría si se envía
             if ($categoriaId !== '') {
                 $sql .= " AND cl.categoria_id = ?";
                 $params[] = (int)$categoriaId;
             }
 
-            // Filtro por clasificación si se envía
             if ($clasificacionId !== '') {
                 $sql .= " AND a.clasificacion_id = ?";
                 $params[] = (int)$clasificacionId;
             }
 
-            $sql .= " ORDER BY a.articulo_nombre ASC";
+            $sql .= " GROUP BY a.articulo_id
+                    ORDER BY a.articulo_nombre ASC";
 
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
