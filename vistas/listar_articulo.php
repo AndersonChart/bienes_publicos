@@ -198,6 +198,16 @@
     </form>
 </dialog>
 
+<!-- Mensaje de error -->
+<dialog data-modal="error" class="modal modal_success">
+    <form method="dialog">
+        <div class="modal_icon-error"></div>
+        <h2 class="modal_title">¡Ocurrió un error!</h2>
+        <p class="modal_error-message" id="error-message"></p>
+        <button class="modal__close-success" id="close-error">Aceptar</button>
+    </form>
+</dialog>
+
 <!-- Modal: Confirmar eliminación -->
 <dialog data-modal="eliminar_articulo" class="modal modal_confirmar">
     <div class="modal_header-confirmar">

@@ -302,40 +302,43 @@ switch ($accion) {
     case 'deshabilitar_articulo':
         try {
             $id = $_POST['id'] ?? '';
-            if (!$id) throw new Exception('ID no proporcionado');
-            $exito = $articulo->desincorporar($id);
-            echo json_encode([
-                'exito' => $exito,
-                'mensaje' => $exito ? 'Artículo deshabilitado correctamente' : 'No se pudo deshabilitar el artículo'
-            ]);
+            if (!$id) {
+                throw new Exception('No se proporcionó el identificador del artículo');
+            }
+
+            $resp = $articulo->desincorporar($id);
+            echo json_encode($resp);
+
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode([
-                'exito' => false,
-                'mensaje' => 'Error al deshabilitar artículo',
+                'exito'   => false,
+                'mensaje' => 'Error al deshabilitar el artículo',
                 'detalle' => $e->getMessage()
             ]);
         }
-    break;
+        break;
 
-        case 'recuperar_articulo':
+    case 'recuperar_articulo':
         try {
             $id = $_POST['id'] ?? '';
-            if (!$id) throw new Exception('ID no proporcionado');
-            $exito = $articulo->recuperar($id);
-            echo json_encode([
-                'exito' => $exito,
-                'mensaje' => $exito ? 'Artículo recuperado correctamente' : 'Error al recuperar artículo'
-            ]);
+            if (!$id) {
+                throw new Exception('No se proporcionó el identificador del artículo');
+            }
+
+            $resp = $articulo->recuperar($id);
+            echo json_encode($resp);
+
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode([
-                'exito' => false,
-                'mensaje' => 'Error al recuperar artículo',
+                'exito'   => false,
+                'mensaje' => 'Error al recuperar el artículo',
                 'detalle' => $e->getMessage()
             ]);
         }
-    break;
+        break;
+
 
     // acciones de seriales
     case 'listar_seriales':

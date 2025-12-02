@@ -183,9 +183,11 @@ window.addEventListener('load', function () {
         });
     });
 
+    // Acción: Deshabilitar artículo
     $('#articuloTabla tbody').on('click', '.btn_eliminar', function () {
         const id = $(this).data('id');
         if (!id) return;
+
         fetch('php/articulo_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_articulo', id })
@@ -193,14 +195,20 @@ window.addEventListener('load', function () {
         .then(res => res.json())
         .then(data => {
             if (data.exito && data.articulo) {
+                // Abre el modal de confirmación con los datos del artículo
                 mostrarConfirmacionArticulo(data.articulo, 'eliminar');
+            } else {
+                mostrarModalError(data.mensaje || 'No se pudo obtener el artículo');
             }
-        });
+        })
+        .catch(() => mostrarModalError('Error de conexión con el servidor'));
     });
 
+    // Acción: Recuperar artículo
     $('#articuloTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
         if (!id) return;
+
         fetch('php/articulo_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_articulo', id })
@@ -208,10 +216,15 @@ window.addEventListener('load', function () {
         .then(res => res.json())
         .then(data => {
             if (data.exito && data.articulo) {
+                // Abre el modal de confirmación con los datos del artículo
                 mostrarConfirmacionArticulo(data.articulo, 'recuperar');
+            } else {
+                mostrarModalError(data.mensaje || 'No se pudo obtener el artículo');
             }
-        });
+        })
+        .catch(() => mostrarModalError('Error de conexión con el servidor'));
     });
+
 
     // NUEVO: Evento para abrir modal de seriales
 

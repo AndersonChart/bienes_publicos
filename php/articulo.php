@@ -210,31 +210,94 @@ class articulo {
         }
     }
 
-    // Desincorporar articulo (estado lógico)
-    public function desincorporar($id) {
-        try {
-            $stmt = $this->pdo->prepare("UPDATE articulo SET articulo_estado = 0 WHERE articulo_id = ?");
-            $ok = $stmt->execute([(int)$id]);
-            error_log("[articulo] desincorporar($id) → " . ($ok ? "OK" : "Fallo"));
-            return $ok;
-        } catch (Exception $e) {
-            error_log("[articulo] Error en desincorporar: " . $e->getMessage());
-            throw $e;
-        }
-    }
+// Desincorporar artículo (estado lógico)
+public function desincorporar($id) {
+    try {
+        $this->pdo->beginTransaction();
 
-    // Recuperar articulo
-    public function recuperar($id) {
-        try {
-            $stmt = $this->pdo->prepare("UPDATE articulo SET articulo_estado = 1 WHERE articulo_id = ?");
-            $ok = $stmt->execute([(int)$id]);
-            error_log("[articulo] recuperar($id) → " . ($ok ? "OK" : "Fallo"));
-            return $ok;
-        } catch (Exception $e) {
-            error_log("[articulo] Error en recuperar: " . $e->getMessage());
-            throw $e;
+        // Buscar estados de seriales asociados
+        $stmt = $this->pdo->prepare("SELECT estado_id FROM articulo_serial WHERE articulo_id = ?");
+        $stmt->execute([(int)$id]);
+        $seriales = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!empty($seriales)) {
+            // Validar que todos estén activos (estado 1)
+            foreach ($seriales as $estado) {
+                if ((int)$estado !== 1) {
+                    throw new Exception('No se puede desincorporar: hay seriales comprometidos.');
+                }
+            }
+
+            // Pasar seriales a estado 4
+            $stmtSeriales = $this->pdo->prepare("UPDATE articulo_serial SET estado_id = 4 WHERE articulo_id = ?");
+            $stmtSeriales->execute([(int)$id]);
         }
+
+        // Marcar artículo como deshabilitado
+        $stmtArt = $this->pdo->prepare("UPDATE articulo SET articulo_estado = 0 WHERE articulo_id = ?");
+        $stmtArt->execute([(int)$id]);
+
+        $this->pdo->commit();
+        return ['exito' => true, 'mensaje' => 'Artículo deshabilitado correctamente'];
+    } catch (Exception $e) {
+        $this->pdo->rollBack();
+        error_log("[articulo] Error en desincorporar($id): " . $e->getMessage());
+        return ['exito' => false, 'mensaje' => $e->getMessage()];
     }
+}
+
+// Recuperar artículo
+public function recuperar($id) {
+    try {
+        $this->pdo->beginTransaction();
+
+        // Buscar seriales desincorporados del artículo
+        $stmt = $this->pdo->prepare(
+            "SELECT articulo_serial 
+            FROM articulo_serial 
+            WHERE articulo_id = ? AND estado_id = 4"
+        );
+        $stmt->execute([(int)$id]);
+        $seriales = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Filtrar seriales válidos (no vacíos)
+        $serialesValidos = array_filter(array_map('trim', $seriales), function($s) {
+            return $s !== '' && $s !== null;
+        });
+
+        // Validar duplicados solo si hay seriales válidos
+        if (!empty($serialesValidos)) {
+            $placeholders = implode(',', array_fill(0, count($serialesValidos), '?'));
+            $sql = "SELECT articulo_serial 
+                    FROM articulo_serial 
+                    WHERE articulo_serial IN ($placeholders) AND estado_id <> 4";
+            $stmtDup = $this->pdo->prepare($sql);
+            $stmtDup->execute($serialesValidos);
+            $repetidos = $stmtDup->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($repetidos)) {
+                throw new Exception('No se puede recuperar: seriales repetidos (' . implode(', ', $repetidos) . ')');
+            }
+        }
+
+        // Marcar artículo como habilitado
+        $stmtArt = $this->pdo->prepare("UPDATE articulo SET articulo_estado = 1 WHERE articulo_id = ?");
+        $stmtArt->execute([(int)$id]);
+
+        // Reactivar seriales (si existen)
+        $stmtSeriales = $this->pdo->prepare(
+            "UPDATE articulo_serial SET estado_id = 1 WHERE articulo_id = ? AND estado_id = 4"
+        );
+        $stmtSeriales->execute([(int)$id]);
+
+        $this->pdo->commit();
+        return ['exito' => true, 'mensaje' => 'Artículo recuperado correctamente'];
+    } catch (Exception $e) {
+        $this->pdo->rollBack();
+        error_log("[articulo] Error en recuperar($id): " . $e->getMessage());
+        return ['exito' => false, 'mensaje' => $e->getMessage()];
+    }
+}
 
     //METODOS PARA LOS SERIALES
 

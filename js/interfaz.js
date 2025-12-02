@@ -2350,7 +2350,7 @@ function mostrarConfirmacionArticulo(data, modo = 'eliminar') {
     }
 }
 
-// Eliminar
+// Eliminar (deshabilitar)
 const formDelete = document.getElementById('form_delete_articulo');
 if (formDelete) {
     formDelete.addEventListener('submit', function (e) {
@@ -2364,23 +2364,29 @@ if (formDelete) {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito) {
-                const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
-                if (modal?.open) modal.close();
+            const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
+            if (modal?.open) modal.close();
 
+            if (data.exito) {
                 mostrarModalExito(data.mensaje || 'Artículo deshabilitado');
                 if ($('#articuloTabla').length) {
                     $('#articuloTabla').DataTable().ajax.reload(null, false);
                 }
+            } else {
+                mostrarModalError(data.mensaje || 'No se pudo deshabilitar el artículo');
             }
         })
-        .catch(() => console.error('Error de conexión con el servidor'));
+        .catch(() => {
+            const modal = document.querySelector('dialog[data-modal="eliminar_articulo"]');
+            if (modal?.open) modal.close();
+            mostrarModalError('Error de conexión con el servidor');
+        });
     });
 }
 
 // Recuperar
 const formConfirmar = document.getElementById('form_confirmar_articulo');
-if (formConfirmar) {
+    if (formConfirmar) {
     formConfirmar.addEventListener('submit', function (e) {
         e.preventDefault();
         const id = this.dataset.articuloId;
@@ -2392,10 +2398,10 @@ if (formConfirmar) {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.exito) {
-                const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
-                if (modal?.open) modal.close();
+            const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
+            if (modal?.open) modal.close();
 
+            if (data.exito) {
                 mostrarModalExito(data.mensaje || 'Artículo recuperado');
                 if (typeof estadoActual !== 'undefined') {
                     estadoActual = 1;
@@ -2403,11 +2409,18 @@ if (formConfirmar) {
                 if ($('#articuloTabla').length) {
                     $('#articuloTabla').DataTable().ajax.reload(null, false);
                 }
+            } else {
+                mostrarModalError(data.mensaje || 'No se pudo recuperar el artículo');
             }
         })
-        .catch(() => console.error('Error de conexión con el servidor'));
+        .catch(() => {
+            const modal = document.querySelector('dialog[data-modal="confirmar_articulo"]');
+            if (modal?.open) modal.close();
+            mostrarModalError('Error de conexión con el servidor');
+        });
     });
 }
+
 
 // Actualizar tabla al cambiar filtros
 document.addEventListener('change', function (e) {
