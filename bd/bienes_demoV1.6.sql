@@ -141,7 +141,8 @@ CREATE TABLE asignacion (
     persona_id INT NOT NULL,
     asignacion_fecha DATE NOT NULL,
     asignacion_fecha_fin DATE,
-    asignacion_estado TINYINT(2) NOT NULL DEFAULT 1,
+    asignacion_descripcion VARCHAR(200),
+    asignacion_estado TINYINT(1) NOT NULL DEFAULT 1, -- 2 = Vencido, 1 = Activo y 0 = Deshabilitado
     PRIMARY KEY (asignacion_id)
 );
 

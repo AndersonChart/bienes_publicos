@@ -867,6 +867,18 @@ a {
     height: 40px;
 }
 
+#asignacionTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#asignacionTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#asignacionTabla td {
+    width: 40px;
+    height: 40px;
+}
+
 #marcaTabla tr:nth-child(even) {
     background-color: #ddd;
 }
@@ -888,6 +900,19 @@ a {
 }
 
 #procesoRecepcionArticuloTabla td img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+#procesoAsignacionArticuloTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#procesoAsignacionArticuloTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#procesoAsignacionArticuloTabla td img {
     width: 100px;
     height: 100px;
     object-fit: cover;

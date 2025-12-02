@@ -26,7 +26,7 @@
                 <a href="index.php?vista=listar_marca">Marcas</a>
             </div>
             <div class="menu-content" id="asignaciones">
-                <a href="index.php?vista=listar_etc">Asignaciones</a>
+                <a href="index.php?vista=listar_asignacion">Asignaciones</a>
                 <a href="index.php?vista=listar_personal">Personal</a>
                 <a href="index.php?vista=listar_cargo">Cargos</a>
                 <a href="index.php?vista=listar_area">Áreas</a>
