@@ -1,153 +1,264 @@
 <?php
-require_once '../bd/conexion.php'; // Ajusta la ruta si la incluyes desde otro nivel
+require_once '../bd/conexion.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 class asignacion {
     private $pdo;
-    // id de estado para marcar un articulo serial como Asignado (según tus datos por defecto)
-    const SERIAL_ASIGNADO_ESTADO_ID = 2;
 
     public function __construct() {
-        try {
-            $this->pdo = Conexion::conectar();
-        } catch (Exception $e) {
-            throw $e;
-        }
+        $this->pdo = Conexion::conectar();
     }
 
-    /**
-     * Crear asignación (nota) y asociar seriales.
-     * $serialIds = array de articulo_serial_id
-     */
-    public function crear($areaId, $personaId, $fecha, $fechaFin, $serialIds = []) {
+    // Crear nueva asignapción
+    public function crear($areaId, $personaId, $fecha, $descripcion, $seriales = []) {
         try {
             $this->pdo->beginTransaction();
 
-            $stmt = $this->pdo->prepare("INSERT INTO asignacion (area_id, persona_id, asignacion_fecha, asignacion_fecha_fin, asignacion_estado) VALUES (?, ?, ?, ?, 1)");
-            $stmt->execute([(int)$areaId, (int)$personaId, $fecha, $fechaFin ?: null]);
-            $asignacionId = (int)$this->pdo->lastInsertId();
+            // Insertar cabecera de asignación
+            $stmtCab = $this->pdo->prepare(
+                "INSERT INTO asignacion (area_id, persona_id, asignacion_fecha, asignacion_descripcion, asignacion_estado)
+                VALUES (?, ?, ?, ?, 1)"
+            );
+            $stmtCab->execute([$areaId, $personaId, $fecha, $descripcion]);
+            $asignacion_id = $this->pdo->lastInsertId();
 
-            if (!empty($serialIds)) {
-                $insStmt = $this->pdo->prepare("INSERT INTO asignacion_articulo (articulo_serial_id, asignacion_id) VALUES (?, ?)");
-                $updStmt = $this->pdo->prepare("UPDATE articulo_serial SET estado_id = ? WHERE articulo_serial_id = ?");
+            if (!empty($seriales)) {
+                $stmtDetalle = $this->pdo->prepare(
+                    "INSERT INTO asignacion_articulo (articulo_serial_id, asignacion_id) VALUES (?, ?)"
+                );
+                $stmtUpdateSerial = $this->pdo->prepare(
+                    "UPDATE articulo_serial SET estado_id = 2 WHERE articulo_serial_id = ?"
+                );
 
-                foreach ($serialIds as $serialId) {
-                    $insStmt->execute([(int)$serialId, $asignacionId]);
-                    $updStmt->execute([self::SERIAL_ASIGNADO_ESTADO_ID, (int)$serialId]);
+                foreach ($seriales as $serialId) {
+                    $stmtDetalle->execute([$serialId, $asignacion_id]);
+                    $stmtUpdateSerial->execute([$serialId]);
                 }
             }
 
             $this->pdo->commit();
-            return $asignacionId;
+            return $asignacion_id;
         } catch (Exception $e) {
             $this->pdo->rollBack();
             throw $e;
         }
     }
 
-    /** Obtener asignaciones para datatable (filtros opcionales) */
-    public function obtener_todos($estado = 1, $areaId = '', $personaId = '') {
-        $sql = "SELECT a.asignacion_id, a.area_id, ar.area_nombre, a.persona_id, CONCAT(p.persona_nombre,' ',p.persona_apellido) as persona_nombre,
-                       a.asignacion_fecha, a.asignacion_fecha_fin, a.asignacion_estado,
-                       (SELECT COUNT(*) FROM asignacion_articulo aa WHERE aa.asignacion_id = a.asignacion_id) AS cantidad_articulos
+    // Listar asignaciones
+    public function leer_por_estado($estado = 1) {
+        $sql = "SELECT a.asignacion_id, a.asignacion_fecha, a.asignacion_descripcion,
+                    a.asignacion_estado, p.persona_nombre, p.persona_apellido, ar.area_nombre
                 FROM asignacion a
-                LEFT JOIN area ar ON a.area_id = ar.area_id
-                LEFT JOIN persona p ON a.persona_id = p.persona_id
-                WHERE a.asignacion_estado = ?";
+                INNER JOIN persona p ON a.persona_id = p.persona_id
+                INNER JOIN area ar ON a.area_id = ar.area_id
+                WHERE a.asignacion_estado = ?
+                ORDER BY a.asignacion_fecha DESC, a.asignacion_id DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([(int)$estado]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
+
+    // Leer recepción por ID
+    public function leer_por_id($id) {
+        $sql = "SELECT a.asignacion_id, a.asignacion_fecha, a.asignacion_descripcion,
+                    a.asignacion_estado, p.persona_nombre, p.persona_apellido, ar.area_nombre
+                FROM asignacion a
+                INNER JOIN persona p ON a.persona_id = p.persona_id
+                INNER JOIN area ar ON a.area_id = ar.area_id
+                WHERE a.asignacion_id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([(int)$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+
+    public function anular($id) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // Marcar cabecera como anulada
+            $stmtCab = $this->pdo->prepare(
+                "UPDATE asignacion SET asignacion_estado = 0 WHERE asignacion_id = ?"
+            );
+            $stmtCab->execute([(int)$id]);
+
+            // Seriales vinculados vuelven a estado 1 (activo)
+            $stmtSeriales = $this->pdo->prepare(
+                "UPDATE articulo_serial SET estado_id = 1
+                WHERE articulo_serial_id IN (
+                    SELECT articulo_serial_id FROM asignacion_articulo WHERE asignacion_id = ?
+                )"
+            );
+            $stmtSeriales->execute([(int)$id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
+
+
+    public function recuperar($id) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // Buscar seriales asociados
+            $stmt = $this->pdo->prepare(
+                "SELECT s.articulo_serial_id, s.estado_id
+                FROM asignacion_articulo aa
+                INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
+                WHERE aa.asignacion_id = ?"
+            );
+            $stmt->execute([(int)$id]);
+            $seriales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($seriales)) {
+                throw new Exception('No hay seriales asociados a la asignación');
+            }
+
+            // Validar que todos estén activos
+            foreach ($seriales as $s) {
+                if ((int)$s['estado_id'] !== 1) {
+                    throw new Exception('No se puede recuperar: algunos seriales están comprometidos');
+                }
+            }
+
+            // Reactivar cabecera
+            $stmtCab = $this->pdo->prepare(
+                "UPDATE asignacion SET asignacion_estado = 1 WHERE asignacion_id = ?"
+            );
+            $stmtCab->execute([(int)$id]);
+
+            // Marcar seriales como asignados nuevamente
+            $stmtSeriales = $this->pdo->prepare(
+                "UPDATE articulo_serial SET estado_id = 2
+                WHERE articulo_serial_id IN (
+                    SELECT articulo_serial_id FROM asignacion_articulo WHERE asignacion_id = ?
+                )"
+            );
+            $stmtSeriales->execute([(int)$id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
+
+
+
+    // Listar artículos disponibles
+    public function leer_articulos_disponibles($estado = 1, $categoriaId = '', $clasificacionId = '') {
+        $sql = "SELECT
+                    a.articulo_id,
+                    a.articulo_codigo,
+                    a.articulo_nombre,
+                    a.articulo_modelo,
+                    a.articulo_descripcion,
+                    a.articulo_imagen,
+                    cl.clasificacion_nombre,
+                    cat.categoria_nombre,
+                    cat.categoria_tipo,
+                    m.marca_nombre
+                FROM articulo a
+                LEFT JOIN clasificacion cl ON a.clasificacion_id = cl.clasificacion_id
+                LEFT JOIN categoria cat ON cl.categoria_id = cat.categoria_id
+                LEFT JOIN marca m ON a.marca_id = m.marca_id
+                WHERE a.articulo_estado = ?";
         $params = [(int)$estado];
 
-        if ($areaId !== '') {
-            $sql .= " AND a.area_id = ?";
-            $params[] = (int)$areaId;
+        if ($categoriaId !== '') {
+            $sql .= " AND cl.categoria_id = ?";
+            $params[] = (int)$categoriaId;
         }
-        if ($personaId !== '') {
-            $sql .= " AND a.persona_id = ?";
-            $params[] = (int)$personaId;
+        if ($clasificacionId !== '') {
+            $sql .= " AND a.clasificacion_id = ?";
+            $params[] = (int)$clasificacionId;
         }
 
-        $sql .= " ORDER BY a.asignacion_fecha DESC, a.asignacion_id DESC";
+        $sql .= " ORDER BY a.articulo_nombre ASC, a.articulo_codigo ASC";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Obtener por id con artículos seriales */
-    public function leer_por_id($id) {
-        $stmt = $this->pdo->prepare("SELECT a.*, ar.area_nombre, CONCAT(p.persona_nombre,' ',p.persona_apellido) as persona_nombre FROM asignacion a
-                                     LEFT JOIN area ar ON a.area_id = ar.area_id
-                                     LEFT JOIN persona p ON a.persona_id = p.persona_id
-                                     WHERE a.asignacion_id = ?");
+
+    // Leer detalle completo de un artículo
+    public function leer_articulo_por_id($id) {
+        $sql = "SELECT a.*, cl.clasificacion_nombre, cat.categoria_nombre, cat.categoria_tipo, m.marca_nombre
+                FROM articulo a
+                LEFT JOIN clasificacion cl ON a.clasificacion_id = cl.clasificacion_id
+                LEFT JOIN categoria cat ON cl.categoria_id = cat.categoria_id
+                LEFT JOIN marca m ON a.marca_id = m.marca_id
+                WHERE a.articulo_id = ?";
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([(int)$id]);
-        $asig = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$asig) return null;
-
-        // artículos seriales
-        $stmt2 = $this->pdo->prepare("SELECT s.articulo_serial_id, s.articulo_serial, s.estado_id, t.articulo_nombre, t.articulo_modelo, m.marca_nombre
-                                      FROM asignacion_articulo aa
-                                      JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
-                                      JOIN articulo t ON s.articulo_id = t.articulo_id
-                                      LEFT JOIN marca m ON t.marca_id = m.marca_id
-                                      WHERE aa.asignacion_id = ?");
-        $stmt2->execute([(int)$id]);
-        $asig['articulos'] = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-
-        return $asig;
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    /** Deshabilitar (estado lógico) una asignación */
-    public function deshabilitar($id) {
-        $stmt = $this->pdo->prepare("UPDATE asignacion SET asignacion_estado = 0 WHERE asignacion_id = ?");
-        return $stmt->execute([(int)$id]);
-    }
-
-    /** Recuperar asignación (si tu flujo lo permite) */
-    public function recuperar($id) {
-        $stmt = $this->pdo->prepare("UPDATE asignacion SET asignacion_estado = 1 WHERE asignacion_id = ?");
-        return $stmt->execute([(int)$id]);
-    }
-
-    /** Finalizar: marcar asignacion_fecha_fin y opcionalmente devolver seriales a Disponible (estado 1) */
-    public function finalizar($id, $fechaFin = null, $devolverSeriales = false) {
+    // Mostrar todos los seriales con código (no vacíos) por artículo en estado 1 (activos)
+    public function leer_seriales_articulo($articuloId) {
         try {
-            $this->pdo->beginTransaction();
-            $stmt = $this->pdo->prepare("UPDATE asignacion SET asignacion_fecha_fin = ?, asignacion_estado = 0 WHERE asignacion_id = ?");
-            $stmt->execute([$fechaFin ?: date('Y-m-d'), (int)$id]);
-
-            if ($devolverSeriales) {
-                // poner seriales a Disponible (estado = 1)
-                $sel = $this->pdo->prepare("SELECT articulo_serial_id FROM asignacion_articulo WHERE asignacion_id = ?");
-                $sel->execute([(int)$id]);
-                $seriales = $sel->fetchAll(PDO::FETCH_COLUMN);
-
-                if (!empty($seriales)) {
-                    $upd = $this->pdo->prepare("UPDATE articulo_serial SET estado_id = 1 WHERE articulo_serial_id = ?");
-                    foreach ($seriales as $s) {
-                        $upd->execute([(int)$s]);
-                    }
-                }
-            }
-
-            $this->pdo->commit();
-            return true;
+            $sql = "SELECT articulo_serial_id AS id,
+                        articulo_serial AS serial,
+                        articulo_serial_observacion AS observacion,
+                        estado_id AS estado
+                    FROM articulo_serial
+                    WHERE articulo_id = ?
+                    AND estado_id = 1
+                    AND articulo_serial IS NOT NULL
+                    AND TRIM(articulo_serial) <> ''
+                    ORDER BY articulo_serial_id ASC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([(int)$articuloId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            $this->pdo->rollBack();
             throw $e;
         }
     }
 
-    /** Buscar seriales disponibles por texto (serial o nombre de artículo) */
-    public function buscar_seriales_disponibles($texto, $limit = 50) {
-        $texto = "%".str_replace('%','\\%',$texto)."%";
-        $sql = "SELECT s.articulo_serial_id, s.articulo_serial, s.estado_id, a.articulo_nombre, a.articulo_modelo, m.marca_nombre
-                FROM articulo_serial s
-                JOIN articulo a ON s.articulo_id = a.articulo_id
-                LEFT JOIN marca m ON a.marca_id = m.marca_id
-                WHERE s.estado_id = 1 AND (s.articulo_serial LIKE ? OR a.articulo_nombre LIKE ?)
-                LIMIT ?";
+    // Stock disponible por artículo (solo activos con código de serial)
+    public function obtener_stock_articulo($articuloId) {
+        try {
+            $sql = "SELECT 
+                        SUM(CASE WHEN estado_id = 1 
+                                AND articulo_serial IS NOT NULL 
+                                AND TRIM(articulo_serial) <> '' 
+                                THEN 1 ELSE 0 END) AS activos
+                    FROM articulo_serial
+                    WHERE articulo_id = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([(int)$articuloId]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    // Listar artículos asociados a una recepción
+    public function leer_articulos_por_asignacion($asignacion_id) {
+        $sql = "SELECT 
+                    a.articulo_codigo,
+                    a.articulo_nombre,
+                    COUNT(s.articulo_serial_id) AS cantidad,
+                    GROUP_CONCAT(COALESCE(NULLIF(s.articulo_serial,''),'(sin serial)') ORDER BY s.articulo_serial_id SEPARATOR ', ') AS seriales
+                FROM asignacion_articulo aa
+                INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
+                INNER JOIN articulo a ON s.articulo_id = a.articulo_id
+                WHERE aa.asignacion_id = ?
+                GROUP BY a.articulo_codigo, a.articulo_nombre
+                ORDER BY a.articulo_nombre ASC";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$texto, $texto, (int)$limit]);
+        $stmt->execute([(int)$asignacion_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>
+
