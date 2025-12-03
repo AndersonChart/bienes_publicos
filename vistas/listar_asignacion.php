@@ -41,6 +41,7 @@
                 <li><strong class="info_subtitle">Cargo:</strong> <span class="info_data" id="info_cargo"></span></li>
                 <li><strong class="info_subtitle">Fecha:</strong> <span class="info_data" id="info_fecha"></span></li>
                 <li><strong class="info_subtitle">Fecha fin:</strong> <span class="info_data" id="info_fecha_fin"></span></li>
+                <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_descripcion"></span></li>
             </ul>
         </div>
         <div class="resumen_container">
@@ -70,7 +71,7 @@
         <div class="modal_icon"></div>
         <h2 class="modal_title">¡Proceso éxitoso!</h2>
         <p class="modal_success-message" id="success-message"></p>
-        <button class="modal__close-success" id="close-success">Aceptar</button>
+        <button class="modal__close-success" id="close-success-asignacion">Aceptar</button>
     </form>
 </dialog>
 
@@ -80,7 +81,7 @@
         <div class="modal_icon-error"></div>
         <h2 class="modal_title">¡Ocurrió un error!</h2>
         <p class="modal_error-message" id="error-message"></p>
-        <button class="modal__close-success" id="close-error">Aceptar</button>
+        <button class="modal__close-success" id="close-error-asignacion">Aceptar</button>
     </form>
 </dialog>
 

@@ -47,7 +47,7 @@ class asignacion {
     }
 
 // Listar asignaciones por estado (y opcionalmente filtros)
-public function leer_por_estado($estado = 1, $areaId = '', $personaId = '') {
+public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $areaId = '') {
     try {
         $sql = "SELECT 
                     a.asignacion_id,
@@ -58,20 +58,19 @@ public function leer_por_estado($estado = 1, $areaId = '', $personaId = '') {
                     p.persona_nombre,
                     p.persona_apellido,
                     c.cargo_nombre,
-                    ar.area_nombre,
-                    COALESCE(COUNT(aa.asignacion_articulo_id), 0) AS cantidad_articulos
+                    ar.area_nombre
                 FROM asignacion a
                 INNER JOIN persona p ON a.persona_id = p.persona_id
                 INNER JOIN cargo c ON p.cargo_id = c.cargo_id
                 INNER JOIN area ar ON a.area_id = ar.area_id
-                LEFT JOIN asignacion_articulo aa ON a.asignacion_id = aa.asignacion_id
                 WHERE a.asignacion_estado = ?";
         
         $params = [(int)$estado];
 
-        if ($areaId !== '') {
-            $sql .= " AND a.area_id = ?";
-            $params[] = (int)$areaId;
+        // Filtros opcionales
+        if ($cargoId !== '') {
+            $sql .= " AND c.cargo_id = ?";
+            $params[] = (int)$cargoId;
         }
 
         if ($personaId !== '') {
@@ -79,10 +78,12 @@ public function leer_por_estado($estado = 1, $areaId = '', $personaId = '') {
             $params[] = (int)$personaId;
         }
 
-        $sql .= " GROUP BY a.asignacion_id, a.asignacion_fecha, a.asignacion_fecha_fin,
-                          a.asignacion_descripcion, a.asignacion_estado,
-                          p.persona_nombre, p.persona_apellido, c.cargo_nombre, ar.area_nombre
-                  ORDER BY a.asignacion_fecha DESC, a.asignacion_id DESC";
+        if ($areaId !== '') {
+            $sql .= " AND a.area_id = ?";
+            $params[] = (int)$areaId;
+        }
+
+        $sql .= " ORDER BY a.asignacion_fecha DESC, a.asignacion_id DESC";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -92,6 +93,7 @@ public function leer_por_estado($estado = 1, $areaId = '', $personaId = '') {
         throw $e;
     }
 }
+
 
 
 
@@ -115,6 +117,7 @@ public function leer_por_estado($estado = 1, $areaId = '', $personaId = '') {
         $stmt->execute([(int)$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
 
 
     public function anular($id) {

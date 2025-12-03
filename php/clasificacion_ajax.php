@@ -123,6 +123,23 @@ switch ($accion) {
             ]);
         }
     break;
+
+    case 'obtener_clasificacion':
+        header('Content-Type: application/json');
+
+        $id = $_POST['id'] ?? '';
+        if (!$id) {
+            echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
+            exit;
+        }
+
+        $datos = $clasificacion->leer_por_id($id);
+        if ($datos) {
+            echo json_encode(['exito' => true, 'clasificacion' => $datos]);
+        } else {
+            echo json_encode(['error' => true, 'mensaje' => 'Clasificación no encontrada']);
+        }
+    break;
     
     case 'crear':
         try {
@@ -162,23 +179,6 @@ switch ($accion) {
                 'mensaje' => 'Error al crear clasificación',
                 'detalle' => $e->getMessage()
             ]);
-        }
-    break;
-    
-    case 'obtener_clasificacion':
-        header('Content-Type: application/json');
-
-        $id = $_POST['id'] ?? '';
-        if (!$id) {
-            echo json_encode(['error' => true, 'mensaje' => 'ID no proporcionado']);
-            exit;
-        }
-
-        $datos = $clasificacion->leer_por_id($id);
-        if ($datos) {
-            echo json_encode(['exito' => true, 'clasificacion' => $datos]);
-        } else {
-            echo json_encode(['error' => true, 'mensaje' => 'Clasificación no encontrada']);
         }
     break;
 

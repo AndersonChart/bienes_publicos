@@ -549,25 +549,119 @@ function cargarCargo(opciones = {}) {
     })
     .then(res => res.json())
     .then(resp => {
-        const data = resp.data;
-
-        if (!Array.isArray(data)) {
-            console.error('Respuesta inválida al cargar cargos:', resp);
-            return;
-        }
+        const data = resp.data || [];
 
         // Selects para filtros
         document.querySelectorAll('select.cargo_filtro').forEach(select => {
-            select.innerHTML = '';
-            const todasOption = document.createElement('option');
-            todasOption.value = '';
-            todasOption.textContent = 'Todos los cargos';
-            select.appendChild(todasOption);
-
+            select.innerHTML = '<option value="">Todos los cargos</option>';
             data.forEach(cargo => {
                 const option = document.createElement('option');
                 option.value = cargo.cargo_id;
                 option.textContent = cargo.cargo_nombre;
+                select.appendChild(option);
+            });
+            if (opciones.selected && opciones.scope === 'filtro') {
+                select.value = opciones.selected;
+            }
+        });
+
+        // Selects para formularios
+        document.querySelectorAll('select.cargo_form').forEach(select => {
+            select.innerHTML = '<option value="" disabled selected>Seleccione un cargo</option>';
+            data.forEach(cargo => {
+                const option = document.createElement('option');
+                option.value = cargo.cargo_id;
+                option.textContent = cargo.cargo_nombre;
+                select.appendChild(option);
+            });
+            if (opciones.selected && opciones.scope === 'form') {
+                select.value = opciones.selected;
+            }
+        });
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(err => console.error('Error al cargar cargos:', err));
+}
+
+function cargarPersona(opciones = {}) {
+    const params = new URLSearchParams({ accion: 'leer_todos', estado: 1 });
+    if (opciones.cargo_id) {
+        params.append('cargo_id', opciones.cargo_id);
+    }
+
+    fetch('php/personal_ajax.php', {
+        method: 'POST',
+        body: params
+    })
+    .then(res => res.json())
+    .then(resp => {
+        const data = resp.data || [];
+
+        // Selects para filtros
+        document.querySelectorAll('select.persona_filtro').forEach(select => {
+            select.innerHTML = '<option value="">Todas las personas</option>';
+            data.forEach(persona => {
+                const option = document.createElement('option');
+                option.value = persona.persona_id;
+                option.textContent = persona.persona_nombre + ' ' + persona.persona_apellido;
+                select.appendChild(option);
+            });
+            if (opciones.selected && opciones.scope === 'filtro') {
+                select.value = opciones.selected;
+            }
+        });
+
+        // Selects para formularios
+        document.querySelectorAll('select.persona_form').forEach(select => {
+            select.innerHTML = '<option value="" disabled selected>Seleccione una persona</option>';
+            data.forEach(persona => {
+                const option = document.createElement('option');
+                option.value = persona.persona_id;
+                option.textContent = persona.persona_nombre + ' ' + persona.persona_apellido;
+                select.appendChild(option);
+            });
+            if (opciones.selected && opciones.scope === 'form') {
+                select.value = opciones.selected;
+            }
+        });
+
+        if (typeof opciones.onComplete === 'function') {
+            opciones.onComplete(data);
+        }
+    })
+    .catch(err => console.error('Error al cargar personas:', err));
+}
+
+
+function cargarArea(opciones = {}) {
+    fetch('php/area_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_todos' })
+    })
+    .then(res => res.json())
+    .then(resp => {
+        const data = resp.data;
+
+        if (!Array.isArray(data)) {
+            console.error('Respuesta inválida al cargar áreas:', resp);
+            return;
+        }
+
+        // Selects para filtros
+        document.querySelectorAll('select.area_filtro').forEach(select => {
+            select.innerHTML = '';
+            const todasOption = document.createElement('option');
+            todasOption.value = '';
+            todasOption.textContent = 'Todas las áreas';
+            select.appendChild(todasOption);
+
+            data.forEach(area => {
+                const option = document.createElement('option');
+                option.value = area.area_id;
+                option.textContent = area.area_nombre;
                 select.appendChild(option);
             });
 
@@ -577,19 +671,19 @@ function cargarCargo(opciones = {}) {
         });
 
         // Selects para formularios
-        document.querySelectorAll('select.cargo_form').forEach(select => {
+        document.querySelectorAll('select.area_form').forEach(select => {
             select.innerHTML = '';
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
             defaultOption.disabled = true;
             defaultOption.selected = true;
-            defaultOption.textContent = 'Seleccione un cargo';
+            defaultOption.textContent = 'Seleccione un área';
             select.appendChild(defaultOption);
 
-            data.forEach(cargo => {
+            data.forEach(area => {
                 const option = document.createElement('option');
-                option.value = String(cargo.cargo_id);
-                option.textContent = cargo.cargo_nombre;
+                option.value = String(area.area_id);
+                option.textContent = area.area_nombre;
                 select.appendChild(option);
             });
 
@@ -603,9 +697,10 @@ function cargarCargo(opciones = {}) {
         }
     })
     .catch(err => {
-        console.error('Error al cargar cargos:', err);
+        console.error('Error al cargar áreas:', err);
     });
 }
+
 
 
 //Dinamicas de Formularios
@@ -850,6 +945,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarClasificacion();
     cargarMarca();
     cargarCargo();
+    cargarPersona();
+    cargarArea();
     mantenerFotoUsuarioActualizada();
     aplicarDinamicaCategoria()
 
@@ -1058,6 +1155,91 @@ document.addEventListener('DOMContentLoaded', () => {
                         filtroCategoriaRecepcion.value = data.clasificacion.categoria_id;
                     }
                     $('#recepcionArticuloTabla').DataTable().ajax.reload(null, false);
+                });
+            });
+        }
+
+        // --- Filtros de asignaciones ---
+
+        const filtroCargo   = document.getElementById('cargo_filtro');
+        const filtroPersona = document.getElementById('persona_filtro');
+
+        if (filtroCargo) {
+            filtroCargo.addEventListener('change', () => {
+                const valor = filtroCargo.value;
+
+                if (valor !== '') {
+                    // Personas de un cargo específico
+                    cargarPersona({
+                        cargo_id: valor,
+                        scope: 'filtro',
+                        onComplete: (lista) => {
+                            if (Array.isArray(lista) && lista.length > 0) {
+                                filtroPersona.innerHTML = '';
+                                const todasOption = document.createElement('option');
+                                todasOption.value = '';
+                                todasOption.textContent = 'Todas las personas';
+                                filtroPersona.appendChild(todasOption);
+
+                                lista.forEach(persona => {
+                                    const option = document.createElement('option');
+                                    option.value = persona.persona_id;
+                                    option.textContent = persona.persona_nombre + ' ' + persona.persona_apellido;
+                                    filtroPersona.appendChild(option);
+                                });
+                            } else {
+                                console.warn('No se devolvieron personas para el cargo', valor);
+                            }
+                        }
+                    });
+                } else {
+                    // Todos los cargos → cargar todas las personas
+                    cargarPersona({
+                        scope: 'filtro',
+                        onComplete: (lista) => {
+                            if (Array.isArray(lista) && lista.length > 0) {
+                                filtroPersona.innerHTML = '';
+                                const todasOption = document.createElement('option');
+                                todasOption.value = '';
+                                todasOption.textContent = 'Todas las personas';
+                                filtroPersona.appendChild(todasOption);
+
+                                lista.forEach(persona => {
+                                    const option = document.createElement('option');
+                                    option.value = persona.persona_id;
+                                    option.textContent = persona.persona_nombre + ' ' + persona.persona_apellido;
+                                    filtroPersona.appendChild(option);
+                                });
+                            }
+                        }
+                    });
+                }
+
+                // Recargar tabla de asignaciones
+                $('#asignacionTabla').DataTable().ajax.reload(null, false);
+            });
+        }
+
+        if (filtroPersona) {
+            filtroPersona.addEventListener('change', () => {
+                const personaId = filtroPersona.value;
+                const cargoActual = filtroCargo.value || '';
+
+                if (!personaId) {
+                    $('#asignacionTabla').DataTable().ajax.reload(null, false);
+                    return;
+                }
+
+                fetch('php/personal_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'obtener_persona', persona_id: personaId }) // ✅ usar persona_id
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exito && data.persona) {
+                        filtroCargo.value = data.persona.cargo_id; // ✅ ajusta cargo automáticamente
+                    }
+                    $('#asignacionTabla').DataTable().ajax.reload(null, false);
                 });
             });
         }

@@ -93,38 +93,38 @@ switch ($accion) {
 
     // Listar todas las asignaciones por estado
     case 'leer_todos':
-        try {
-            $estado    = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
-            $areaId    = $_POST['area_id'] ?? '';
-            $personaId = $_POST['persona_id'] ?? '';
+    try {
+        $estado    = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
+        $cargoId   = $_POST['cargo_id'] ?? '';
+        $personaId = $_POST['persona_id'] ?? '';
+        $areaId    = $_POST['area_id'] ?? '';
 
-            $registros = $asignacion->leer_por_estado($estado, $areaId, $personaId);
+        $registros = $asignacion->leer_por_estado($estado, $cargoId, $personaId, $areaId);
 
-            $data = array_map(function ($row) {
-                return [
-                    'asignacion_id'         => $row['asignacion_id'],
-                    'asignacion_fecha'      => $row['asignacion_fecha'],
-                    'asignacion_fecha_fin'  => $row['asignacion_fecha_fin'],
-                    'asignacion_descripcion'=> $row['asignacion_descripcion'],
-                    'asignacion_estado'     => $row['asignacion_estado'],
-                    'area_nombre'           => $row['area_nombre'],
-                    'persona_nombre'        => $row['persona_nombre'].' '.$row['persona_apellido'],
-                    'cargo_nombre'          => $row['cargo_nombre'],
-                    'cantidad_articulos'    => $row['cantidad_articulos']
-                ];
-            }, $registros);
+        $data = array_map(function ($row) {
+            return [
+                'asignacion_id'        => $row['asignacion_id'],
+                'asignacion_fecha'     => $row['asignacion_fecha'],
+                'asignacion_fecha_fin' => $row['asignacion_fecha_fin'],
+                'asignacion_estado'    => $row['asignacion_estado'],
+                'area_nombre'          => $row['area_nombre'],
+                'persona_nombre'       => $row['persona_nombre'].' '.$row['persona_apellido'],
+                'cargo_nombre'         => $row['cargo_nombre']
+            ];
+        }, $registros);
 
-            echo json_encode(['data' => $data]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'data'    => [],
-                'error'   => true,
-                'mensaje' => 'Error al leer las asignaciones registradas',
-                'detalle' => $e->getMessage()
-            ]);
-        }
-        break;
+        echo json_encode(['data' => $data]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'data'    => [],
+            'error'   => true,
+            'mensaje' => 'Error al leer las asignaciones registradas',
+            'detalle' => $e->getMessage()
+        ]);
+    }
+    break;
+
 
 
     // Crear nueva asignación

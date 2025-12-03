@@ -43,6 +43,9 @@ window.addEventListener('load', function () {
             data: function (d) {
                 d.accion = 'leer_todos';
                 d.estado = estadoAsignacion;
+                d.cargo_id   = document.getElementById('cargo_filtro')?.value || '';
+                d.persona_id = document.getElementById('persona_filtro')?.value || '';
+                d.area_id    = document.getElementById('area_filtro')?.value || '';
             },
             dataSrc: 'data',
             error: function (xhr, status, error) {
@@ -51,53 +54,53 @@ window.addEventListener('load', function () {
             }
         },
         columns: [
-    { data: 'asignacion_id', title: 'ID' },
-    { data: 'persona_nombre', title: 'Personal' },
-    { data: 'cargo_nombre', title: 'Cargo' },
-    { data: 'area_nombre', title: 'Área' },
-    { data: 'asignacion_fecha', title: 'Desde',
-      render: function (data) {
-          if (!data) return '';
-          const fecha = new Date(data);
-          return fecha.toLocaleDateString('es-VE');
-      }
-    },
-    { data: 'asignacion_fecha_fin', title: 'Hasta',
-      render: function (data) {
-          if (!data) return '—';
-          const fecha = new Date(data);
-          return fecha.toLocaleDateString('es-VE');
-      }
-    },
-    {
-        data: null, title: 'Acciones',
-        render: function (row) {
-            const estado = parseInt(row.asignacion_estado);
-            const id = row.asignacion_id || '';
-            const url = 'reportes/reporte_asignacion.php?id=' + encodeURIComponent(id);
+            { data: 'asignacion_id', title: 'ID' },
+            { data: 'persona_nombre', title: 'Personal' },
+            { data: 'cargo_nombre', title: 'Cargo' },
+            { data: 'area_nombre', title: 'Área' },
+            { data: 'asignacion_fecha', title: 'Desde',
+              render: function (data) {
+                  if (!data) return '';
+                  const fecha = new Date(data);
+                  return fecha.toLocaleDateString('es-VE');
+              }
+            },
+            { data: 'asignacion_fecha_fin', title: 'Hasta',
+              render: function (data) {
+                  if (!data) return '—';
+                  const fecha = new Date(data);
+                  return fecha.toLocaleDateString('es-VE');
+              }
+            },
+            {
+                data: null, title: 'Acciones',
+                render: function (row) {
+                    const estado = parseInt(row.asignacion_estado);
+                    const id = row.asignacion_id || '';
+                    const url = 'reportes/reporte_asignacion.php?id=' + encodeURIComponent(id);
 
-            let botones = '<div class="acciones">';
-            botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF">
-                            <img src="img/icons/reportepdf.png" alt="Reporte">
-                        </a>`;
-            botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
-                            <img src="img/icons/info.png" alt="Info">
-                        </div>`;
-            if (estado === 1) {
-                botones += `<div class="icon-action btn_anular" data-id="${id}" title="Anular">
-                                <img src="img/icons/anular.png" alt="Anular">
-                            </div>`;
-            } else {
-                botones += `<div class="icon-action btn_recuperar" data-id="${id}" title="Recuperar">
-                                <img src="img/icons/recuperar.png" alt="Recuperar">
-                            </div>`;
+                    let botones = '<div class="acciones">';
+                    botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF">
+                                    <img src="img/icons/reportepdf.png" alt="Reporte">
+                                </a>`;
+                    botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
+                                    <img src="img/icons/info.png" alt="Info">
+                                </div>`;
+                    if (estado === 1) {
+                        botones += `<div class="icon-action btn_anular" data-id="${id}" title="Anular">
+                                        <img src="img/icons/anular.png" alt="Anular">
+                                    </div>`;
+                    } else {
+                        botones += `<div class="icon-action btn_recuperar" data-id="${id}" title="Recuperar">
+                                        <img src="img/icons/recuperar.png" alt="Recuperar">
+                                    </div>`;
+                    }
+                    botones += '</div>';
+                    return botones;
+                },
+                orderable: false
             }
-            botones += '</div>';
-            return botones;
-        },
-        orderable: false
-    }
-],
+        ],
         paging: true,
         info: true,
         dom: '<"top"Bf>rt<"bottom"lpi><"clear">',
@@ -116,12 +119,16 @@ window.addEventListener('load', function () {
         pageLength: 15,
     });
 
+    // Recargar tabla al cambiar filtros
+    $('#cargo_filtro, #persona_filtro, #area_filtro').on('change', function () {
+        tabla.ajax.reload(null, false);
+    });
+
     // Acción: Ver info + cargar resumen
     $('#asignacionTabla tbody').on('click', '.btn_ver_info', function () {
         const id = $(this).data('id');
         if (!id) return;
 
-        // Obtener datos de la asignación
         fetch('php/asignacion_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_asignacion', id })
@@ -129,18 +136,24 @@ window.addEventListener('load', function () {
         .then(res => res.json())
         .then(data => {
             if (data.exito && data.asignacion) {
-                // rellenar los spans
                 document.getElementById('info_id').textContent = data.asignacion.asignacion_id;
                 document.getElementById('info_area').textContent = data.asignacion.area_nombre;
                 document.getElementById('info_persona').textContent = data.asignacion.persona_nombre + ' ' + (data.asignacion.persona_apellido || '');
-                document.getElementById('info_fecha').textContent = data.asignacion.asignacion_fecha;
-                document.getElementById('info_fecha_fin').textContent = data.asignacion.asignacion_fecha_fin || '—';
+                document.getElementById('info_cargo').textContent = data.asignacion.cargo_nombre;
 
-                // abrir modal
+                function formatFecha(fechaStr) {
+                    if (!fechaStr) return '—';
+                    const fecha = new Date(fechaStr);
+                    return fecha.toLocaleDateString('es-VE');
+                }
+
+                document.getElementById('info_fecha').textContent = formatFecha(data.asignacion.asignacion_fecha);
+                document.getElementById('info_fecha_fin').textContent = formatFecha(data.asignacion.asignacion_fecha_fin);
+                document.getElementById('info_descripcion').textContent = data.asignacion.asignacion_descripcion || '—';
+
                 const modal = document.querySelector('dialog[data-modal="info_asignacion"]');
                 if (modal?.showModal) modal.showModal();
 
-                // cargar artículos asociados
                 fetch('php/asignacion_ajax.php', {
                     method: 'POST',
                     body: new URLSearchParams({ accion: 'listar_articulos_por_asignacion', id })
@@ -190,7 +203,7 @@ window.addEventListener('load', function () {
         });
     });
 
-    // Tabla resumen de artículos asociados (con cantidad y child rows para seriales)
+        // Tabla resumen de artículos asociados
     const resumenTabla = $('#asignacionResumenTabla').DataTable({
         data: [],
         columns: [
@@ -218,7 +231,6 @@ window.addEventListener('load', function () {
     // child rows para seriales
     function formatSeriales(rowData) {
         if (!rowData.seriales) return '<div>No se ingresaron seriales</div>';
-
         const lista = rowData.seriales.split(',').map(s => s.trim());
         let html = '<ul>';
         lista.forEach((s, i) => {
@@ -243,9 +255,8 @@ window.addEventListener('load', function () {
         }
     });
 
-
     // ------------------------------
-    // Helpers de confirmación
+    // Helpers de confirmación (anular/recuperar)
     // ------------------------------
     function mostrarConfirmacionAsignacion(asignacion, accion) {
         let modalSelector = '';
@@ -265,9 +276,15 @@ window.addEventListener('load', function () {
                     if (resp.exito) {
                         tabla.ajax.reload(null, false);
                         closeDialog(modalSelector);
-                        alert('Asignación anulada correctamente');
+                        // mensaje de éxito
+                        document.getElementById('mensaje_exito').textContent = 'Asignación anulada correctamente';
+                        const modalMsg = document.querySelector('dialog[data-modal="mensaje_exito"]');
+                        if (modalMsg?.showModal) modalMsg.showModal();
                     } else {
-                        alert(resp.mensaje || 'Error al anular la asignación');
+                        // mensaje de error
+                        document.getElementById('mensaje_error').textContent = resp.mensaje || 'Error al anular la asignación';
+                        const modalMsg = document.querySelector('dialog[data-modal="mensaje_error"]');
+                        if (modalMsg?.showModal) modalMsg.showModal();
                     }
                 });
             };
@@ -287,9 +304,15 @@ window.addEventListener('load', function () {
                     if (resp.exito) {
                         tabla.ajax.reload(null, false);
                         closeDialog(modalSelector);
-                        alert('Asignación recuperada correctamente');
+                        // mensaje de éxito
+                        document.getElementById('mensaje_exito').textContent = 'Asignación recuperada correctamente';
+                        const modalMsg = document.querySelector('dialog[data-modal="mensaje_exito"]');
+                        if (modalMsg?.showModal) modalMsg.showModal();
                     } else {
-                        alert(resp.mensaje || 'Error al recuperar la asignación');
+                        // mensaje de error
+                        document.getElementById('mensaje_error').textContent = resp.mensaje || 'Error al recuperar la asignación';
+                        const modalMsg = document.querySelector('dialog[data-modal="mensaje_error"]');
+                        if (modalMsg?.showModal) modalMsg.showModal();
                     }
                 });
             };
