@@ -8,6 +8,7 @@ $asignacion = new asignacion();
 
 
 function validarAsignacion($datos, $modo = 'crear', $id = null) {
+    // Incluye cargo_id como obligatorio (visual), aunque no se persista
     $camposObligatorios = ['area_id', 'persona_id', 'cargo_id', 'asignacion_fecha'];
 
     // Verificar campos obligatorios
@@ -55,11 +56,10 @@ function validarAsignacion($datos, $modo = 'crear', $id = null) {
                 'campos'  => ['asignacion_fecha_fin']
             ];
         }
-        // Comparación entre fechas
         if ($fechaInicio >= $fechaFin) {
             return [
                 'error'   => true,
-                'mensaje' => 'La fecha de inicio debe ser anterior a la fecha fin y no pueden ser iguales',
+                'mensaje' => 'La fecha de inicio debe ser anterior a la fecha final',
                 'campos'  => ['asignacion_fecha','asignacion_fecha_fin']
             ];
         }
@@ -86,6 +86,7 @@ function validarAsignacion($datos, $modo = 'crear', $id = null) {
 
     return ['valido' => true];
 }
+
 
 $accion    = $_POST['accion'] ?? '';
 // Router de acciones para Asignación
@@ -125,40 +126,73 @@ switch ($accion) {
     }
     break;
 
-
-
     // Crear nueva asignación
     case 'crear':
-        try {
-            $seriales = [];
-            if (isset($_POST['seriales'])) {
-                $decoded = json_decode($_POST['seriales'], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $seriales = $decoded;
-                }
+    try {
+        $seriales = [];
+        if (isset($_POST['seriales'])) {
+            $decoded = json_decode($_POST['seriales'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                // Aquí deben ser IDs de articulo_serial
+                $seriales = array_values(array_filter($decoded, fn($s) => trim($s) !== ''));
             }
+        }
 
-            $areaId       = $_POST['area_id'] ?? '';
-            $personaId    = $_POST['persona_id'] ?? '';
-            $fecha        = $_POST['asignacion_fecha'] ?? '';
-            $descripcion  = $_POST['asignacion_descripcion'] ?? '';
+        $areaId      = $_POST['area_id'] ?? '';
+        $personaId   = $_POST['persona_id'] ?? '';
+        $cargoId     = $_POST['cargo_id'] ?? '';
+        $fechaInicio = $_POST['asignacion_fecha'] ?? '';
+        $fechaFin    = $_POST['asignacion_fecha_fin'] ?? '';
+        $descripcion = $_POST['asignacion_descripcion'] ?? '';
 
-            $asignacionId = $asignacion->crear($areaId, $personaId, $fecha, $descripcion, $seriales);
+        $datos = [
+            'area_id'                => $areaId,
+            'persona_id'             => $personaId,
+            'cargo_id'               => $cargoId,
+            'asignacion_fecha'       => $fechaInicio,
+            'asignacion_fecha_fin'   => $fechaFin,
+            'asignacion_descripcion' => $descripcion
+        ];
+        $valid = validarAsignacion($datos, 'crear');
+        if (!empty($valid['error'])) {
+            echo json_encode($valid);
+            exit;
+        }
 
-            echo json_encode([
-                'exito'         => true,
-                'mensaje'       => 'La asignación fue registrada correctamente',
-                'asignacion_id' => $asignacionId
-            ]);
-        } catch (Exception $e) {
-            http_response_code(500);
+        if (empty($seriales)) {
             echo json_encode([
                 'error'   => true,
-                'mensaje' => 'Error al registrar la asignación',
-                'detalle' => $e->getMessage()
+                'mensaje' => 'Debe seleccionar al menos un serial',
+                'campos'  => ['seriales']
             ]);
+            exit;
         }
-        break;
+
+        $asignacionId = $asignacion->crear(
+            $areaId,
+            $personaId,
+            $fechaInicio,
+            $descripcion,
+            $seriales,
+            $fechaFin
+        );
+
+        echo json_encode([
+            'exito'         => true,
+            'mensaje'       => 'La asignación fue registrada correctamente',
+            'asignacion_id' => $asignacionId
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'error'   => true,
+            'mensaje' => 'Error al registrar la asignación',
+            'detalle' => $e->getMessage()
+        ]);
+    }
+    break;
+
+
 
     // Listar artículos disponibles para asignación
     case 'listar_articulos_asignacion':
@@ -166,9 +200,14 @@ switch ($accion) {
             $categoriaId     = $_POST['categoria_id'] ?? '';
             $clasificacionId = $_POST['clasificacion_id'] ?? '';
 
+            // Traer artículos disponibles
             $registros = $asignacion->leer_articulos_disponibles(1, $categoriaId, $clasificacionId);
 
-            $data = array_map(function ($row) {
+            $data = array_map(function ($row) use ($asignacion) {
+                // Calcular stock disponible por artículo
+                $stock = $asignacion->obtener_stock_articulo($row['articulo_id']);
+                $stockDisponible = $stock['activos'] ?? 0;
+
                 return [
                     'articulo_id'          => $row['articulo_id'],
                     'articulo_codigo'      => $row['articulo_codigo'],
@@ -178,7 +217,8 @@ switch ($accion) {
                     'articulo_descripcion' => $row['articulo_descripcion'] ?? '',
                     'articulo_imagen'      => $row['articulo_imagen'],
                     'clasificacion_nombre' => $row['clasificacion_nombre'],
-                    'categoria_nombre'     => $row['categoria_nombre']
+                    'categoria_nombre'     => $row['categoria_nombre'],
+                    'stock_disponible'     => $stockDisponible
                 ];
             }, $registros);
 
@@ -193,6 +233,7 @@ switch ($accion) {
             ]);
         }
         break;
+
 
     // Obtener detalle de una asignación
     case 'obtener_asignacion':
@@ -264,6 +305,28 @@ switch ($accion) {
             echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'Error al listar los artículos asociados a la asignación', 'detalle' => $e->getMessage()]);
         }
         break;
+
+    // Listar seriales disponibles de un artículo
+    case 'leer_seriales_articulo':
+        try {
+            $id = $_POST['id'] ?? '';
+            if (!$id) {
+                echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'No se proporcionó el identificador del artículo']);
+                exit;
+            }
+            $registros = $asignacion->leer_seriales_articulo($id);
+            echo json_encode(['data' => $registros]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'data'    => [],
+                'error'   => true,
+                'mensaje' => 'Error al listar los seriales del artículo',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+        break;
+
 
     // Obtener detalle de un artículo
     case 'obtener_articulo':

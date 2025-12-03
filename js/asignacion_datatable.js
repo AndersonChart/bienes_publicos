@@ -59,18 +59,18 @@ window.addEventListener('load', function () {
             { data: 'cargo_nombre', title: 'Cargo' },
             { data: 'area_nombre', title: 'Área' },
             { data: 'asignacion_fecha', title: 'Desde',
-              render: function (data) {
-                  if (!data) return '';
-                  const fecha = new Date(data);
-                  return fecha.toLocaleDateString('es-VE');
-              }
-            },
-            { data: 'asignacion_fecha_fin', title: 'Hasta',
-              render: function (data) {
-                  if (!data) return '—';
-                  const fecha = new Date(data);
-                  return fecha.toLocaleDateString('es-VE');
-              }
+            render: function (data) {
+                if (!data) return '';
+                const fecha = new Date(data);
+                return fecha.toLocaleDateString('es-VE');
+            }
+        },
+        { data: 'asignacion_fecha_fin', title: 'Hasta',
+            render: function (data) {
+                if (!data) return '—';
+                const fecha = new Date(data);
+                return fecha.toLocaleDateString('es-VE');
+            }
             },
             {
                 data: null, title: 'Acciones',
@@ -149,7 +149,7 @@ window.addEventListener('load', function () {
 
                 document.getElementById('info_fecha').textContent = formatFecha(data.asignacion.asignacion_fecha);
                 document.getElementById('info_fecha_fin').textContent = formatFecha(data.asignacion.asignacion_fecha_fin);
-                document.getElementById('info_descripcion').textContent = data.asignacion.asignacion_descripcion || '—';
+                document.getElementById('info_descripcion').textContent = data.asignacion.asignacion_descripcion || '';
 
                 const modal = document.querySelector('dialog[data-modal="info_asignacion"]');
                 if (modal?.showModal) modal.showModal();

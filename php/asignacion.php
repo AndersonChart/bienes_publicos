@@ -12,19 +12,20 @@ class asignacion {
     }
 
     // Crear nueva asignación
-    public function crear($areaId, $personaId, $fecha, $descripcion, $seriales = []) {
+    public function crear($areaId, $personaId, $fecha, $descripcion, $seriales = [], $fechaFin = null) {
         try {
             $this->pdo->beginTransaction();
 
             // Insertar cabecera de asignación
             $stmtCab = $this->pdo->prepare(
-                "INSERT INTO asignacion (area_id, persona_id, asignacion_fecha, asignacion_descripcion, asignacion_estado)
-                VALUES (?, ?, ?, ?, 1)"
+                "INSERT INTO asignacion (area_id, persona_id, asignacion_fecha, asignacion_fecha_fin, asignacion_descripcion, asignacion_estado)
+                VALUES (?, ?, ?, ?, ?, 1)"
             );
-            $stmtCab->execute([$areaId, $personaId, $fecha, $descripcion]);
+            $stmtCab->execute([$areaId, $personaId, $fecha, $fechaFin, $descripcion]);
             $asignacion_id = $this->pdo->lastInsertId();
 
             if (!empty($seriales)) {
+                // Insertar vínculo y actualizar estado
                 $stmtDetalle = $this->pdo->prepare(
                     "INSERT INTO asignacion_articulo (articulo_serial_id, asignacion_id) VALUES (?, ?)"
                 );
@@ -45,6 +46,8 @@ class asignacion {
             throw $e;
         }
     }
+
+
 
 // Listar asignaciones por estado (y opcionalmente filtros)
 public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $areaId = '') {

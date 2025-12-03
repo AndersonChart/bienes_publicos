@@ -948,7 +948,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarPersona();
     cargarArea();
     mantenerFotoUsuarioActualizada();
-    aplicarDinamicaCategoria()
+    aplicarDinamicaCategoria();
+    inicializarPlazoFechas({ plazoDefault: 60 });
 
     // Función para ajustar columnas según tipo de categoría
         function ajustarColumnasPorCategoria(categoriaId) {
@@ -1232,12 +1233,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 fetch('php/personal_ajax.php', {
                     method: 'POST',
-                    body: new URLSearchParams({ accion: 'obtener_persona', persona_id: personaId }) // ✅ usar persona_id
+                    body: new URLSearchParams({ accion: 'obtener_persona', persona_id: personaId }) //  usar persona_id
                 })
                 .then(res => res.json())
                 .then(data => {
                     if (data.exito && data.persona) {
-                        filtroCargo.value = data.persona.cargo_id; // ✅ ajusta cargo automáticamente
+                        filtroCargo.value = data.persona.cargo_id; //  ajusta cargo automáticamente
                     }
                     $('#asignacionTabla').DataTable().ajax.reload(null, false);
                 });

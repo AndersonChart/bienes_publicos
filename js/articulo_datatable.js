@@ -91,7 +91,7 @@ window.addEventListener('load', function () {
                         // fallback: mostrar total
                         return `<span class="stock-badge total">${row.stock_total}</span>`;
                     },
-                    orderable: false
+                    orderable: true
                 },
             { data: null, title: 'Acciones',
                 render: function (row) {
@@ -119,9 +119,6 @@ window.addEventListener('load', function () {
                             <div class="acciones">
                                 <div class="icon-action btn_ver_info" data-modal-target="info_articulo" data-id="${row.articulo_id}" title="Info">
                                     <img src="img/icons/info.png" alt="Info">
-                                </div>
-                                <div class="icon-action btn_ver" data-modal-target="ver_serial" data-id="${row.articulo_id}" title="Ver">
-                                    <img src="img/icons/ver.png" alt="Ver Seriales">
                                 </div>
                                 <div class="icon-action btn_recuperar" data-id="${row.articulo_id}" title="Recuperar">
                                     <img src="img/icons/recuperar.png" alt="Recuperar">

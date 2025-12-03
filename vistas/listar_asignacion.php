@@ -39,8 +39,8 @@
                 <li><strong class="info_subtitle">Área:</strong> <span class="info_data" id="info_area"></span></li>
                 <li><strong class="info_subtitle">Personal:</strong> <span class="info_data" id="info_persona"></span></li>
                 <li><strong class="info_subtitle">Cargo:</strong> <span class="info_data" id="info_cargo"></span></li>
-                <li><strong class="info_subtitle">Fecha:</strong> <span class="info_data" id="info_fecha"></span></li>
-                <li><strong class="info_subtitle">Fecha fin:</strong> <span class="info_data" id="info_fecha_fin"></span></li>
+                <li><strong class="info_subtitle">Fecha de Inicio:</strong> <span class="info_data" id="info_fecha"></span></li>
+                <li><strong class="info_subtitle">Fecha de Finalización:</strong> <span class="info_data" id="info_fecha_fin"></span></li>
                 <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_descripcion"></span></li>
             </ul>
         </div>

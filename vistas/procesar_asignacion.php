@@ -27,28 +27,38 @@
         <!-- Columna izquierda: formulario -->
         <form id="form_proceso_asignacion" method="POST" autocomplete="off" class="user_container" novalidate>
             <div class="input_block_content">
-                <label for="proceso_asignacion_fecha" class="input_label">Fecha*</label>
+                <label class="input_label">Plazo</label>
+                <span>
+                    De: 
+                    <input type="number" id="proceso_asignacion_plazo" class="input_plazo" min="1">
+                    días
+                </span>
+            </div>
+            <div class="input_block_content">
+            </div>
+            <div class="input_block_content">
+                <label for="proceso_asignacion_fecha" class="input_label">Fecha Inicio</label>
                 <input type="date" name="asignacion_fecha" id="proceso_asignacion_fecha" class="input_text input_date">
             </div>
 
             <div class="input_block_content">
-                <label for="proceso_asignacion_fecha_fin" class="input_label">Fecha fin</label>
+                <label for="proceso_asignacion_fecha_fin" class="input_label">Fecha Final</label>
                 <input type="date" name="asignacion_fecha_fin" id="proceso_asignacion_fecha_fin" class="input_text input_date">
             </div>
 
             <div class="input_block_content">
-                <label for="proceso_asignacion_area" class="input_label">Área*</label>
-                <select name="area_id" id="proceso_asignacion_area" class="input_text input_select"></select>
+                <label for="proceso_asignacion_cargo" class="input_label">Cargo*</label>
+                <select name="cargo_id" id="proceso_asignacion_cargo" class="input_text input_select cargo_form"></select>
             </div>
 
             <div class="input_block_content">
                 <label for="proceso_asignacion_persona" class="input_label">Persona*</label>
-                <select name="persona_id" id="proceso_asignacion_persona" class="input_text input_select"></select>
+                <select name="persona_id" id="proceso_asignacion_persona" class="input_text input_select persona_form"></select>
             </div>
 
             <div class="input_block_content">
-                <label for="proceso_asignacion_cargo" class="input_label">Cargo*</label>
-                <select name="cargo_id" id="proceso_asignacion_cargo" class="input_text input_select"></select>
+                <label for="proceso_asignacion_area" class="input_label">Área*</label>
+                <select name="area_id" id="proceso_asignacion_area" class="input_text input_select area_form"></select>
             </div>
 
             <div class="input_block_content">
@@ -69,7 +79,7 @@
                 <table id="procesoAsignacionResumenTabla" class="display">
                     <thead>
                         <tr>
-                            <th colspan="5" class="title">Resumen de la Asignación</th>
+                            <th colspan="4" class="title">Resumen de la Asignación</th>
                         </tr>
                         <tr>
                             <th class="header">Código</th>
@@ -189,7 +199,7 @@
                 <th class="header">Categoría</th>
                 <th class="header">Clasificación</th>
                 <th class="header">Imagen</th>
-                <th class="header">Stock Disponible</th>
+                <th class="header">Seriales activos</th>
                 <th class="header">Seleccionados</th>
                 <th class="header">Acciones</th>
             </tr>

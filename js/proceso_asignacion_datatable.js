@@ -10,9 +10,143 @@ window.addEventListener('load', function () {
         return;
     }
 
+    // Interceptar clic en "Regresar"
+document.querySelector('.basics-container .new_user').addEventListener('click', function (e) {
+    e.preventDefault(); // evitar redirección inmediata
+
+    const modal = document.querySelector('dialog[data-modal="confirmar_regresar-asignacion"]');
+    if (modal?.showModal) modal.showModal();
+});
+
+// Acción al confirmar
+document.getElementById('form_confirmar_regresar').addEventListener('submit', function (e) {
+    e.preventDefault();
+    // Redirigir a la lista de asignaciones
+    window.location.href = "index.php?vista=listar_asignacion";
+});
+
+
+const selectCargoForm   = document.getElementById('proceso_asignacion_cargo');
+const selectPersonaForm = document.getElementById('proceso_asignacion_persona');
+
+// 1) Filtro dinámico: cargo → persona
+if (selectCargoForm && selectPersonaForm) {
+    selectCargoForm.addEventListener('change', () => {
+        const cargoId = selectCargoForm.value || '';
+        cargarPersona({
+            cargo_id: cargoId || undefined,
+            scope: 'form',
+            onComplete: (lista) => {
+                selectPersonaForm.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.disabled = true;
+                opt.selected = true;
+                opt.textContent = 'Seleccione una persona';
+                selectPersonaForm.appendChild(opt);
+
+                (lista || []).forEach(p => {
+                    const op = document.createElement('option');
+                    op.value = String(p.persona_id);
+                    op.textContent = `${p.persona_nombre} ${p.persona_apellido}`;
+                    selectPersonaForm.appendChild(op);
+                });
+            }
+        });
+    });
+
+    // 2) Al seleccionar persona → rellenar cargo
+    selectPersonaForm.addEventListener('change', () => {
+        const personaId = selectPersonaForm.value;
+        if (!personaId) return;
+
+        fetch('php/personal_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_persona', persona_id: personaId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.persona) {
+                selectCargoForm.value = String(data.persona.cargo_id || '');
+            }
+        })
+        .catch(() => {
+            console.error('Error al obtener datos de la persona');
+        });
+    });
+}
+
+
+    // ------------------------------
+    // Inicializar y sincronizar plazo con fechas
+    // ------------------------------
+    function inicializarPlazoFechas(opciones = {}) {
+        const plazoInput = document.getElementById('proceso_asignacion_plazo');
+        const fechaInicioInput = document.getElementById('proceso_asignacion_fecha');
+        const fechaFinInput = document.getElementById('proceso_asignacion_fecha_fin');
+
+        if (!plazoInput || !fechaInicioInput || !fechaFinInput) return;
+
+        function formatDate(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        const hoy = new Date();
+        const plazoDias = opciones.plazoDefault || 60;
+
+        // Seteo inicial
+        fechaInicioInput.value = formatDate(hoy);
+        plazoInput.value = plazoDias;
+        const fin = new Date(hoy);
+        fin.setDate(hoy.getDate() + plazoDias);
+        fechaFinInput.value = formatDate(fin);
+
+        // Evitar duplicar listeners si la función se llama varias veces
+        plazoInput._plazoSyncAttached ||= (() => {
+            plazoInput.addEventListener('input', () => {
+                const dias = parseInt(plazoInput.value, 10);
+                if (!isNaN(dias) && fechaInicioInput.value) {
+                    const inicio = new Date(fechaInicioInput.value);
+                    const fin = new Date(inicio);
+                    fin.setDate(inicio.getDate() + dias);
+                    fechaFinInput.value = formatDate(fin);
+                }
+            });
+            [fechaInicioInput, fechaFinInput].forEach(input => {
+                input.addEventListener('change', () => {
+                    if (fechaInicioInput.value && fechaFinInput.value) {
+                        const inicio = new Date(fechaInicioInput.value);
+                        const fin = new Date(fechaFinInput.value);
+                        const diff = Math.round((fin - inicio) / (1000 * 60 * 60 * 24));
+                        plazoInput.value = diff > 0 ? diff : '';
+                    }
+                });
+            });
+            return true;
+        })();
+    }
+
+    // Garantía: inicializar justo cuando el modal se abra (después del limpiarFormulario global)
+    const dialogAsignacion = document.querySelector('dialog[data-modal="modal_proceso_asignacion"]');
+    if (dialogAsignacion) {
+        const obs = new MutationObserver(muts => {
+            for (const m of muts) {
+                if (m.attributeName === 'open' && dialogAsignacion.open) {
+                    // Inicializa después de que el modal esté realmente abierto
+                    inicializarPlazoFechas({ plazoDefault: 60 });
+                }
+            }
+        });
+        obs.observe(dialogAsignacion, { attributes: true, attributeFilter: ['open'] });
+    }
+
     const estado = {
-        buffer: {},          // seriales seleccionados por artículo
-        articuloActivo: null // artículo en edición dentro del modal
+        buffer: {},
+        bufferMeta: {},
+        articuloActivo: null
     };
 
     function showDialog(selector) {
@@ -30,9 +164,7 @@ window.addEventListener('load', function () {
             el.style.display = message ? 'block' : 'none';
         }
     }
-    function clearError(containerId) {
-        setError(containerId, '');
-    }
+    function clearError(containerId) { setError(containerId, ''); }
 
     // ------------------------------
     // DataTable: Artículos disponibles
@@ -49,11 +181,7 @@ window.addEventListener('load', function () {
                 d.categoria_id = document.getElementById('categoria_filtro')?.value || '';
                 d.clasificacion_id = document.getElementById('clasificacion_filtro')?.value || '';
             },
-            dataSrc: 'data',
-            error: function (xhr, status, error) {
-                console.error('Error AJAX (asignación artículos):', error);
-                console.log('Respuesta del servidor:', xhr.responseText);
-            }
+            dataSrc: 'data'
         },
         columns: [
             { data: 'articulo_codigo', title: 'Código' },
@@ -68,18 +196,35 @@ window.addEventListener('load', function () {
                                 <img src="${data}?t=${Date.now()}" class="tabla_imagen" alt="Imagen">
                             </div>`;
                 },
-                orderable: false
+                orderable: true
             },
             {
-                data: 'articulo_id', title: 'Stock Disponible',
-                render: function (id) {
-                    return estado.buffer[id]?.seriales?.length || 0;
+                data: 'stock_disponible',
+                title: 'Seriales activos',
+                className: 'dt-center',
+                render: function (data) {
+                    const valor = Number(data) || 0;
+                    return `<span class="stock-badge activos">${valor}</span>`;
                 },
-                orderable: false
+                orderable: true
             },
             {
-                data: 'articulo_id', title: 'Acciones',
+                data: 'articulo_id',
+                title: 'Seleccionados',
+                className: 'dt-center',
                 render: function (id) {
+                    const valor = estado.buffer[id]?.seriales?.length || 0;
+                    return `<span class="stock-badge asignados">${valor}</span>`;
+                },
+                orderable: true
+            },
+            {
+                data: null,
+                title: 'Acciones',
+                render: function (row) {
+                    const id = row.articulo_id;
+                    const stock = Number(row.stock_disponible) || 0;
+                    const disabled = stock <= 0;
                     return `
                         <div class="acciones">
                             <div class="icon-action btn_ver_info"
@@ -88,13 +233,13 @@ window.addEventListener('load', function () {
                                 <img src="img/icons/info.png" alt="Info">
                             </div>
                             <button type="button"
-                                class="new-proceso btn_seleccionar_seriales"
+                                class="new-proceso btn_seleccionar_seriales${disabled ? ' is-disabled' : ''}"
                                 data-id="${id}"
-                                title="Seleccionar Seriales">
+                                title="Seleccionar Seriales"
+                                ${disabled ? 'disabled aria-disabled="true" tabindex="-1"' : ''}>
                                 Seleccionar
                             </button>
-                        </div>
-                    `;
+                        </div>`;
                 },
                 orderable: false
             }
@@ -117,29 +262,74 @@ window.addEventListener('load', function () {
         pageLength: 15
     });
 
-    $('#categoria_filtro, #clasificacion_filtro').on('change', function () {
-        tablaArticulos.ajax.reload(null, false);
-    });
-
     // ------------------------------
-    // Modal Info artículo
+    // Resumen con child rows
     // ------------------------------
-    $('#procesoAsignacionArticuloTabla tbody').on('click', '.btn_ver_info', function () {
-        const id = $(this).data('id');
-        $.post('php/asignacion_ajax.php', { accion: 'obtener_articulo', id }, function (resp) {
-            if (resp && resp.exito && resp.articulo) {
-                const a = resp.articulo;
-                $('#info_codigo').text(a.articulo_codigo ?? '');
-                $('#info_nombre').text(a.articulo_nombre ?? '');
-                $('#info_categoria').text(a.categoria_nombre ?? '');
-                $('#info_clasificacion').text(a.clasificacion_nombre ?? '');
-                $('#info_descripcion').text(a.articulo_descripcion ?? '');
-                $('#info_imagen').attr('src', a.articulo_imagen ? `${a.articulo_imagen}?t=${Date.now()}` : '');
-
-                showDialog('dialog[data-modal="info_articulo"]');
+    const tablaResumen = $('#procesoAsignacionResumenTabla').DataTable({
+        data: [],
+        columns: [
+            { data: 'codigo', title: 'Código' },
+            { data: 'nombre', title: 'Nombre' },
+            { data: 'cantidad', title: 'Cantidad' },
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<span class="toggle-details">▶</span>',
+                title: 'Seriales'
             }
-        }, 'json');
+        ],
+        ordering: true,
+        scrollY: '300px',
+        scrollCollapse: true,
+        paging: false,
+        searching: false,
+        info: false,
+        language: { emptyTable: 'No se encuentran registros' }
     });
+
+    function formatSerialesAsignacion(rowData) {
+        const bufferItem = estado.buffer[rowData.articulo_id];
+        if (!bufferItem || !Array.isArray(bufferItem.seriales) || bufferItem.seriales.length === 0) {
+            return '<div class="seriales-empty">No se seleccionaron seriales</div>';
+        }
+        let html = '<div class="seriales-list"><ul>';
+        bufferItem.seriales.forEach((s, i) => {
+            html += `<li><strong>${i + 1}:</strong> ${s}</li>`;
+        });
+        html += '</ul></div>';
+        return html;
+    }
+
+    $('#procesoAsignacionResumenTabla tbody').on('click', 'td.dt-control', function () {
+        const tr = $(this).closest('tr');
+        const row = tablaResumen.row(tr);
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('.toggle-details').text('▶');
+        } else {
+            row.child(formatSerialesAsignacion(row.data())).show();
+            tr.addClass('shown');
+            $(this).find('.toggle-details').text('▼');
+        }
+    });
+
+    function actualizarResumenAsignacion() {
+        const resumen = Object.values(estado.buffer)
+            .filter(item => Array.isArray(item.seriales) && item.seriales.length > 0)
+            .map(item => ({
+                articulo_id: item.articulo_id,
+                codigo: item.codigo,
+                nombre: item.nombre,
+                cantidad: item.seriales.length
+            }));
+
+        tablaResumen.clear();
+        tablaResumen.rows.add(resumen);
+        tablaResumen.draw();
+    }
 
     // ------------------------------
     // Modal Seleccionar seriales
@@ -154,143 +344,164 @@ window.addEventListener('load', function () {
         ordering: true,
         ajax: null,
         columns: [
-            { data: 'id', title: '', orderable: false, defaultContent: '' },
-            { data: 'serial', title: 'Serial' },
-            { data: 'observacion', title: 'Observación' },
-            { data: 'estado', title: 'Estado' }
+            { 
+                data: null, 
+                title: 'No.',
+                orderable: true,
+                className: 'select-checkbox',
+                render: function (data, type, row, meta) {
+                    return meta.row + 1;
+                }
+            },
+            { data: 'serial', title: 'Serial', orderable: true },
+            { data: 'observacion', title: 'Observación', orderable: true }
         ],
-        select: { style: 'multi', selector: 'td:first-child' },
+        select: { style: 'multi', selector: 'td.select-checkbox' },
         language: { emptyTable: 'No se encuentran registros' }
     });
 
     $('#procesoAsignacionArticuloTabla tbody').on('click', '.btn_seleccionar_seriales', function () {
+        if ($(this).prop('disabled') || $(this).hasClass('is-disabled')) return;
+
         const articuloId = $(this).data('id');
         estado.articuloActivo = articuloId;
 
-        tablaSeriales.ajax = {
-            url: 'php/asignacion_ajax.php',
-            type: 'POST',
-            data: { accion: 'leer_seriales_articulo', id: articuloId },
-            dataSrc: 'data'
-        };
-        tablaSeriales.ajax.reload();
+        $.post('php/asignacion_ajax.php', { accion: 'leer_seriales_articulo', id: articuloId }, function (resp) {
+            if (resp && Array.isArray(resp.data)) {
+                tablaSeriales.clear();
+                tablaSeriales.rows.add(resp.data).draw();
 
+                const seleccionadosPrevios = estado.buffer[articuloId]?.seriales || [];
+                tablaSeriales.rows().every(function () {
+                    const rowData = this.data();
+                    // aquí seleccionadosPrevios son seriales (texto), no ids
+                    if (rowData.serial && seleccionadosPrevios.includes(rowData.serial)) this.select();
+                });
+            } else {
+                tablaSeriales.clear().draw();
+            }
+        }, 'json');
+
+        $.post('php/asignacion_ajax.php', { accion: 'obtener_articulo', id: articuloId }, function (resp) {
+            if (resp && resp.exito && resp.articulo) {
+                $('#serial_codigo_articulo').text(resp.articulo.articulo_codigo || '');
+                $('#serial_nombre_articulo').text(resp.articulo.articulo_nombre || '');
+                const imgEl = document.getElementById('serial_imagen_articulo');
+                if (imgEl) {
+                    imgEl.src = resp.articulo.articulo_imagen ? resp.articulo.articulo_imagen + '?t=' + Date.now() : 'img/icons/articulo.png';
+                    imgEl.alt = 'Imagen del artículo';
+                }
+                estado.bufferMeta[articuloId] = {
+                    codigo: resp.articulo.articulo_codigo || String(articuloId),
+                    nombre: resp.articulo.articulo_nombre || ''
+                };
+            }
+        }, 'json');
+
+        clearError('error-container-proceso-asignacion-serial');
         showDialog('dialog[data-modal="seriales_articulo"]');
     });
 
+    // ------------------------------
+    // Formulario de selección de seriales
+    // ------------------------------
     $('#form_proceso_asignacion_seriales').on('submit', function (e) {
         e.preventDefault();
+
         const seleccionados = tablaSeriales.rows({ selected: true }).data().toArray();
+        const meta = estado.bufferMeta[estado.articuloActivo] || { codigo: String(estado.articuloActivo), nombre: '' };
+
         estado.buffer[estado.articuloActivo] = {
             articulo_id: estado.articuloActivo,
-            seriales: seleccionados.map(s => s.id)
+            codigo: meta.codigo,
+            nombre: meta.nombre,
+            seriales: seleccionados.map(s => s.id).filter(Boolean) // usar id, no serial
         };
+
         tablaArticulos.ajax.reload(null, false);
+        actualizarResumenAsignacion();
+
+        document.getElementById('success-message').textContent = 'Selección exitosa';
+        showDialog('dialog[data-modal="success"]');
         closeDialog('dialog[data-modal="seriales_articulo"]');
     });
 
+
     // ------------------------------
-    // Modal Formulario de Asignación
+    // Abrir formulario de asignación
     // ------------------------------
     document.querySelectorAll('[data-modal-target="modal_proceso_asignacion"]').forEach(el => {
         el.addEventListener('click', function () {
+            // showDialog lo maneja el listener global; aquí solo dejamos que el observer inicialice
             actualizarResumenAsignacion();
             clearError('error-container-proceso-asignacion');
-            showDialog('dialog[data-modal="modal_proceso_asignacion"]');
         });
     });
 
-    const tablaResumen = $('#procesoAsignacionResumenTabla').DataTable({
-        data: [],
-        columns: [
-            { data: 'codigo', title: 'Código' },
-            { data: 'nombre', title: 'Nombre' },
-            { data: 'cantidad', title: 'Cantidad' },
-            { data: 'seriales', title: 'Seriales' }
-        ],
-        paging: false,
-        searching: false,
-        info: false,
-        language: { emptyTable: 'No se encuentran registros' }
-    });
-
-    function actualizarResumenAsignacion() {
-        const resumen = Object.values(estado.buffer).map(item => ({
-            codigo: item.articulo_id,
-            nombre: '', // se puede enriquecer con más datos si se cargan
-            cantidad: item.seriales.length,
-            seriales: item.seriales.join(', ')
-        }));
-        tablaResumen.clear();
-        tablaResumen.rows.add(resumen);
-        tablaResumen.draw();
-    }
-
     // ------------------------------
-    // Guardar asignación
+    // Guardar asignación (delega validación al backend)
     // ------------------------------
     $('#form_proceso_asignacion').on('submit', function (e) {
         e.preventDefault();
         clearError('error-container-proceso-asignacion');
 
-        const fecha = String($('#proceso_asignacion_fecha').val() || '').trim();
-        const fechaFin = String($('#proceso_asignacion_fecha_fin').val() || '').trim();
-        const areaId = $('#proceso_asignacion_area').val();
-        const personaId = $('#proceso_asignacion_persona').val();
-        const descripcion = String($('#proceso_asignacion_descripcion').val() || '').trim();
-
-        // Validaciones básicas
-        if (!fecha || !areaId || !personaId) {
-            setError('error-container-proceso-asignacion', 'Debe rellenar los campos obligatorios');
-            return;
-        }
-
-        // Validación de duplicados entre artículos
-        const todosSeriales = Object.values(estado.buffer).flatMap(item => item.seriales || []);
-        const setSeriales = new Set(todosSeriales.filter(s => s !== ''));
-        if (setSeriales.size !== todosSeriales.filter(s => s !== '').length) {
-            setError('error-container-proceso-asignacion', 'Hay seriales repetidos en la asignación');
-            return;
-        }
-
         const payload = {
             accion: 'crear',
-            area_id: areaId,
-            persona_id: personaId,
-            asignacion_fecha: fecha,
-            asignacion_fecha_fin: fechaFin,
-            asignacion_descripcion: descripcion,
-            seriales: JSON.stringify(todosSeriales)
+            area_id: $('#proceso_asignacion_area').val(),
+            persona_id: $('#proceso_asignacion_persona').val(),
+            cargo_id: $('#proceso_asignacion_cargo').val(), // se envía para validar, no se guarda
+            asignacion_fecha: $('#proceso_asignacion_fecha').val(),
+            asignacion_fecha_fin: $('#proceso_asignacion_fecha_fin').val(),
+            asignacion_descripcion: $('#proceso_asignacion_descripcion').val(),
+            seriales: JSON.stringify(
+                Object.values(estado.buffer).flatMap(item => item.seriales || [])
+            )
         };
 
         $.post('php/asignacion_ajax.php', payload, function (resp) {
+            if (resp && resp.error) {
+                setError('error-container-proceso-asignacion', resp.mensaje);
+
+                if (Array.isArray(resp.campos)) {
+                    resp.campos.forEach((campo, index) => {
+                        const input = document.querySelector(`[name="${campo}"]`);
+                        if (input) {
+                            input.classList.add('input-error');
+                            if (index === 0) input.focus();
+                        }
+                    });
+                }
+                return;
+            }
+
             if (resp && resp.exito) {
                 estado.buffer = {};
+                estado.bufferMeta = {};
                 estado.articuloActivo = null;
                 actualizarResumenAsignacion();
 
                 closeDialog('dialog[data-modal="modal_proceso_asignacion"]');
-                document.getElementById('success-message').textContent = resp.mensaje;
+                document.getElementById('success-message').textContent =
+                    resp.mensaje || 'Asignación registrada correctamente';
                 showDialog('dialog[data-modal="success"]');
 
                 tablaArticulos.ajax.reload(null, false);
 
-                // Redirigir a la lista de asignaciones después de unos segundos
-                setTimeout(function() {
+                setTimeout(() => {
                     window.location.href = "index.php?vista=listar_asignacion";
                 }, 1000);
-
-            } else if (resp && resp.error) {
-                setError('error-container-proceso-asignacion', resp.mensaje || 'Ocurrió un error al registrar la asignación.');
-                console.error('Detalle de error (backend):', resp.detalle || resp);
             } else {
                 setError('error-container-proceso-asignacion', 'Respuesta inesperada del servidor.');
             }
-        }, 'json');
+        }, 'json').fail(xhr => {
+            setError('error-container-proceso-asignacion', 'Error de conexión con el servidor.');
+            console.error('Respuesta del servidor:', xhr.responseText);
+        });
     });
 
+
     // ------------------------------
-    // Eventos de cierre de modales
+    // Cierre de modales
     // ------------------------------
     $('#close-success-proceso-asignacion').on('click', function () {
         closeDialog('dialog[data-modal="success"]');
