@@ -11,7 +11,7 @@ class asignacion {
         $this->pdo = Conexion::conectar();
     }
 
-    // Crear nueva asignapción
+    // Crear nueva asignación
     public function crear($areaId, $personaId, $fecha, $descripcion, $seriales = []) {
         try {
             $this->pdo->beginTransaction();
@@ -46,27 +46,69 @@ class asignacion {
         }
     }
 
-    // Listar asignaciones
-    public function leer_por_estado($estado = 1) {
-        $sql = "SELECT a.asignacion_id, a.asignacion_fecha, a.asignacion_descripcion,
-                    a.asignacion_estado, p.persona_nombre, p.persona_apellido, ar.area_nombre
+// Listar asignaciones por estado (y opcionalmente filtros)
+public function leer_por_estado($estado = 1, $areaId = '', $personaId = '') {
+    try {
+        $sql = "SELECT 
+                    a.asignacion_id,
+                    a.asignacion_fecha,
+                    a.asignacion_fecha_fin,
+                    a.asignacion_descripcion,
+                    a.asignacion_estado,
+                    p.persona_nombre,
+                    p.persona_apellido,
+                    c.cargo_nombre,
+                    ar.area_nombre,
+                    COALESCE(COUNT(aa.asignacion_articulo_id), 0) AS cantidad_articulos
                 FROM asignacion a
                 INNER JOIN persona p ON a.persona_id = p.persona_id
+                INNER JOIN cargo c ON p.cargo_id = c.cargo_id
                 INNER JOIN area ar ON a.area_id = ar.area_id
-                WHERE a.asignacion_estado = ?
-                ORDER BY a.asignacion_fecha DESC, a.asignacion_id DESC";
+                LEFT JOIN asignacion_articulo aa ON a.asignacion_id = aa.asignacion_id
+                WHERE a.asignacion_estado = ?";
+        
+        $params = [(int)$estado];
+
+        if ($areaId !== '') {
+            $sql .= " AND a.area_id = ?";
+            $params[] = (int)$areaId;
+        }
+
+        if ($personaId !== '') {
+            $sql .= " AND a.persona_id = ?";
+            $params[] = (int)$personaId;
+        }
+
+        $sql .= " GROUP BY a.asignacion_id, a.asignacion_fecha, a.asignacion_fecha_fin,
+                          a.asignacion_descripcion, a.asignacion_estado,
+                          p.persona_nombre, p.persona_apellido, c.cargo_nombre, ar.area_nombre
+                  ORDER BY a.asignacion_fecha DESC, a.asignacion_id DESC";
+
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([(int)$estado]);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        error_log("[asignacion] Error en leer_por_estado: " . $e->getMessage());
+        throw $e;
     }
+}
 
 
-    // Leer recepción por ID
+
+    // Leer asignación por ID
     public function leer_por_id($id) {
-        $sql = "SELECT a.asignacion_id, a.asignacion_fecha, a.asignacion_descripcion,
-                    a.asignacion_estado, p.persona_nombre, p.persona_apellido, ar.area_nombre
+        $sql = "SELECT a.asignacion_id,
+                    a.asignacion_fecha,
+                    a.asignacion_fecha_fin,
+                    a.asignacion_descripcion,
+                    a.asignacion_estado,
+                    p.persona_nombre,
+                    p.persona_apellido,
+                    c.cargo_nombre,
+                    ar.area_nombre
                 FROM asignacion a
                 INNER JOIN persona p ON a.persona_id = p.persona_id
+                INNER JOIN cargo c ON p.cargo_id = c.cargo_id
                 INNER JOIN area ar ON a.area_id = ar.area_id
                 WHERE a.asignacion_id = ?";
         $stmt = $this->pdo->prepare($sql);

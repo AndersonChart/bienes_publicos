@@ -95,14 +95,22 @@ switch ($accion) {
     case 'leer_todos':
         try {
             $estado    = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
-            $registros = $asignacion->leer_por_estado($estado);
+            $areaId    = $_POST['area_id'] ?? '';
+            $personaId = $_POST['persona_id'] ?? '';
+
+            $registros = $asignacion->leer_por_estado($estado, $areaId, $personaId);
 
             $data = array_map(function ($row) {
                 return [
-                    'asignacion_id'          => $row['asignacion_id'],
-                    'asignacion_fecha'       => $row['asignacion_fecha'],
-                    'asignacion_descripcion' => $row['asignacion_descripcion'],
-                    'asignacion_estado'      => $row['asignacion_estado']
+                    'asignacion_id'         => $row['asignacion_id'],
+                    'asignacion_fecha'      => $row['asignacion_fecha'],
+                    'asignacion_fecha_fin'  => $row['asignacion_fecha_fin'],
+                    'asignacion_descripcion'=> $row['asignacion_descripcion'],
+                    'asignacion_estado'     => $row['asignacion_estado'],
+                    'area_nombre'           => $row['area_nombre'],
+                    'persona_nombre'        => $row['persona_nombre'].' '.$row['persona_apellido'],
+                    'cargo_nombre'          => $row['cargo_nombre'],
+                    'cantidad_articulos'    => $row['cantidad_articulos']
                 ];
             }, $registros);
 
@@ -117,6 +125,7 @@ switch ($accion) {
             ]);
         }
         break;
+
 
     // Crear nueva asignación
     case 'crear':

@@ -1,31 +1,38 @@
+// asignacion_datatable.js
+// Configuración completa para la tabla de asignaciones
+// Requisitos: jQuery, DataTables, backend en php/asignacion_ajax.php
+
 window.addEventListener('load', function () {
     if (typeof $ !== 'function') {
         console.error('jQuery no está disponible');
         return;
     }
 
-    let estadoActual = 1;
+    let estadoAsignacion = 1; // 1 = activas, 0 = deshabilitadas
     const toggleBtn = document.getElementById('toggleEstadoAsignacion');
 
     if (toggleBtn) {
-        toggleBtn.textContent = 'Deshabilitados';
+        toggleBtn.textContent = 'Deshabilitadas';
         toggleBtn.classList.add('estado-rojo');
 
         toggleBtn.addEventListener('click', () => {
-            estadoActual = estadoActual === 0 ? 1 : 0;
-            if (estadoActual === 0) {
-                toggleBtn.textContent = 'Habilitados';
+            estadoAsignacion = estadoAsignacion === 0 ? 1 : 0;
+
+            if (estadoAsignacion === 0) {
+                toggleBtn.textContent = 'Habilitadas';
                 toggleBtn.classList.remove('estado-rojo');
                 toggleBtn.classList.add('estado-verde');
             } else {
-                toggleBtn.textContent = 'Deshabilitados';
+                toggleBtn.textContent = 'Deshabilitadas';
                 toggleBtn.classList.remove('estado-verde');
                 toggleBtn.classList.add('estado-rojo');
             }
+
             tabla.ajax.reload(null, false);
         });
     }
 
+    // Tabla principal de asignaciones
     const tabla = $('#asignacionTabla').DataTable({
         scrollY: '500px',
         scrollCollapse: true,
@@ -35,272 +42,265 @@ window.addEventListener('load', function () {
             type: 'POST',
             data: function (d) {
                 d.accion = 'leer_todos';
-                d.estado = estadoActual;
-                d.area_id = document.getElementById('area_filtro')?.value || '';
-                d.persona_id = document.getElementById('persona_filtro')?.value || '';
+                d.estado = estadoAsignacion;
             },
-            dataSrc: 'data'
+            dataSrc: 'data',
+            error: function (xhr, status, error) {
+                console.error('Error AJAX (asignaciones):', error);
+                console.log('Respuesta del servidor:', xhr.responseText);
+            }
         },
         columns: [
-            { data: 'asignacion_id', title: 'ID' },
-            { data: 'area_nombre', title: 'Área' },
-            { data: 'persona_nombre', title: 'Persona' },
-            { data: 'asignacion_fecha', title: 'Fecha' },
-            { data: 'asignacion_fecha_fin', title: 'Fecha fin' },
-            { data: 'cantidad_articulos', title: '# Artículos' },
-            {
-                data: null, title: 'Acciones',
-                render: function (row) {
-                   
-                    const id = row.asignacion_id || '';
-                    // ruta relativa desde la página; si tu app está en /bienes_publicos usa la ruta absoluta que indico abajo
-                    const url = 'reportes/reporte_asignacion.php?id=' + encodeURIComponent(id);
+    { data: 'asignacion_id', title: 'ID' },
+    { data: 'persona_nombre', title: 'Personal' },
+    { data: 'cargo_nombre', title: 'Cargo' },
+    { data: 'area_nombre', title: 'Área' },
+    { data: 'asignacion_fecha', title: 'Desde',
+      render: function (data) {
+          if (!data) return '';
+          const fecha = new Date(data);
+          return fecha.toLocaleDateString('es-VE');
+      }
+    },
+    { data: 'asignacion_fecha_fin', title: 'Hasta',
+      render: function (data) {
+          if (!data) return '—';
+          const fecha = new Date(data);
+          return fecha.toLocaleDateString('es-VE');
+      }
+    },
+    {
+        data: null, title: 'Acciones',
+        render: function (row) {
+            const estado = parseInt(row.asignacion_estado);
+            const id = row.asignacion_id || '';
+            const url = 'reportes/reporte_asignacion.php?id=' + encodeURIComponent(id);
 
-                    let botones = `<div class="acciones">`;
-                    botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF"><img src="img/icons/reportepdf.png" alt="Reporte"></a>`;   
-                    botones += `<div class="icon-action btn_info" data-id="${row.asignacion_id}" title="Info"><img src="img/icons/info.png" alt="Info"></div>`;
-                    if (row.asignacion_estado == 1) {
-                        botones += `<div class="icon-action btn_finalizar" data-id="${row.asignacion_id}" title="Finalizar"><img src="img/icons/eliminar.png" alt="Finalizar"></div>`;
-                    } else {
-                        botones += `<div class="icon-action btn_recuperar" data-id="${row.asignacion_id}" title="Recuperar"><img src="img/icons/recuperar.png" alt="Recuperar"></div>`;
-                    }
-                    botones += `</div>`;
-                    return botones;
-                },
-                orderable: false
+            let botones = '<div class="acciones">';
+            botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF">
+                            <img src="img/icons/reportepdf.png" alt="Reporte">
+                        </a>`;
+            botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
+                            <img src="img/icons/info.png" alt="Info">
+                        </div>`;
+            if (estado === 1) {
+                botones += `<div class="icon-action btn_anular" data-id="${id}" title="Anular">
+                                <img src="img/icons/anular.png" alt="Anular">
+                            </div>`;
+            } else {
+                botones += `<div class="icon-action btn_recuperar" data-id="${id}" title="Recuperar">
+                                <img src="img/icons/recuperar.png" alt="Recuperar">
+                            </div>`;
             }
-        ],
+            botones += '</div>';
+            return botones;
+        },
+        orderable: false
+    }
+],
         paging: true,
         info: true,
+        dom: '<"top"Bf>rt<"bottom"lpi><"clear">',
+        buttons: ['excel', 'pdf'],
         language: {
             search: "Buscar:",
             lengthMenu: "Mostrar _MENU_ registros",
-            zeroRecords: "No se encontraron registros",
+            zeroRecords: "No se encontraron registros coincidentes",
             emptyTable: "No hay ningún registro",
             info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+            infoEmpty: "Mostrando 0 a 0 de 0 registros",
+            infoFiltered: "(filtrado de _MAX_ registros totales)",
             paginate: { previous: "◀", next: "▶" }
         },
-        lengthMenu: [[5,10,15,20,30],[5,10,15,20,30]],
-        pageLength: 15
+        lengthMenu: [[5, 10, 15, 20, 30], [5, 10, 15, 20, 30]],
+        pageLength: 15,
     });
 
-    // Cargar filtros (areas/personas)
-    function cargarFiltros() {
-        fetch('php/area_ajax.php', { method: 'POST', body: new URLSearchParams({ accion: 'leer_todos' }) })
-        .then(res => res.json())
-        .then(data => {
-            if (Array.isArray(data.data)) {
-                let sel = document.getElementById('area_filtro');
-                let sel2 = document.getElementById('area_id');
-                data.data.forEach(a => {
-                    const opt = document.createElement('option'); opt.value = a.area_id; opt.text = a.area_nombre;
-                    sel.appendChild(opt);
-                    const opt2 = opt.cloneNode(true); sel2.appendChild(opt2);
-                });
-            }
-        });
-
-        fetch('php/personal_ajax.php', { method: 'POST', body: new URLSearchParams({ accion: 'leer_todos' }) })
-        .then(res => res.json())
-        .then(data => {
-            if (Array.isArray(data.data)) {
-                let sel = document.getElementById('persona_filtro');
-                let sel2 = document.getElementById('persona_id');
-                data.data.forEach(p => {
-                    const opt = document.createElement('option'); opt.value = p.persona_id; opt.text = p.persona_nombre + ' ' + p.persona_apellido;
-                    sel.appendChild(opt);
-                    const opt2 = opt.cloneNode(true); sel2.appendChild(opt2);
-                });
-            }
-        });
-    }
-    cargarFiltros();
-
-    // Recargar tabla al cambiar filtros
-    document.getElementById('area_filtro')?.addEventListener('change', () => tabla.ajax.reload());
-    document.getElementById('persona_filtro')?.addEventListener('change', () => tabla.ajax.reload());
-
-    // Abrir modal nuevo
-    document.querySelectorAll('[data-modal-target="new_asignacion"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            openModal('new_asignacion');
-            // limpiar formulario
-            document.getElementById('form_nueva_asignacion').reset();
-            document.querySelector('#tabla_seriales_agregados tbody').innerHTML = '';
-            document.getElementById('asignacion_id').value = '';
-        });
-    });
-
-    // Buscar seriales disponibles
-    document.getElementById('btn_buscar_serial')?.addEventListener('click', function () {
-        const texto = document.getElementById('buscar_serial').value.trim();
-        fetch('php/asignacion_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({ accion: 'buscar_seriales', texto })
-        }).then(r => r.json()).then(data => {
-            const cont = document.getElementById('resultados_seriales');
-            cont.innerHTML = '';
-            if (data.data && data.data.length) {
-                data.data.forEach(s => {
-                    const div = document.createElement('div');
-                    div.style.display = 'flex';
-                    div.style.justifyContent = 'space-between';
-                    div.style.padding = '6px';
-                    div.style.borderBottom = '1px solid #eee';
-                    div.innerHTML = `<div><strong>${s.articulo_serial}</strong> — ${s.articulo_nombre} ${s.articulo_modelo ? '('+s.articulo_modelo+')' : ''}</div>
-                                     <div><button class="btn_agregar_serial" data-id="${s.articulo_serial_id}" data-serial="${s.articulo_serial}" data-nombre="${s.articulo_nombre}">Agregar</button></div>`;
-                    cont.appendChild(div);
-                });
-            } else {
-                cont.innerHTML = '<div>No hay seriales disponibles</div>';
-            }
-        });
-    });
-
-    // Delegación: agregar serial al listado
-    document.getElementById('resultados_seriales').addEventListener('click', function (e) {
-        if (e.target && e.target.matches('.btn_agregar_serial')) {
-            const id = e.target.dataset.id;
-            const serial = e.target.dataset.serial;
-            const nombre = e.target.dataset.nombre;
-            agregarSerialTabla(id, serial, nombre);
-        }
-    });
-
-    function agregarSerialTabla(id, serial, nombre) {
-        // evitar duplicados
-        const rows = document.querySelectorAll('#tabla_seriales_agregados tbody tr');
-        for (let r of rows) {
-            if (r.dataset.id === String(id)) return;
-        }
-        const tr = document.createElement('tr');
-        tr.dataset.id = id;
-        tr.innerHTML = `<td>${serial}</td><td>${nombre}</td><td><button class="btn_quitar_serial">Quitar</button></td>`;
-        document.querySelector('#tabla_seriales_agregados tbody').appendChild(tr);
-    }
-
-    // quitar serial
-    document.querySelector('#tabla_seriales_agregados tbody').addEventListener('click', function (e) {
-        if (e.target && e.target.matches('.btn_quitar_serial')) {
-            e.target.closest('tr').remove();
-        }
-    });
-
-    // submit crear asignacion
-    document.getElementById('form_nueva_asignacion').addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        const areaId = document.getElementById('area_id').value;
-        const personaId = document.getElementById('persona_id').value;
-        const fecha = document.getElementById('asignacion_fecha').value;
-        const fechaFin = document.getElementById('asignacion_fecha_fin').value;
-        const filas = document.querySelectorAll('#tabla_seriales_agregados tbody tr');
-        const seriales = Array.from(filas).map(r => r.dataset.id);
-
-        if (!areaId || !personaId || !fecha) {
-            mostrarError('Rellene los campos obligatorios');
-            return;
-        }
-        if (seriales.length === 0) {
-            mostrarError('Agregue al menos un serial a la asignación');
-            return;
-        }
-
-        fetch('php/asignacion_ajax.php', {
-            method: 'POST',
-            body: new URLSearchParams({
-                accion: 'crear',
-                area_id: areaId,
-                persona_id: personaId,
-                asignacion_fecha: fecha,
-                asignacion_fecha_fin: fechaFin,
-                seriales: JSON.stringify(seriales)
-            })
-        }).then(r => r.json()).then(data => {
-            if (data.exito) {
-                closeModal('new_asignacion');
-                tabla.ajax.reload();
-                mostrarSuccess(data.mensaje || 'Asignación creada');
-            } else {
-                mostrarError(data.mensaje || 'Error al crear');
-            }
-        }).catch(err => {
-            console.error(err);
-            mostrarError('Error interno');
-        });
-    });
-
-    // Ver info
-    $('#asignacionTabla tbody').on('click', '.btn_info', function () {
+    // Acción: Ver info + cargar resumen
+    $('#asignacionTabla tbody').on('click', '.btn_ver_info', function () {
         const id = $(this).data('id');
+        if (!id) return;
+
+        // Obtener datos de la asignación
         fetch('php/asignacion_ajax.php', {
             method: 'POST',
             body: new URLSearchParams({ accion: 'obtener_asignacion', id })
-        }).then(res => res.json()).then(data => {
+        })
+        .then(res => res.json())
+        .then(data => {
             if (data.exito && data.asignacion) {
-                const a = data.asignacion;
-                document.getElementById('info_id').textContent = a.asignacion_id;
-                document.getElementById('info_area').textContent = a.area_nombre;
-                document.getElementById('info_persona').textContent = a.persona_nombre;
-                document.getElementById('info_fecha').textContent = a.asignacion_fecha;
-                document.getElementById('info_fecha_fin').textContent = a.asignacion_fecha_fin || '—';
-                document.getElementById('info_estado').textContent = a.asignacion_estado == 1 ? 'Activa' : 'Finalizada / Deshabilitada';
-                const ul = document.getElementById('info_articulos_lista');
-                ul.innerHTML = '';
-                if (Array.isArray(a.articulos)) {
-                    a.articulos.forEach(it => {
-                        const li = document.createElement('li');
-                        li.textContent = `${it.articulo_serial} — ${it.articulo_nombre} ${it.articulo_modelo ? '('+it.articulo_modelo+')' : ''}`;
-                        ul.appendChild(li);
-                    });
-                }
-                openModal('info_asignacion');
+                // rellenar los spans
+                document.getElementById('info_id').textContent = data.asignacion.asignacion_id;
+                document.getElementById('info_area').textContent = data.asignacion.area_nombre;
+                document.getElementById('info_persona').textContent = data.asignacion.persona_nombre + ' ' + (data.asignacion.persona_apellido || '');
+                document.getElementById('info_fecha').textContent = data.asignacion.asignacion_fecha;
+                document.getElementById('info_fecha_fin').textContent = data.asignacion.asignacion_fecha_fin || '—';
+
+                // abrir modal
+                const modal = document.querySelector('dialog[data-modal="info_asignacion"]');
+                if (modal?.showModal) modal.showModal();
+
+                // cargar artículos asociados
+                fetch('php/asignacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'listar_articulos_por_asignacion', id })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if (resp.data) {
+                        const resumenTabla = $('#asignacionResumenTabla').DataTable();
+                        resumenTabla.clear().rows.add(resp.data).draw();
+                    }
+                });
             }
         });
     });
 
-    // Finalizar (usa icon eliminar como ejemplo)
-    $('#asignacionTabla tbody').on('click', '.btn_finalizar', function () {
+    // Acción: Anular
+    $('#asignacionTabla tbody').on('click', '.btn_anular', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Finalizar esta asignación? (esto la deshabilitará)')) return;
+        if (!id) return;
+
         fetch('php/asignacion_ajax.php', {
             method: 'POST',
-            body: new URLSearchParams({ accion: 'finalizar', id, fecha_fin: new Date().toISOString().slice(0,10), devolver_seriales: 0 })
-        }).then(r=>r.json()).then(d=>{
-            if (d.exito) {
-                tabla.ajax.reload();
-                mostrarSuccess('Asignación finalizada');
-            } else mostrarError(d.mensaje || 'Fallo');
+            body: new URLSearchParams({ accion: 'obtener_asignacion', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.asignacion) {
+                mostrarConfirmacionAsignacion(data.asignacion, 'anular');
+            }
         });
     });
 
-    // Recuperar (si procede)
+    // Acción: Recuperar
     $('#asignacionTabla tbody').on('click', '.btn_recuperar', function () {
         const id = $(this).data('id');
-        if (!confirm('Recuperar asignación?')) return;
+        if (!id) return;
+
         fetch('php/asignacion_ajax.php', {
             method: 'POST',
-            body: new URLSearchParams({ accion: 'recuperar', id })
-        }).then(r=>r.json()).then(d=>{
-            if (d.exito) { tabla.ajax.reload(); mostrarSuccess('Asignación recuperada'); }
-            else mostrarError(d.mensaje || 'Fallo');
+            body: new URLSearchParams({ accion: 'obtener_asignacion', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.asignacion) {
+                mostrarConfirmacionAsignacion(data.asignacion, 'recuperar');
+            }
         });
     });
 
-    // Helpers: modales y mensajes
-    function openModal(name) {
-        document.querySelectorAll('[data-modal]').forEach(d => { if (d.dataset.modal === name) d.showModal(); });
+    // Tabla resumen de artículos asociados (con cantidad y child rows para seriales)
+    const resumenTabla = $('#asignacionResumenTabla').DataTable({
+        data: [],
+        columns: [
+            { data: 'articulo_codigo', title: 'Código' },
+            { data: 'articulo_nombre', title: 'Nombre' },
+            { data: 'cantidad', title: 'Cantidad' },
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<span class="toggle-details">▶</span>',
+                title: 'Seriales'
+            }
+        ],
+        ordering: true,
+        scrollY: '300px',
+        scrollCollapse: true,
+        responsive: true,
+        paging: false,
+        searching: false,
+        info: false,
+        language: { emptyTable: 'No se encuentran registros' }
+    });
+
+    // child rows para seriales
+    function formatSeriales(rowData) {
+        if (!rowData.seriales) return '<div>No se ingresaron seriales</div>';
+
+        const lista = rowData.seriales.split(',').map(s => s.trim());
+        let html = '<ul>';
+        lista.forEach((s, i) => {
+            html += `<li><strong>${i + 1}:</strong> ${s}</li>`;
+        });
+        html += '</ul>';
+        return html;
     }
-    function closeModal(name) {
-        document.querySelectorAll('[data-modal]').forEach(d => { if (d.dataset.modal === name) d.close(); });
+
+    $('#asignacionResumenTabla tbody').on('click', 'td.dt-control', function () {
+        const tr = $(this).closest('tr');
+        const row = resumenTabla.row(tr);
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('.toggle-details').text('▶');
+        } else {
+            row.child(formatSeriales(row.data())).show();
+            tr.addClass('shown');
+            $(this).find('.toggle-details').text('▼');
+        }
+    });
+
+
+    // ------------------------------
+    // Helpers de confirmación
+    // ------------------------------
+    function mostrarConfirmacionAsignacion(asignacion, accion) {
+        let modalSelector = '';
+        if (accion === 'anular') {
+            modalSelector = 'dialog[data-modal="anular_asignacion"]';
+            document.getElementById('anular_asignacion_id').textContent = asignacion.asignacion_id;
+            document.getElementById('anular_asignacion_descripcion').textContent = asignacion.asignacion_descripcion || '';
+            const form = document.getElementById('form_anular_asignacion');
+            form.onsubmit = function (e) {
+                e.preventDefault();
+                fetch('php/asignacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'anular', id: asignacion.asignacion_id })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if (resp.exito) {
+                        tabla.ajax.reload(null, false);
+                        closeDialog(modalSelector);
+                        alert('Asignación anulada correctamente');
+                    } else {
+                        alert(resp.mensaje || 'Error al anular la asignación');
+                    }
+                });
+            };
+        } else if (accion === 'recuperar') {
+            modalSelector = 'dialog[data-modal="recuperar_asignacion"]';
+            document.getElementById('recuperar_asignacion_id').textContent = asignacion.asignacion_id;
+            document.getElementById('recuperar_asignacion_descripcion').textContent = asignacion.asignacion_descripcion || '';
+            const form = document.getElementById('form_recuperar_asignacion');
+            form.onsubmit = function (e) {
+                e.preventDefault();
+                fetch('php/asignacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'recuperar', id: asignacion.asignacion_id })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if (resp.exito) {
+                        tabla.ajax.reload(null, false);
+                        closeDialog(modalSelector);
+                        alert('Asignación recuperada correctamente');
+                    } else {
+                        alert(resp.mensaje || 'Error al recuperar la asignación');
+                    }
+                });
+            };
+        }
+
+        const modal = document.querySelector(modalSelector);
+        if (modal?.showModal) modal.showModal();
     }
-    function mostrarError(text) {
-        const c = document.getElementById('error-container-asignacion');
-        c.textContent = text;
-        c.style.display = 'block';
-        setTimeout(()=>c.style.display='none', 5000);
-    }
-    function mostrarSuccess(text) {
-        // Reutiliza el modal success si lo tienes, si no: alert
-        alert(text);
+
+    function closeDialog(selector) {
+        const dlg = document.querySelector(selector);
+        if (dlg && typeof dlg.close === 'function') dlg.close();
     }
 });
