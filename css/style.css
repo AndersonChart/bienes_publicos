@@ -679,6 +679,15 @@ a {
     box-sizing: border-box;
 }
 
+.container_table_box-recepcion {
+    min-width: 500px;          /* ocupa todo el ancho disponible */
+    min-height: 300px;    /* altura mínima */
+    border-radius: 20px;
+    background: #f9f9f9;  /* opcional para distinguir */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
 .seriales_container {
     width: 90%;
     max-width: auto;

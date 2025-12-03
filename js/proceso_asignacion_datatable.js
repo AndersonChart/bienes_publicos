@@ -295,7 +295,7 @@ if (selectCargoForm && selectPersonaForm) {
         }
         let html = '<div class="seriales-list"><ul>';
         bufferItem.seriales.forEach((s, i) => {
-            html += `<li><strong>${i + 1}:</strong> ${s}</li>`;
+            html += `<li><strong>${i + 1}:</strong> ${s.serial}</li>`;
         });
         html += '</ul></div>';
         return html;
@@ -330,6 +330,7 @@ if (selectCargoForm && selectPersonaForm) {
         tablaResumen.rows.add(resumen);
         tablaResumen.draw();
     }
+
 
     // ------------------------------
     // Modal Seleccionar seriales
@@ -371,11 +372,13 @@ if (selectCargoForm && selectPersonaForm) {
                 tablaSeriales.clear();
                 tablaSeriales.rows.add(resp.data).draw();
 
-                const seleccionadosPrevios = estado.buffer[articuloId]?.seriales || [];
+                const seleccionadosPrevios = (estado.buffer[articuloId]?.seriales || []).map(s => s.id);
+
                 tablaSeriales.rows().every(function () {
                     const rowData = this.data();
-                    // aquí seleccionadosPrevios son seriales (texto), no ids
-                    if (rowData.serial && seleccionadosPrevios.includes(rowData.serial)) this.select();
+                    if (rowData.id && seleccionadosPrevios.includes(rowData.id)) {
+                        this.select();
+                    }
                 });
             } else {
                 tablaSeriales.clear().draw();
@@ -415,7 +418,8 @@ if (selectCargoForm && selectPersonaForm) {
             articulo_id: estado.articuloActivo,
             codigo: meta.codigo,
             nombre: meta.nombre,
-            seriales: seleccionados.map(s => s.id).filter(Boolean) // usar id, no serial
+            // Guardar objetos con id y serial
+            seriales: seleccionados.map(s => ({ id: s.id, serial: s.serial }))
         };
 
         tablaArticulos.ajax.reload(null, false);
@@ -425,6 +429,7 @@ if (selectCargoForm && selectPersonaForm) {
         showDialog('dialog[data-modal="success"]');
         closeDialog('dialog[data-modal="seriales_articulo"]');
     });
+
 
 
     // ------------------------------
@@ -454,7 +459,7 @@ if (selectCargoForm && selectPersonaForm) {
             asignacion_fecha_fin: $('#proceso_asignacion_fecha_fin').val(),
             asignacion_descripcion: $('#proceso_asignacion_descripcion').val(),
             seriales: JSON.stringify(
-                Object.values(estado.buffer).flatMap(item => item.seriales || [])
+                Object.values(estado.buffer).flatMap(item => item.seriales.map(s => s.id))
             )
         };
 

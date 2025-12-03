@@ -75,7 +75,7 @@
 
         <!-- Columna derecha: tabla resumen -->
         <div class="resumen_container">
-            <div class="container_table_box-recepcion">
+            <div class="container_table_box-asignacion">
                 <table id="procesoAsignacionResumenTabla" class="display">
                     <thead>
                         <tr>
