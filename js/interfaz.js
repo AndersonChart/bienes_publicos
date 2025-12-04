@@ -635,6 +635,96 @@ function cargarPersona(opciones = {}) {
     .catch(err => console.error('Error al cargar personas:', err));
 }
 
+function initFiltrosAsignacion() {
+    const tablaDT = $('#asignacionTabla').DataTable();
+    const filtroCargo   = document.getElementById('cargo_filtro');
+    const filtroPersona = document.getElementById('persona_filtro');
+
+    // Listener: cambiar cargo → filtra personas
+    if (filtroCargo) {
+        filtroCargo.addEventListener('change', () => {
+            const cargoId = filtroCargo.value || '';
+            const personaSeleccionada = filtroPersona.value || '';
+
+            cargarPersona({
+                cargo_id: cargoId || null,
+                scope: 'filtro',
+                onComplete: (lista) => {
+                    filtroPersona.innerHTML = '';
+                    const optAll = document.createElement('option');
+                    optAll.value = '';
+                    optAll.textContent = 'Todas las personas';
+                    filtroPersona.appendChild(optAll);
+
+                    let sigueExistiendo = false;
+                    (lista || []).forEach(p => {
+                        const op = document.createElement('option');
+                        op.value = String(p.persona_id);
+                        op.textContent = `${p.persona_nombre} ${p.persona_apellido}`;
+                        if (personaSeleccionada && String(p.persona_id) === personaSeleccionada) {
+                            sigueExistiendo = true;
+                        }
+                        filtroPersona.appendChild(op);
+                    });
+
+                    filtroPersona.value = sigueExistiendo ? personaSeleccionada : '';
+                    tablaDT.ajax.reload(null, false);
+                }
+            });
+        });
+    }
+
+    // Listener: cambiar persona → sincroniza cargo
+    if (filtroPersona) {
+        filtroPersona.addEventListener('change', () => {
+            const personaId = filtroPersona.value || '';
+            if (!personaId) {
+                tablaDT.ajax.reload(null, false);
+                return;
+            }
+
+            fetch('php/personal_ajax.php', {
+                method: 'POST',
+                body: new URLSearchParams({ accion: 'obtener_persona', persona_id: personaId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.exito && data.persona) {
+                    const nuevoCargoId = String(data.persona.cargo_id || '');
+                    filtroCargo.value = nuevoCargoId;
+
+                    // Opcional: repoblar personas del cargo actual para coherencia visual
+                    cargarPersona({
+                        cargo_id: nuevoCargoId,
+                        scope: 'filtro',
+                        onComplete: (lista) => {
+                            filtroPersona.innerHTML = '';
+                            const optAll = document.createElement('option');
+                            optAll.value = '';
+                            optAll.textContent = 'Todas las personas';
+                            filtroPersona.appendChild(optAll);
+
+                            (lista || []).forEach(p => {
+                                const op = document.createElement('option');
+                                op.value = String(p.persona_id);
+                                op.textContent = `${p.persona_nombre} ${p.persona_apellido}`;
+                                filtroPersona.appendChild(op);
+                            });
+
+                            filtroPersona.value = personaId; // mantener seleccionada
+                            tablaDT.ajax.reload(null, false);
+                        }
+                    });
+                } else {
+                    tablaDT.ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                tablaDT.ajax.reload(null, false);
+            });
+        });
+    }
+}
 
 function cargarArea(opciones = {}) {
     fetch('php/area_ajax.php', {
@@ -700,8 +790,6 @@ function cargarArea(opciones = {}) {
         console.error('Error al cargar áreas:', err);
     });
 }
-
-
 
 //Dinamicas de Formularios
 
@@ -944,12 +1032,14 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarEstado();
     cargarClasificacion();
     cargarMarca();
-    cargarCargo();
-    cargarPersona();
+    cargarCargo({ scope: 'filtro', onComplete: () => {
+        cargarPersona({ scope: 'filtro', onComplete: () => {
+            initFiltrosAsignacion();
+        }});
+    }});
     cargarArea();
     mantenerFotoUsuarioActualizada();
     aplicarDinamicaCategoria();
-    inicializarPlazoFechas({ plazoDefault: 60 });
 
     // Función para ajustar columnas según tipo de categoría
         function ajustarColumnasPorCategoria(categoriaId) {
@@ -1159,92 +1249,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         }
-
-        // --- Filtros de asignaciones ---
-
-        const filtroCargo   = document.getElementById('cargo_filtro');
-        const filtroPersona = document.getElementById('persona_filtro');
-
-        if (filtroCargo) {
-            filtroCargo.addEventListener('change', () => {
-                const valor = filtroCargo.value;
-
-                if (valor !== '') {
-                    // Personas de un cargo específico
-                    cargarPersona({
-                        cargo_id: valor,
-                        scope: 'filtro',
-                        onComplete: (lista) => {
-                            if (Array.isArray(lista) && lista.length > 0) {
-                                filtroPersona.innerHTML = '';
-                                const todasOption = document.createElement('option');
-                                todasOption.value = '';
-                                todasOption.textContent = 'Todas las personas';
-                                filtroPersona.appendChild(todasOption);
-
-                                lista.forEach(persona => {
-                                    const option = document.createElement('option');
-                                    option.value = persona.persona_id;
-                                    option.textContent = persona.persona_nombre + ' ' + persona.persona_apellido;
-                                    filtroPersona.appendChild(option);
-                                });
-                            } else {
-                                console.warn('No se devolvieron personas para el cargo', valor);
-                            }
-                        }
-                    });
-                } else {
-                    // Todos los cargos → cargar todas las personas
-                    cargarPersona({
-                        scope: 'filtro',
-                        onComplete: (lista) => {
-                            if (Array.isArray(lista) && lista.length > 0) {
-                                filtroPersona.innerHTML = '';
-                                const todasOption = document.createElement('option');
-                                todasOption.value = '';
-                                todasOption.textContent = 'Todas las personas';
-                                filtroPersona.appendChild(todasOption);
-
-                                lista.forEach(persona => {
-                                    const option = document.createElement('option');
-                                    option.value = persona.persona_id;
-                                    option.textContent = persona.persona_nombre + ' ' + persona.persona_apellido;
-                                    filtroPersona.appendChild(option);
-                                });
-                            }
-                        }
-                    });
-                }
-
-                // Recargar tabla de asignaciones
-                $('#asignacionTabla').DataTable().ajax.reload(null, false);
-            });
-        }
-
-        if (filtroPersona) {
-            filtroPersona.addEventListener('change', () => {
-                const personaId = filtroPersona.value;
-                const cargoActual = filtroCargo.value || '';
-
-                if (!personaId) {
-                    $('#asignacionTabla').DataTable().ajax.reload(null, false);
-                    return;
-                }
-
-                fetch('php/personal_ajax.php', {
-                    method: 'POST',
-                    body: new URLSearchParams({ accion: 'obtener_persona', persona_id: personaId }) //  usar persona_id
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.exito && data.persona) {
-                        filtroCargo.value = data.persona.cargo_id; //  ajusta cargo automáticamente
-                    }
-                    $('#asignacionTabla').DataTable().ajax.reload(null, false);
-                });
-            });
-        }
-
 });
 
 

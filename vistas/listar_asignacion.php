@@ -92,7 +92,8 @@
     </div>
     <div class="delete_container">
         <span class="delete_data-title" id="anular_asignacion_id"></span>
-        <span class="delete_data" id="anular_asignacion_descripcion"></span>
+        <span class="delete_data" id="anular_personal_nombre"></span>
+        <span class="delete_data" id="anular_area_nombre"></span>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog">
@@ -111,7 +112,8 @@
     </div>
     <div class="delete_container">
         <span class="delete_data-title" id="recuperar_asignacion_id"></span>
-        <span class="delete_data" id="recuperar_asignacion_descripcion"></span>
+        <span class="delete_data" id="recuperar_personal_nombre"></span>
+        <span class="delete_data" id="recuperar_area_nombre"></span>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog">
@@ -130,7 +132,7 @@
     <table id="asignacionTabla" class="display" style="width:100%">
         <thead>
             <tr>
-                <th colspan="7" class="title">Asignaciones</th>
+                <th colspan="8" class="title">Asignaciones</th>
             </tr>
             <tr>
                 <th class="header">ID</th>
@@ -139,6 +141,7 @@
                 <th class="header">Área</th>
                 <th class="header">Desde:</th>
                 <th class="header">Hasta:</th>
+                <th class="header">Estado</th>
                 <th class="header">Acciones</th>
             </tr>
         </thead>

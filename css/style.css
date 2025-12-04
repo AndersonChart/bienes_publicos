@@ -1910,5 +1910,32 @@ a {
 .btn_seleccionar_seriales.is-disabled {
     opacity: 0.5;
     cursor: default;
-    pointer-events: none;   /* 👈 evita cualquier interacción, incluido hover */
+    pointer-events: none;   /* evita cualquier interacción, incluido hover */
+}
+
+/* Estilo base similar a stock-badge */
+.estado-badge {
+    display: inline-block;
+    padding: 10px 15px;
+    margin-right: 4px;
+    border-radius: 10px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    min-width: 90px; /* ancho mínimo para uniformidad */
+}
+
+/* Activo → verde */
+.estado-badge.activo {
+    background-color: #28a745; /* verde */
+}
+
+/* Anulado → rojo */
+.estado-badge.anulado {
+    background-color: #c62828; /* rojo */
+}
+
+/* Vencido → naranja oscuro */
+.estado-badge.vencido {
+    background-color: #ef6c00; /* naranja */
 }
