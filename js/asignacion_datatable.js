@@ -125,17 +125,26 @@ window.addEventListener('load', function () {
                     const url = 'reportes/reporte_asignacion.php?id=' + encodeURIComponent(id);
 
                     let botones = '<div class="acciones">';
-                    botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF">
-                                    <img src="img/icons/reportepdf.png" alt="Reporte">
-                                </a>`;
-                    botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
-                                </div>`;
+                    
                     if (estado === 1) {
+                        botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF">
+                                        <img src="img/icons/reportepdf.png" alt="Reporte">
+                                    </a>`;
+                        botones += `<a class="icon-action btn_reasignar" 
+                                        href="index.php?vista=procesar_asignacion&id=${id}" 
+                                        title="Reasignar">
+                                        <img src="img/icons/reasignar.png" alt="Reasignar">
+                                    </a>`;
+                        botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>`;
                         botones += `<div class="icon-action btn_anular" data-id="${id}" title="Anular">
                                         <img src="img/icons/anular.png" alt="Anular">
                                     </div>`;
                     } else {
+                        botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
+                                        <img src="img/icons/info.png" alt="Info">
+                                    </div>`;
                         botones += `<div class="icon-action btn_recuperar" data-id="${id}" title="Recuperar">
                                         <img src="img/icons/recuperar.png" alt="Recuperar">
                                     </div>`;

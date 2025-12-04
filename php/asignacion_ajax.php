@@ -193,6 +193,84 @@ switch ($accion) {
     break;
 
 
+    // Reasignar una asignación existente
+case 'reasignar':
+    try {
+        $idAsignacion = $_POST['id'] ?? '';
+        if (!$idAsignacion) {
+            echo json_encode(['error' => true, 'mensaje' => 'No se proporcionó el identificador de la asignación']);
+            exit;
+        }
+
+        // Decodificar seriales seleccionados (IDs de articulo_serial)
+        $seriales = [];
+        if (isset($_POST['seriales'])) {
+            $decoded = json_decode($_POST['seriales'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $seriales = array_values(array_filter($decoded, fn($s) => trim($s) !== ''));
+            }
+        }
+
+        $areaId      = $_POST['area_id'] ?? '';
+        $personaId   = $_POST['persona_id'] ?? '';
+        $cargoId     = $_POST['cargo_id'] ?? '';
+        $fechaInicio = $_POST['asignacion_fecha'] ?? '';
+        $fechaFin    = $_POST['asignacion_fecha_fin'] ?? '';
+        $descripcion = $_POST['asignacion_descripcion'] ?? '';
+
+        $datos = [
+            'area_id'                => $areaId,
+            'persona_id'             => $personaId,
+            'cargo_id'               => $cargoId,
+            'asignacion_fecha'       => $fechaInicio,
+            'asignacion_fecha_fin'   => $fechaFin,
+            'asignacion_descripcion' => $descripcion
+        ];
+        $valid = validarAsignacion($datos, 'reasignar');
+        if (!empty($valid['error'])) {
+            echo json_encode($valid);
+            exit;
+        }
+
+        // Si no hay seriales nuevos, verificar si la asignación ya tiene seriales previos
+        if (empty($seriales)) {
+            // Debe devolver array de IDs (articulo_serial_id) actualmente vinculados
+            $previos = $asignacion->leer_seriales_asignados($idAsignacion);
+            if (empty($previos)) {
+                echo json_encode([
+                    'error'   => true,
+                    'mensaje' => 'Debe seleccionar al menos un serial',
+                    'campos'  => ['seriales']
+                ]);
+                exit;
+            }
+        }
+
+        $exito = $asignacion->reasignar(
+            $idAsignacion,
+            $areaId,
+            $personaId,
+            $fechaInicio,
+            $descripcion,
+            $seriales,
+            $fechaFin
+        );
+
+        echo json_encode([
+            'exito'   => $exito,
+            'mensaje' => $exito ? 'La asignación fue reasignada correctamente' : 'No se pudo reasignar la asignación'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'error'   => true,
+            'mensaje' => 'Error al reasignar la asignación',
+            'detalle' => $e->getMessage()
+        ]);
+    }
+break;
+
+
 
     // Listar artículos disponibles para asignación
     case 'listar_articulos_asignacion':
@@ -298,23 +376,30 @@ switch ($accion) {
                 echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'No se proporcionó el identificador de la asignación']);
                 exit;
             }
+            // Cada item debe incluir: articulo_id, articulo_codigo, articulo_nombre,
+            // y seriales como array de objetos [{id, serial}] o CSV "id:serial,id:serial"
             $registros = $asignacion->leer_articulos_por_asignacion($id);
             echo json_encode(['data' => $registros]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'Error al listar los artículos asociados a la asignación', 'detalle' => $e->getMessage()]);
         }
-        break;
+    break;
 
-    // Listar seriales disponibles de un artículo
+
+    // Listar seriales de un artículo (activos + los ya asignados a la misma asignación)
     case 'leer_seriales_articulo':
         try {
-            $id = $_POST['id'] ?? '';
-            if (!$id) {
+            $articuloId   = $_POST['id'] ?? '';
+            $asignacionId = $_POST['asignacion_id'] ?? null;
+
+            if (!$articuloId) {
                 echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'No se proporcionó el identificador del artículo']);
                 exit;
             }
-            $registros = $asignacion->leer_seriales_articulo($id);
+
+            // Si llega asignacion_id, incluir activos (estado 1) + seriales vinculados a esa asignación (estado 2)
+            $registros = $asignacion->leer_seriales_articulo($articuloId, $asignacionId);
             echo json_encode(['data' => $registros]);
         } catch (Exception $e) {
             http_response_code(500);
@@ -325,8 +410,7 @@ switch ($accion) {
                 'detalle' => $e->getMessage()
             ]);
         }
-        break;
-
+    break;
 
     // Obtener detalle de un artículo
     case 'obtener_articulo':

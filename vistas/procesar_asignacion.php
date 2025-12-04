@@ -26,6 +26,7 @@
     <div class="proceso_container">
         <!-- Columna izquierda: formulario -->
         <form id="form_proceso_asignacion" method="POST" autocomplete="off" class="user_container" novalidate>
+            <input type="hidden" id="proceso_asignacion_id" name="asignacion_id" value="<?php echo $_GET['id'] ?? ''; ?>">
             <div class="input_block_content">
                 <label class="input_label">Plazo</label>
                 <span>

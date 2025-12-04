@@ -25,6 +25,59 @@ document.getElementById('form_confirmar_regresar').addEventListener('submit', fu
     window.location.href = "index.php?vista=listar_asignacion";
 });
 
+const asignacionId = $('#proceso_asignacion_id').val();
+if (asignacionId) {
+  $.post('php/asignacion_ajax.php', { accion: 'obtener_asignacion', id: asignacionId }, function (resp) {
+    if (resp && resp.exito && resp.asignacion) {
+      const a = resp.asignacion;
+
+      // 1) Cargo
+      $('#proceso_asignacion_cargo').val(a.cargo_id);
+
+      // 2) Persona dependiente del cargo (espera a que cargarPersona termine)
+      cargarPersona({
+        cargo_id: a.cargo_id,
+        scope: 'form',
+        onComplete: () => {
+          $('#proceso_asignacion_persona').val(a.persona_id);
+        }
+      });
+
+      // 3) Área y descripción
+      $('#proceso_asignacion_area').val(a.area_id);
+      $('#proceso_asignacion_descripcion').val(a.asignacion_descripcion || '');
+      // Nota: NO seteamos fechas aquí; tu inicializador viejo las controla.
+    }
+  }, 'json');
+}
+
+// Precargar artículos y seriales asociados (reasignación)
+if (asignacionId) {
+  $.post('php/asignacion_ajax.php', { accion: 'listar_articulos_por_asignacion', id: asignacionId }, function (resp) {
+    if (resp && Array.isArray(resp.data)) {
+      resp.data.forEach(item => {
+        // Espera que backend ahora devuelva un array de objetos [{id, serial}]
+        const seriales = Array.isArray(item.seriales)
+          ? item.seriales.map(s => ({ id: Number(s.id), serial: s.serial }))
+          : []; // si aún es CSV, parsea “id:serial” aquí
+
+        estado.buffer[item.articulo_id] = {
+          articulo_id: item.articulo_id,
+          codigo: item.articulo_codigo,
+          nombre: item.articulo_nombre,
+          seriales
+        };
+        estado.bufferMeta[item.articulo_id] = {
+          codigo: item.articulo_codigo,
+          nombre: item.articulo_nombre
+        };
+      });
+      actualizarResumenAsignacion();
+    }
+  }, 'json');
+}
+
+
 
 const selectCargoForm   = document.getElementById('proceso_asignacion_cargo');
 const selectPersonaForm = document.getElementById('proceso_asignacion_persona');
@@ -222,25 +275,28 @@ if (selectCargoForm && selectPersonaForm) {
                 data: null,
                 title: 'Acciones',
                 render: function (row) {
-                    const id = row.articulo_id;
-                    const stock = Number(row.stock_disponible) || 0;
-                    const disabled = stock <= 0;
-                    return `
-                        <div class="acciones">
-                            <div class="icon-action btn_ver_info"
-                                data-id="${id}"
-                                title="Info">
-                                <img src="img/icons/info.png" alt="Info">
-                            </div>
-                            <button type="button"
-                                class="new-proceso btn_seleccionar_seriales${disabled ? ' is-disabled' : ''}"
-                                data-id="${id}"
-                                title="Seleccionar Seriales"
-                                ${disabled ? 'disabled aria-disabled="true" tabindex="-1"' : ''}>
-                                Seleccionar
-                            </button>
-                        </div>`;
-                },
+                const id = row.articulo_id;
+                const stock = Number(row.stock_disponible) || 0;
+                const asignacionId = $('#proceso_asignacion_id').val();
+                const seleccionados = estado.buffer[id]?.seriales?.length || 0;
+
+                // Deshabilitar si no hay stock y tampoco hay seleccionados previos
+                const disabled = stock <= 0 && seleccionados === 0;
+
+                return `
+                    <div class="acciones">
+                    <div class="icon-action btn_ver_info" data-id="${id}" title="Info">
+                        <img src="img/icons/info.png" alt="Info">
+                    </div>
+                    <button type="button"
+                        class="new-proceso btn_seleccionar_seriales${disabled ? ' is-disabled' : ''}"
+                        data-id="${id}" title="Seleccionar Seriales"
+                        ${disabled ? 'disabled aria-disabled="true" tabindex="-1"' : ''}>
+                        Seleccionar
+                    </button>
+                    </div>`;
+                }
+                ,
                 orderable: false
             }
         ],
@@ -362,28 +418,31 @@ if (selectCargoForm && selectPersonaForm) {
     });
 
     $('#procesoAsignacionArticuloTabla tbody').on('click', '.btn_seleccionar_seriales', function () {
-        if ($(this).prop('disabled') || $(this).hasClass('is-disabled')) return;
+            if ($(this).prop('disabled') || $(this).hasClass('is-disabled')) return;
 
         const articuloId = $(this).data('id');
         estado.articuloActivo = articuloId;
 
-        $.post('php/asignacion_ajax.php', { accion: 'leer_seriales_articulo', id: articuloId }, function (resp) {
-            if (resp && Array.isArray(resp.data)) {
-                tablaSeriales.clear();
-                tablaSeriales.rows.add(resp.data).draw();
+        const asignacionId = $('#proceso_asignacion_id').val();
 
-                const seleccionadosPrevios = (estado.buffer[articuloId]?.seriales || []).map(s => s.id);
+        // Importante: enviar asignacion_id para incluir seriales ya asignados a esta asignación
+        $.post('php/asignacion_ajax.php', { accion: 'leer_seriales_articulo', id: articuloId, asignacion_id: asignacionId }, function (resp) {
+        if (resp && Array.isArray(resp.data)) {
+            tablaSeriales.clear();
+            tablaSeriales.rows.add(resp.data).draw();
 
-                tablaSeriales.rows().every(function () {
-                    const rowData = this.data();
-                    if (rowData.id && seleccionadosPrevios.includes(rowData.id)) {
-                        this.select();
-                    }
-                });
-            } else {
-                tablaSeriales.clear().draw();
+            // Preselección por ID, gracias a Parche 2
+            const seleccionadosPrevios = (estado.buffer[articuloId]?.seriales || []).map(s => s.id);
+            tablaSeriales.rows().every(function () {
+            const rowData = this.data();
+            if (rowData.id && seleccionadosPrevios.includes(rowData.id)) {
+                this.select();
             }
-        }, 'json');
+            });
+        } else {
+            tablaSeriales.clear().draw();
+        }
+        }, 'json'); 
 
         $.post('php/asignacion_ajax.php', { accion: 'obtener_articulo', id: articuloId }, function (resp) {
             if (resp && resp.exito && resp.articulo) {
@@ -450,18 +509,22 @@ if (selectCargoForm && selectPersonaForm) {
         e.preventDefault();
         clearError('error-container-proceso-asignacion');
 
+        const asignacionId = $('#proceso_asignacion_id').val();
+
         const payload = {
-            accion: 'crear',
+            accion: asignacionId ? 'reasignar' : 'crear',
+            id: asignacionId || '',
             area_id: $('#proceso_asignacion_area').val(),
             persona_id: $('#proceso_asignacion_persona').val(),
-            cargo_id: $('#proceso_asignacion_cargo').val(), // se envía para validar, no se guarda
+            cargo_id: $('#proceso_asignacion_cargo').val(),
             asignacion_fecha: $('#proceso_asignacion_fecha').val(),
             asignacion_fecha_fin: $('#proceso_asignacion_fecha_fin').val(),
             asignacion_descripcion: $('#proceso_asignacion_descripcion').val(),
             seriales: JSON.stringify(
                 Object.values(estado.buffer).flatMap(item => item.seriales.map(s => s.id))
             )
-        };
+            };
+
 
         $.post('php/asignacion_ajax.php', payload, function (resp) {
             if (resp && resp.error) {

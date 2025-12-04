@@ -47,6 +47,56 @@ class asignacion {
         }
     }
 
+    public function reasignar($id, $areaId, $personaId, $fechaInicio, $descripcion, $seriales = [], $fechaFin = null) {
+    try {
+        $this->pdo->beginTransaction();
+
+        // Actualizar cabecera
+        $stmtCab = $this->pdo->prepare(
+            "UPDATE asignacion 
+            SET area_id = ?, persona_id = ?, asignacion_fecha = ?, asignacion_fecha_fin = ?, asignacion_descripcion = ?
+            WHERE asignacion_id = ?"
+        );
+        $stmtCab->execute([$areaId, $personaId, $fechaInicio, $fechaFin, $descripcion, (int)$id]);
+
+        // Seriales previos
+        $stmtSel = $this->pdo->prepare("SELECT articulo_serial_id FROM asignacion_articulo WHERE asignacion_id = ?");
+        $stmtSel->execute([(int)$id]);
+        $serialesPrevios = $stmtSel->fetchAll(PDO::FETCH_COLUMN);
+
+        $serialesNuevos   = array_map('intval', $seriales);
+        $serialesPrevios  = array_map('intval', $serialesPrevios);
+
+        // Liberar los que ya no están
+        $serialesLiberar = array_diff($serialesPrevios, $serialesNuevos);
+        if (!empty($serialesLiberar)) {
+            $stmtDel = $this->pdo->prepare("DELETE FROM asignacion_articulo WHERE asignacion_id = ? AND articulo_serial_id = ?");
+            $stmtUpdateLibre = $this->pdo->prepare("UPDATE articulo_serial SET estado_id = 1 WHERE articulo_serial_id = ?");
+            foreach ($serialesLiberar as $serialId) {
+                $stmtDel->execute([(int)$id, $serialId]);
+                $stmtUpdateLibre->execute([$serialId]);
+            }
+        }
+
+        // Agregar los nuevos
+        $serialesAgregar = array_diff($serialesNuevos, $serialesPrevios);
+        if (!empty($serialesAgregar)) {
+            $stmtIns = $this->pdo->prepare("INSERT INTO asignacion_articulo (articulo_serial_id, asignacion_id) VALUES (?, ?)");
+            $stmtUpdateAsignado = $this->pdo->prepare("UPDATE articulo_serial SET estado_id = 2 WHERE articulo_serial_id = ?");
+            foreach ($serialesAgregar as $serialId) {
+                $stmtIns->execute([$serialId, (int)$id]);
+                $stmtUpdateAsignado->execute([$serialId]);
+            }
+        }
+
+        $this->pdo->commit();
+        return true;
+    } catch (Exception $e) {
+        $this->pdo->rollBack();
+        throw $e;
+    }
+}
+
 
 
 // Listar asignaciones por estado (y opcionalmente filtros)
@@ -107,8 +157,11 @@ public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $ar
                     a.asignacion_fecha_fin,
                     a.asignacion_descripcion,
                     a.asignacion_estado,
+                    a.area_id,
+                    a.persona_id,
                     p.persona_nombre,
                     p.persona_apellido,
+                    c.cargo_id,
                     c.cargo_nombre,
                     ar.area_nombre
                 FROM asignacion a
@@ -120,6 +173,7 @@ public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $ar
         $stmt->execute([(int)$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
 
 
 
@@ -251,26 +305,43 @@ public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $ar
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Mostrar todos los seriales con código (no vacíos) por artículo en estado 1 (activos)
-    public function leer_seriales_articulo($articuloId) {
+    // Mostrar seriales de un artículo: activos (estado 1) + los asignados a la misma asignación (estado 2)
+    public function leer_seriales_articulo($articuloId, $asignacionId = null) {
         try {
-            $sql = "SELECT articulo_serial_id AS id,
-                        articulo_serial AS serial,
-                        articulo_serial_observacion AS observacion,
-                        estado_id AS estado
-                    FROM articulo_serial
-                    WHERE articulo_id = ?
-                    AND estado_id = 1
-                    AND articulo_serial IS NOT NULL
-                    AND TRIM(articulo_serial) <> ''
-                    ORDER BY articulo_serial_id ASC";
+            $sql = "SELECT s.articulo_serial_id AS id,
+                        s.articulo_serial AS serial,
+                        s.articulo_serial_observacion AS observacion,
+                        s.estado_id AS estado
+                    FROM articulo_serial s
+                    WHERE s.articulo_id = ?
+                    AND s.articulo_serial IS NOT NULL
+                    AND TRIM(s.articulo_serial) <> ''";
+
+            $params = [(int)$articuloId];
+
+            if ($asignacionId) {
+                // incluir activos o vinculados a esta asignación
+                $sql .= " AND (s.estado_id = 1 OR s.articulo_serial_id IN (
+                                SELECT aa.articulo_serial_id
+                                FROM asignacion_articulo aa
+                                WHERE aa.asignacion_id = ?
+                            ))";
+                $params[] = (int)$asignacionId;
+            } else {
+                $sql .= " AND s.estado_id = 1";
+            }
+
+            $sql .= " ORDER BY s.articulo_serial_id ASC";
+
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([(int)$articuloId]);
+            $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             throw $e;
         }
     }
+
+
 
     // Stock disponible por artículo (solo activos con código de serial)
     public function obtener_stock_articulo($articuloId) {
@@ -291,22 +362,42 @@ public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $ar
     }
 
     // Listar artículos asociados a una recepción
-    public function leer_articulos_por_asignacion($asignacion_id) {
-        $sql = "SELECT 
-                    a.articulo_codigo,
-                    a.articulo_nombre,
-                    COUNT(s.articulo_serial_id) AS cantidad,
-                    GROUP_CONCAT(COALESCE(NULLIF(s.articulo_serial,''),'(sin serial)') ORDER BY s.articulo_serial_id SEPARATOR ', ') AS seriales
+    public function leer_articulos_por_asignacion($asignacionId) {
+        $sql = "SELECT a.articulo_id, a.articulo_codigo, a.articulo_nombre
                 FROM asignacion_articulo aa
-                INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
-                INNER JOIN articulo a ON s.articulo_id = a.articulo_id
+                INNER JOIN articulo_serial s ON s.articulo_serial_id = aa.articulo_serial_id
+                INNER JOIN articulo a ON a.articulo_id = s.articulo_id
                 WHERE aa.asignacion_id = ?
-                GROUP BY a.articulo_codigo, a.articulo_nombre
-                ORDER BY a.articulo_nombre ASC";
+                GROUP BY a.articulo_id, a.articulo_codigo, a.articulo_nombre";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([(int)$asignacion_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([(int)$asignacionId]);
+        $articulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Por cada artículo, traer sus seriales vinculados a esta asignación con IDs
+        $stmtSeriales = $this->pdo->prepare(
+            "SELECT s.articulo_serial_id AS id, s.articulo_serial AS serial
+            FROM asignacion_articulo aa
+            INNER JOIN articulo_serial s ON s.articulo_serial_id = aa.articulo_serial_id
+            WHERE aa.asignacion_id = ? AND s.articulo_id = ?
+            ORDER BY s.articulo_serial_id ASC"
+        );
+
+        foreach ($articulos as &$row) {
+            $stmtSeriales->execute([(int)$asignacionId, (int)$row['articulo_id']]);
+            $row['seriales'] = $stmtSeriales->fetchAll(PDO::FETCH_ASSOC); // array [{id, serial}]
+        }
+        return $articulos;
     }
+
+    public function leer_seriales_asignados($asignacionId) {
+    $stmt = $this->pdo->prepare(
+        "SELECT articulo_serial_id FROM asignacion_articulo WHERE asignacion_id = ?"
+    );
+    $stmt->execute([(int)$asignacionId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN, 0); // array de IDs
+}
+
+
 }
 ?>
 
