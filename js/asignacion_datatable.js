@@ -127,24 +127,30 @@ window.addEventListener('load', function () {
                     let botones = '<div class="acciones">';
                     
                     if (estado === 1) {
+                        // Botón de Reporte PDF
                         botones += `<a class="icon-action btn_reporte" href="${url}" target="_blank" title="Reporte PDF">
                                         <img src="img/icons/reportepdf.png" alt="Reporte">
                                     </a>`;
+                        // Botón de Reasignar
                         botones += `<a class="icon-action btn_reasignar" 
                                         href="index.php?vista=procesar_asignacion&id=${id}" 
                                         title="Reasignar">
                                         <img src="img/icons/reasignar.png" alt="Reasignar">
                                     </a>`;
+                        // Botón de Info
                         botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
                                         <img src="img/icons/info.png" alt="Info">
                                     </div>`;
+                        // Botón de Anular
                         botones += `<div class="icon-action btn_anular" data-id="${id}" title="Anular">
                                         <img src="img/icons/anular.png" alt="Anular">
                                     </div>`;
                     } else {
+                        // Botón de Info
                         botones += `<div class="icon-action btn_ver_info" data-id="${id}" title="Info">
                                         <img src="img/icons/info.png" alt="Info">
                                     </div>`;
+                        // Botón de Recuperar
                         botones += `<div class="icon-action btn_recuperar" data-id="${id}" title="Recuperar">
                                         <img src="img/icons/recuperar.png" alt="Recuperar">
                                     </div>`;

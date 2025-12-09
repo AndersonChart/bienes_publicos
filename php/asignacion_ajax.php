@@ -343,7 +343,7 @@ break;
             $exito = $asignacion->anular($id);
             echo json_encode([
                 'exito'   => $exito,
-                'mensaje' => $exito ? 'La asignación fue anulada correctamente' : 'No se puede anular la asignación'
+                'mensaje' => $exito ? 'La asignación fue anulada correctamente' : 'No se puede anular la asignación, hay seriales comprometidos'
             ]);
         } catch (Exception $e) {
             http_response_code(500);
@@ -360,7 +360,7 @@ break;
             $exito = $asignacion->recuperar($id);
             echo json_encode([
                 'exito'   => $exito,
-                'mensaje' => $exito ? 'La asignación fue recuperada correctamente' : 'No se pudo recuperar la asignación: seriales comprometidos'
+                'mensaje' => $exito ? 'La asignación fue recuperada correctamente' : 'No se pudo recuperar la asignación, hay seriales comprometidos'
             ]);
         } catch (Exception $e) {
             http_response_code(500);

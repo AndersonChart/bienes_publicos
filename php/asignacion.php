@@ -362,31 +362,21 @@ public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $ar
     }
 
     // Listar artículos asociados a una recepción
-    public function leer_articulos_por_asignacion($asignacionId) {
-        $sql = "SELECT a.articulo_id, a.articulo_codigo, a.articulo_nombre
+    public function leer_articulos_por_asignacion($asignacion_id) {
+        $sql = "SELECT 
+                    a.articulo_codigo,
+                    a.articulo_nombre,
+                    COUNT(s.articulo_serial_id) AS cantidad,
+                    GROUP_CONCAT(COALESCE(NULLIF(s.articulo_serial,''),'(sin serial)') ORDER BY s.articulo_serial_id SEPARATOR ', ') AS seriales
                 FROM asignacion_articulo aa
-                INNER JOIN articulo_serial s ON s.articulo_serial_id = aa.articulo_serial_id
-                INNER JOIN articulo a ON a.articulo_id = s.articulo_id
+                INNER JOIN articulo_serial s ON aa.articulo_serial_id = s.articulo_serial_id
+                INNER JOIN articulo a ON s.articulo_id = a.articulo_id
                 WHERE aa.asignacion_id = ?
-                GROUP BY a.articulo_id, a.articulo_codigo, a.articulo_nombre";
+                GROUP BY a.articulo_codigo, a.articulo_nombre
+                ORDER BY a.articulo_nombre ASC";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([(int)$asignacionId]);
-        $articulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Por cada artículo, traer sus seriales vinculados a esta asignación con IDs
-        $stmtSeriales = $this->pdo->prepare(
-            "SELECT s.articulo_serial_id AS id, s.articulo_serial AS serial
-            FROM asignacion_articulo aa
-            INNER JOIN articulo_serial s ON s.articulo_serial_id = aa.articulo_serial_id
-            WHERE aa.asignacion_id = ? AND s.articulo_id = ?
-            ORDER BY s.articulo_serial_id ASC"
-        );
-
-        foreach ($articulos as &$row) {
-            $stmtSeriales->execute([(int)$asignacionId, (int)$row['articulo_id']]);
-            $row['seriales'] = $stmtSeriales->fetchAll(PDO::FETCH_ASSOC); // array [{id, serial}]
-        }
-        return $articulos;
+        $stmt->execute([(int)$asignacion_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function leer_seriales_asignados($asignacionId) {

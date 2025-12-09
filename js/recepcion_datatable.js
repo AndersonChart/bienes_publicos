@@ -69,31 +69,34 @@ window.addEventListener('load', function () {
                 data: null,
                 render: function (data, type, row) {
                     const estado = parseInt(row.recepcion_estado);
-                    let botones = '';
+                    const id = row.recepcion_id || '';
+                    const urlPDF = 'reportes/reporte_recepcion.php?id=' + encodeURIComponent(id);
+
+                    let botones = `
+                        <div class="acciones">
+                            <div class="icon-action btn_ver_info" data-id="${row.recepcion_id}" title="Info">
+                                <img src="img/icons/info.png" alt="Info">
+                            </div>
+                            <a class="icon-action btn_reporte" href="${urlPDF}" target="_blank" title="Reporte PDF">
+                                <img src="img/icons/reportepdf.png" alt="PDF">
+                            </a>
+                    `;
 
                     if (estado === 1) {
                         botones += `
-                            <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-id="${row.recepcion_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
-                                </div>
-                                <div class="icon-action btn_anular" data-id="${row.recepcion_id}" title="Anular">
-                                    <img src="img/icons/anular.png" alt="Anular">
-                                </div>
+                            <div class="icon-action btn_anular" data-id="${row.recepcion_id}" title="Anular">
+                                <img src="img/icons/anular.png" alt="Anular">
                             </div>
                         `;
                     } else {
                         botones += `
-                            <div class="acciones">
-                                <div class="icon-action btn_ver_info" data-id="${row.recepcion_id}" title="Info">
-                                    <img src="img/icons/info.png" alt="Info">
-                                </div>
-                                <div class="icon-action btn_recuperar" data-id="${row.recepcion_id}" title="Recuperar">
-                                    <img src="img/icons/recuperar.png" alt="Recuperar">
-                                </div>
+                            <div class="icon-action btn_recuperar" data-id="${row.recepcion_id}" title="Recuperar">
+                                <img src="img/icons/recuperar.png" alt="Recuperar">
                             </div>
                         `;
                     }
+
+                    botones += `</div>`;
                     return botones;
                 },
                 orderable: false
@@ -102,7 +105,15 @@ window.addEventListener('load', function () {
         paging: true,
         info: true,
         dom: '<"top"Bf>rt<"bottom"lpi><"clear">',
-        buttons: ['excel', 'pdf'],
+        buttons: [
+            {
+                text: 'Generar Reporte',
+                className: 'btn-reporte',
+                action: function () {
+                window.open('reportes/reporte_recepciones_general.php', '_blank');
+                }
+            }
+        ],
         language: {
             search: "Buscar:",
             lengthMenu: "Mostrar _MENU_ registros",

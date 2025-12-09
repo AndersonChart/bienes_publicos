@@ -112,7 +112,15 @@ window.addEventListener('load', function () {
         paging: true,
         info: true,
         dom: '<"top"Bf>rt<"bottom"lpi><"clear">',
-        buttons: ['excel', 'pdf'],
+        buttons: [
+            {
+                text: 'Generar Reporte',
+                className: 'btn-reporte',
+                action: function () {
+                window.open('reportes/reporte_usuario.php', '_blank');
+                }
+            }
+        ],
         language: {
             search: "Buscar:",
             lengthMenu: "Mostrar _MENU_ registros",
