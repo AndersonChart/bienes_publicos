@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/datatables.min.css">
     <link rel="stylesheet" href="css/buttons.dataTables.min.css">
     <link rel="stylesheet" href="css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="css/select2.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/inicio_estilo.css">
     <link rel="icon" type="image/png" href="img/logo.png">

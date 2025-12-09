@@ -30,7 +30,6 @@ function mostrarModalError(mensaje) {
     }
 }
 
-
 //Función global: mostrar errores
 function mostrarError(containerId, mensaje) {
     const el = document.getElementById(containerId);
