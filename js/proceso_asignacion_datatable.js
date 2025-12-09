@@ -318,6 +318,10 @@ if (selectCargoForm && selectPersonaForm) {
         pageLength: 15
     });
 
+    $('#categoria_filtro, #clasificacion_filtro').on('change', function () {
+        tablaArticulos.ajax.reload(null, false);
+    });
+
     // ------------------------------
     // Resumen con child rows
     // ------------------------------
