@@ -268,7 +268,7 @@
                 <th class="header">Modelo</th>
                 <th class="header">Marca</th>
                 <th class="header">Imagen</th>
-                <th class="header">Stock</th>
+                <th class="header">Cantidad</th>
                 <th class="header">Acciones</th>
             </tr>
         </thead>
