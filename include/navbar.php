@@ -33,7 +33,7 @@
             </div>
             <div class="menu-content" id="ajustes">                
                 <a href="index.php?vista=listar_recepcion">Recepción</a>
-                <a href="index.php?vista=listar_etc">Desincorporación</a>
+                <a href="index.php?vista=listar_desincorporacion">Desincorporación</a>
             </div>
             <div class="menu-content" id="usuarios">
                 <a href="index.php?vista=listar_usuario">Usuarios</a>

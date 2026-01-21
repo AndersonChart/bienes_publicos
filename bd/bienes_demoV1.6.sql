@@ -160,6 +160,7 @@ CREATE TABLE ajuste (
     ajuste_fecha DATE NOT NULL,
     ajuste_descripcion VARCHAR(200),
     ajuste_tipo TINYINT(2) NOT NULL, -- 1 = Entrada, 0 = Salida
+    ajuste_acta VARCHAR(255),
     ajuste_estado TINYINT(2) NOT NULL DEFAULT 1,
     PRIMARY KEY (ajuste_id)
 );
