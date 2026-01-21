@@ -69,7 +69,7 @@ window.addEventListener('load', function () {
                 orderable: false
             },
             //  Nueva columna de stock
-            { data: null, title: 'Stock',
+            { data: null, title: 'Cantidad',
                     render: function (row) {
                         const estadoSeleccionado = document.getElementById('estado_filtro')?.value || '';
 
