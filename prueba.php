@@ -1,6 +1,128 @@
 <?php
 echo password_hash("admin123", PASSWORD_DEFAULT);
-?>
+
+
+// Crear nueva recepción
+    public function crear($fecha, $descripcion, $articulos = []) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // Insertar cabecera del ajuste (tipo 1 = Entrada)
+            $stmtCab = $this->pdo->prepare(
+                "INSERT INTO ajuste (ajuste_fecha, ajuste_descripcion, ajuste_tipo, ajuste_estado)
+                VALUES (?, ?, 1, 1)"
+            );
+            $stmtCab->execute([$fecha, $descripcion]);
+            $ajuste_id = $this->pdo->lastInsertId();
+
+            if (!empty($articulos)) {
+                //  ahora incluimos articulo_serial_observacion en el insert y lo fijamos vacío
+                $stmtSerial = $this->pdo->prepare(
+                    "INSERT INTO articulo_serial (articulo_id, articulo_serial, articulo_serial_observacion, estado_id)
+                    VALUES (?, ?, '', 1)"
+                );
+
+                $stmtAjusteArticulo = $this->pdo->prepare(
+                    "INSERT INTO ajuste_articulo (articulo_serial_id, ajuste_id)
+                    VALUES (?, ?)"
+                );
+
+                // Validar duplicados entre artículos en el mismo payload
+                $todosSeriales = [];
+                foreach ($articulos as $articulo) {
+                    if (isset($articulo['seriales']) && is_array($articulo['seriales'])) {
+                        foreach ($articulo['seriales'] as $s) {
+                            $val = is_string($s) ? trim($s) : '';
+                            if ($val !== '') {
+                                if (in_array($val, $todosSeriales)) {
+                                    throw new Exception("El serial {$val} está repetido en distintos artículos de la recepción.");
+                                }
+                                $todosSeriales[] = $val;
+                            }
+                        }
+                    }
+                }
+
+                foreach ($articulos as $articulo) {
+                    if (!isset($articulo['articulo_id'])) {
+                        throw new Exception('articulo_id faltante en payload');
+                    }
+                    $articuloId = (int)$articulo['articulo_id'];
+                    $cantidad   = isset($articulo['cantidad']) ? (int)$articulo['cantidad'] : 0;
+                    $seriales   = isset($articulo['seriales']) && is_array($articulo['seriales'])
+                        ? $articulo['seriales']
+                        : [];
+
+                    if ($cantidad > 0) {
+                        $faltantes = max(0, $cantidad - count($seriales));
+                        if ($faltantes > 0) {
+                            $seriales = array_merge($seriales, array_fill(0, $faltantes, null));
+                        }
+                    }
+                    if ($cantidad <= 0 && count($seriales) > 0) {
+                        $cantidad = count($seriales);
+                    }
+                    if ($cantidad <= 0) {
+                        continue;
+                    }
+
+                    foreach ($seriales as $serial) {
+                        $valorSerial = (is_string($serial) && trim($serial) !== '') ? trim($serial) : '';
+
+                        // Validar duplicados en BD (ignora estado 4)
+                        if ($valorSerial !== '' && $this->existe_serial($valorSerial)) {
+                            throw new Exception("El serial {$valorSerial} ya existe en el inventario.");
+                        }
+
+                        //  Insertamos siempre observación vacía
+                        $stmtSerial->execute([$articuloId, $valorSerial]);
+                        $serialId = $this->pdo->lastInsertId();
+
+                        $stmtAjusteArticulo->execute([$serialId, $ajuste_id]);
+                    }
+                }
+            }
+
+            $this->pdo->commit();
+            return $ajuste_id;
+
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Crear Recepcion */
 document.addEventListener('DOMContentLoaded', function () {

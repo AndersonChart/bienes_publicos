@@ -32,8 +32,8 @@
                 <a href="index.php?vista=listar_area">Áreas</a>
             </div>
             <div class="menu-content" id="ajustes">                
-                <a class="prioridad" href="index.php?vista=listar_recepcion">Recepción</a>
-                <a class="prioridad" href="index.php?vista=listar_desincorporacion">Desincorporación</a>
+                <a  href="index.php?vista=listar_recepcion">Recepción</a>
+                <a  href="index.php?vista=listar_desincorporacion">Desincorporación</a>
             </div>
             <div class="menu-content" id="usuarios">
                 <a href="index.php?vista=listar_usuario">Usuarios</a>

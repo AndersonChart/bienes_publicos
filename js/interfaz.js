@@ -3417,3 +3417,140 @@ document.getElementById('form_recuperar_recepcion')?.addEventListener('submit', 
     });
 });
 
+/* MODULO: DESINCORPORACION */
+
+// Mostrar información de desincorporación + resumen de artículos
+function mostrarInfoDesincorporacion(data) {
+    const ajusteId = data.ajuste_id || data.desincorporacion_id || data.id || '';
+    document.getElementById('info_desincorporacion_id').textContent = ajusteId;
+    document.getElementById('info_desincorporacion_fecha').textContent = data.ajuste_fecha || data.desincorporacion_fecha || data.fecha || '';
+    document.getElementById('info_desincorporacion_descripcion').textContent = data.ajuste_descripcion || data.desincorporacion_descripcion || data.descripcion || '';
+
+    // Si hay nombre de acta, mostrar enlace (asume carpeta /php/uploads/actas/)
+    const actaContainer = document.getElementById('info_desincorporacion_acta');
+    const actaNombre = data.ajuste_acta || data.acta || '';
+    if (actaContainer) {
+        if (actaNombre) {
+            actaContainer.innerHTML = `<a href="php/uploads/actas/${encodeURIComponent(actaNombre)}" target="_blank">Ver acta</a>`;
+        } else {
+            actaContainer.textContent = '';
+        }
+    }
+
+    // Poblar tabla resumen con artículos asociados
+    if (!ajusteId) {
+        mostrarModalError('ID de desincorporación no disponible');
+        return;
+    }
+
+    fetch('php/desincorporacion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'leer_articulos_por_desincorporacion', ajuste_id: ajusteId })
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (resp.success && resp.data) {
+            const tabla = $('#desincorporacionResumenTabla').DataTable();
+            tabla.clear().rows.add(resp.data).draw();
+        } else {
+            mostrarModalError(resp.message || 'No se pudieron cargar los artículos');
+        }
+    })
+    .catch(() => {
+        mostrarModalError('Error al cargar artículos de la desincorporación');
+    });
+
+    const modal = document.querySelector('dialog[data-modal="info_desincorporacion"]');
+    if (modal && typeof modal.showModal === 'function') modal.showModal();
+}
+
+// Mostrar datos en confirmación de desincorporación (anular/recuperar)
+function mostrarConfirmacionDesincorporacion(data, modo = 'anular') {
+    const ajusteId = data.ajuste_id || data.desincorporacion_id || data.id || '';
+
+    if (modo === 'anular') {
+        document.getElementById('anular_desincorporacion_id').textContent = ajusteId;
+        document.getElementById('anular_desincorporacion_descripcion').textContent = data.ajuste_descripcion || data.descripcion || '';
+
+        const form = document.getElementById('form_anular_desincorporacion');
+        if (form) {
+            form.dataset.ajusteId = ajusteId;
+            form.dataset.modo = modo;
+        }
+
+        const modal = document.querySelector('dialog[data-modal="anular_desincorporacion"]');
+        if (modal?.showModal) modal.showModal();
+    } else if (modo === 'recuperar') {
+        document.getElementById('recuperar_desincorporacion_id').textContent = ajusteId;
+        document.getElementById('recuperar_desincorporacion_descripcion').textContent = data.ajuste_descripcion || data.descripcion || '';
+
+        const form = document.getElementById('form_recuperar_desincorporacion');
+        if (form) {
+            form.dataset.ajusteId = ajusteId;
+            form.dataset.modo = modo;
+        }
+
+        const modal = document.querySelector('dialog[data-modal="recuperar_desincorporacion"]');
+        if (modal?.showModal) modal.showModal();
+    }
+}
+
+// Anular desincorporación
+document.getElementById('form_anular_desincorporacion')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.ajusteId;
+    if (!id) return;
+
+    fetch('php/desincorporacion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'anular', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const modal = document.querySelector('dialog[data-modal="anular_desincorporacion"]');
+        if (data.success) {
+            if (modal?.open) modal.close();
+            mostrarModalExito(data.message || 'Desincorporación anulada');
+            $('#desincorporacionTabla').DataTable().ajax.reload(null, false);
+        } else {
+            if (modal?.open) modal.close();
+            mostrarModalError(data.message || 'No se pudo anular la desincorporación');
+        }
+    })
+    .catch(() => {
+        const modal = document.querySelector('dialog[data-modal="anular_desincorporacion"]');
+        if (modal?.open) modal.close();
+        mostrarModalError('Error de conexión con el servidor');
+    });
+});
+
+// Recuperar desincorporación
+document.getElementById('form_recuperar_desincorporacion')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = this.dataset.ajusteId;
+    if (!id) return;
+
+    fetch('php/desincorporacion_ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({ accion: 'recuperar', id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const modal = document.querySelector('dialog[data-modal="recuperar_desincorporacion"]');
+        if (data.success) {
+            if (modal?.open) modal.close();
+            mostrarModalExito(data.message || 'Desincorporación recuperada');
+            // actualizar estado local si aplica
+            window.estadoDesincorporacion = 1;
+            $('#desincorporacionTabla').DataTable().ajax.reload(null, false);
+        } else {
+            if (modal?.open) modal.close();
+            mostrarModalError(data.message || 'No se pudo recuperar la desincorporación');
+        }
+    })
+    .catch(() => {
+        const modal = document.querySelector('dialog[data-modal="recuperar_desincorporacion"]');
+        if (modal?.open) modal.close();
+        mostrarModalError('Error de conexión con el servidor');
+    });
+});

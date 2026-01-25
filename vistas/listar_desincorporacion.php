@@ -110,7 +110,7 @@
     <table id="recepcionTabla" class="display" style="width:100%">
         <thead>
             <tr>
-                <th colspan="4" class="title">desincorporaciones</th>
+                <th colspan="4" class="title">Desincorporaciones</th>
             </tr>
             <tr>
                 <th class="header">ID</th>
