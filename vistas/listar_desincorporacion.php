@@ -123,4 +123,4 @@
     <div class="bottom paginador"></div>
 </div>
 
-<script src="js/recepcion_datatable.js"></script>
+<script src="js/desincorporacion_datatable.js"></script>
