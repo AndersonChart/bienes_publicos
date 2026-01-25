@@ -148,7 +148,7 @@ if (selectCargoForm && selectPersonaForm) {
         }
 
         const hoy = new Date();
-        const plazoDias = opciones.plazoDefault || 180;
+        const plazoDias = opciones.plazoDefault || 60;
 
         // Seteo inicial
         fechaInicioInput.value = formatDate(hoy);
@@ -189,7 +189,7 @@ if (selectCargoForm && selectPersonaForm) {
             for (const m of muts) {
                 if (m.attributeName === 'open' && dialogAsignacion.open) {
                     // Inicializa después de que el modal esté realmente abierto
-                    inicializarPlazoFechas({ plazoDefault: 180 });
+                    inicializarPlazoFechas({ plazoDefault: 60 });
                 }
             }
         });

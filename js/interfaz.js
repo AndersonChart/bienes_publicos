@@ -1302,6 +1302,7 @@ function abrirFormularioEdicionUsuario(id) {
     });
 }
 
+//Crear/actualizar usuario
 document.addEventListener('DOMContentLoaded', function () {
     const inputFoto = document.getElementById('foto');
     const previewFoto = document.getElementById('preview_foto');
@@ -1309,78 +1310,115 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('form_nuevo_usuario');
     const errorContainer = document.getElementById('error-container-usuario');
 
-    // 1. Verificar previsualización (Solo si existe inputFoto)
-    if (inputFoto && previewFoto) {
-        inputFoto.addEventListener('change', function () {
-            const archivo = this.files[0];
-            if (archivo) {
-                const lector = new FileReader();
-                lector.onload = function (e) {
-                    previewFoto.src = e.target.result;
-                    previewFoto.style.display = 'block';
-                    if (icono) icono.style.opacity = '0';
-                };
-                lector.readAsDataURL(archivo);
-            }
-        });
-    }
+    // Previsualizar imagen
+    inputFoto.addEventListener('change', function () {
+        const archivo = this.files[0];
+        if (archivo) {
+            const lector = new FileReader();
+            lector.onload = function (e) {
+                previewFoto.src = e.target.result;
+                previewFoto.style.display = 'block';
+                icono.style.opacity = '0';
+            };
+            lector.readAsDataURL(archivo);
+        }
+    });
 
-    // 2. Verificar Formulario (Solo si existe el form)
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            
-            // Metemos la lógica dentro para asegurarnos de que los inputs existan
-            const inputCedula = document.getElementById('tipo_cedula');
-            const numeroInput = document.getElementById('numero_cedula');
-            const inputUsuarioId = document.getElementById('usuario_id');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-            if (!inputCedula || !numeroInput) return; // Seguridad extra
+        const tipo = document.getElementById('tipo_cedula').value;
+        const numeroInput = document.getElementById('numero_cedula');
+        const numero = numeroInput.value.trim();
+        const usuarioId = document.getElementById('usuario_id').value;
 
-            const tipo = inputCedula.value;
-            const numero = numeroInput.value.trim();
-            const usuarioId = inputUsuarioId ? inputUsuarioId.value : null;
+        const cedulaCompleta = tipo + '-' + numero;
+        const formData = new FormData(form);
+        formData.set('usuario_cedula', cedulaCompleta);
 
-            const cedulaCompleta = tipo + '-' + numero;
-            const formData = new FormData(form);
-            formData.set('usuario_cedula', cedulaCompleta);
+        // Solo asignar rol si estás creando y el select está vacío
+        if (!usuarioId && !formData.get('rol_id')) {
+            formData.append('rol_id', '1'); // valor por defecto solo si no eligió nada
+        }
 
-            // ... (resto de tu lógica de fetch igual que antes) ...
-            
-            const accion = usuarioId ? 'actualizar' : 'crear';
-            formData.append('accion', accion);
-            
-            fetch('php/usuario_ajax.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                // Asegurar que el contenedor de errores existe antes de tocarlo
-                if (errorContainer) {
-                    errorContainer.innerHTML = '';
-                    errorContainer.style.display = 'none';
+        // Acción condicional
+        const accion = usuarioId ? 'actualizar' : 'crear';
+        formData.append('accion', accion);
+
+        if (usuarioId) formData.append('usuario_id', usuarioId);
+
+        fetch('php/usuario_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            errorContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+
+            if (data.error) {
+                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                errorContainer.style.display = 'block';
+
+                if (data.campos && Array.isArray(data.campos)) {
+                    data.campos.forEach((campo, index) => {
+                        let input = form.querySelector(`[name="${campo}"]`);
+                        if (campo === 'usuario_cedula') input = document.getElementById('numero_cedula');
+                        if (campo === 'usuario_foto') input = inputFoto;
+                        if (input) {
+                            const contenedor = input.closest('.input_text');
+                            if (contenedor) {
+                                contenedor.classList.add('input-error');
+                            } else {
+                                input.classList.add('input-error');
+                            }
+                            if (index === 0) input.focus();
+                        }
+                    });
                 }
-                
-                // ... el resto de la lógica de respuesta ...
-                if (data.exito) {
-                    // Solo intentar limpiar si la función existe
-                    if (typeof limpiarFormulario === 'function') limpiarFormulario(form);
-                    // Solo intentar recargar tabla si existe el objeto DataTable
-                    if ($.fn.DataTable.isDataTable('#usuarioTabla')) {
-                        $('#usuarioTabla').DataTable().ajax.reload(null, false);
+            } else if (data.exito) {
+                const esActualizacion = !!usuarioId;
+                const mensaje = esActualizacion ? "Usuario actualizado con éxito" : "Usuario registrado con éxito";
+
+                // Solo cerrar el modal si fue una actualización
+                if (esActualizacion) {
+                    const modalFormulario = document.querySelector('dialog[data-modal="new_user"]');
+                    if (modalFormulario && modalFormulario.open) {
+                        modalFormulario.close();
                     }
                 }
-            })
-            .catch(err => {
-                console.error("Error en peticion:", err);
-                if (errorContainer) {
-                    errorContainer.innerHTML = 'Hubo un error con el servidor';
-                    errorContainer.style.display = 'block';
+
+                mostrarModalExito(mensaje);
+
+                // Si el usuario actualizado es el que está en sesión, refrescar su foto en el header
+                if (usuarioId && usuarioId === String(idUsuarioSesion)) {
+                    fetch('php/usuario_ajax.php', {
+                        method: 'POST',
+                        body: new URLSearchParams({ accion: 'obtener_usuario', id: usuarioId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exito && data.usuario) {
+                            const nuevaFoto = data.usuario.usuario_foto || 'img/icons/perfil.png';
+                            const avatarHeader = document.getElementById('foto_usuario_header');
+                            if (avatarHeader) {
+                                avatarHeader.src = nuevaFoto + '?t=' + new Date().getTime();
+                            }
+                        }
+                    });
                 }
-            });
+
+                // Limpiar formulario para siguiente registro
+                limpiarFormulario(form);
+                // Recarga la tabla
+                $('#usuarioTabla').DataTable().ajax.reload(null, false);
+            }
+        })
+        .catch(() => {
+            errorContainer.innerHTML = 'Hubo un error con el servidor';
+            errorContainer.style.display = 'block';
         });
-    }
+    });
 });
 
 

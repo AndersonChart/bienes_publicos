@@ -217,7 +217,7 @@ $pdf->Cell(0,6,utf8_decode('UNES/DTIT-DBN/') . date('Y') . '/' . str_pad($id,3,'
 $pdf->Ln(4);
 
 // Desarrollo
-$texto = "     Yo, ANIREXIS GÓMEZ, titular de la cédula N° 19.155.677, en mi condición de cargo como DIRECTORA NACIONAL DE TECNOLOGÍA, hago entrega de los recursos que indican en presente documento para el uso exclusivo de las funciones asignadas, quedando así constancia de la asignación en buena condición y conservacion; por lo tanto, cuya características de los bienes, se describen a continuación: ";
+$texto = "     Yo, ANIREXIS GÓMEZ, titular de la cédula N° 19.155.677, en mi condición de cargo como DIRECTORA NACIONAL DE TECNOLOGÍA, hago entrega de los recursos que indican en presente documento para el uso exclusivo de las funciones asignadas, quedando así constancia de la asignación en buena condición y conservación; por lo tanto, cuya características de los bienes, se describen a continuación: ";
 $pdf->MultiCell(0,6,utf8_decode($texto));
 $pdf->Ln(4);
 
@@ -228,64 +228,64 @@ $pdf->SetFont('Arial','B',10);
 $pdf->Cell(0,6,utf8_decode($asig['area_nombre']),0,1,'L');
 
 $pdf->SetFont('Arial','',10);
-$pdf->Cell(50,6,utf8_decode('Fecha de asignación:'),0,0,'L');
+$pdf->Cell(50,6,utf8_decode('Fecha de Asignación:'),0,0,'L');
 $pdf->SetFont('Arial','B',10);
 $pdf->Cell(0,6,date('d/m/Y', strtotime($asig['asignacion_fecha'])),0,1,'L');
 
 if (!empty($asig['asignacion_fecha_fin'])) {
     $pdf->SetFont('Arial','',10);
-    $pdf->Cell(50,6,'Fecha fin:',0,0,'L');
+    $pdf->Cell(50,6,'Fecha Fin:',0,0,'L');
     $pdf->SetFont('Arial','B',10);
     $pdf->Cell(0,6,date('d/m/Y', strtotime($asig['asignacion_fecha_fin'])),0,1,'L');
 }
 
-$pdf->Ln(6);
+$pdf->Ln(10);
 
 // TABLA MOBILIARIO
 
 if (count($mobiliario) > 0) {
-    $pdf->SetFont('Arial','B',10);
-    $pdf->SetFillColor(0,102,204);
-    $pdf->Cell(0,7,'MOBILIARIO',1,1,'C',true);
-    $pdf->Ln(2);
+    $pdf->SetFont('Arial','B',11);
+    $pdf->Cell(0,7,'MOBILIARIO',0,1,'C');
+    $pdf->Ln(3);
+
 
     $pdf->SetFont('Arial','B',8);
     $pdf->SetFillColor(0,120,255);
-    $pdf->Cell(25,7, utf8_decode('CÓDIGO'),1,0,'C',true);
-    $pdf->Cell(40,7,utf8_decode('CLASIFICACIÓN'),1,0,'C',true);
-    $pdf->Cell(125,7,utf8_decode('DESCRIPCIÓN'),1,1,'C',true);
+    $pdf->Cell(30,7, utf8_decode('CÓDIGO'),1,0,'C',true);
+    $pdf->Cell(60,7,utf8_decode('CLASIFICACIÓN'),1,0,'C',true);
+    $pdf->Cell(100,7,utf8_decode('DESCRIPCIÓN'),1,1,'C',true);
 
     $pdf->SetFont('Arial','',9);
     foreach ($mobiliario as $m) {
-        $pdf->RowMulti([$m['codigo'], $m['clasificacion'], $m['descripcion']], [25,40,125], ['C','L','L']);
+        $pdf->RowMulti([$m['codigo'], $m['clasificacion'], $m['descripcion']], [30,60,100], ['C','L','L']);
     }
-    $pdf->Ln(6);
+    $pdf->Ln(10);
 }
 
 //TABLA EQUIPOS
 
 if (count($equipos) > 0) {
-    $pdf->SetFont('Arial','B',10);
-    $pdf->SetFillColor(0,102,204);
-    $pdf->Cell(0,7,'EQUIPOS',1,1,'C',true);
-    $pdf->Ln(2);
+    $pdf->SetFont('Arial','B',11);
+    $pdf->Cell(0,7,utf8_decode('EQUIPO TECNOLÓGICO'),0,1,'C');
+    $pdf->Ln(3);
+
 
     // NUEVA TABLA con ARTÍCULO incluido:
     // Código (25) | Articulo (35) | Clasificación (35) | Marca (30) | Modelo (35) | Serial (30) = 190 mm
     $pdf->SetFont('Arial','B',8);
     $pdf->SetFillColor(0,120,255);
-    $pdf->Cell(25,7,utf8_decode('CÓDIGO'),1,0,'C',true);
+    $pdf->Cell(30,7,utf8_decode('CÓDIGO'),1,0,'C',true);
     $pdf->Cell(35,7,utf8_decode('ARTÍCULO'),1,0,'C',true);      
     $pdf->Cell(35,7,utf8_decode('CLASIFICACIÓN'),1,0,'C',true);
     $pdf->Cell(30,7,utf8_decode('MARCA'),1,0,'C',true);
     $pdf->Cell(35,7,utf8_decode('MODELO'),1,0,'C',true);
-    $pdf->Cell(30,7,utf8_decode('SERIAL'),1,1,'C',true);
+    $pdf->Cell(25,7,utf8_decode('SERIAL'),1,1,'C',true);
 
     $pdf->SetFont('Arial','',9);
     foreach ($equipos as $e) {
         $pdf->RowMulti(
             [$e['codigo'], $e['articulo'], $e['clasificacion'], $e['marca'], $e['modelo'], $e['serial']],
-            [25,35,35,30,35,30],
+            [30,35,35,30,35,25],
             ['C','L','L','L','L','L']
         );
     }

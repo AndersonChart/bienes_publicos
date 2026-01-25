@@ -69,7 +69,7 @@ window.addEventListener('load', function () {
                 orderable: false
             },
             //  Nueva columna de stock
-            { data: null, title: 'Cantidad',
+            { data: null, title: 'Stock',
                     render: function (row) {
                         const estadoSeleccionado = document.getElementById('estado_filtro')?.value || '';
 
@@ -134,15 +134,29 @@ window.addEventListener('load', function () {
         paging: true,
         info: true,
         dom: '<"top"Bf>rt<"bottom"lpi><"clear">',
-        buttons: [
-        {
-            text: 'Generar Reporte',
-            className: 'btn-reporte',
-            action: function () {
-            window.open('reportes/reporte_inventario.php', '_blank');
-            }
+       buttons: [
+    {
+        text: 'Generar Reporte',
+        className: 'btn-reporte',
+        action: function () {
+
+            const categoria = document.getElementById('categoria_filtro')?.value || '';
+            const clasificacion = document.getElementById('clasificacion_filtro')?.value || '';
+            const estadoStock = document.getElementById('estado_filtro')?.value || '';
+            const estadoArticulo = estadoActual; // habilitado / deshabilitado
+
+            const params = new URLSearchParams({
+                categoria_id: categoria,
+                clasificacion_id: clasificacion,
+                estado_stock: estadoStock,
+                estado_articulo: estadoArticulo
+            });
+
+            window.open('reportes/reporte_inventario.php?' + params.toString(), '_blank');
         }
-        ],
+    }
+],
+
         language: {
             search: "Buscar:",
             lengthMenu: "Mostrar _MENU_ registros",
