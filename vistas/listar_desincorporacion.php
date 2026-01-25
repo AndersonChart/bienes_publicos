@@ -2,35 +2,35 @@
 <div class="banner_list">
     <div class="filters"></div>
     <div class="basics-container">
-        <a href="index.php?vista=procesar_recepcion"><div class="new_user new_user-usuario">+ Nueva</div></a>
+        <a href="index.php?vista=procesar_desincorporacion"><div class="new_user new_user-usuario">+ Nueva</div></a>
         <?php if ($_SESSION["rol"] == 3): ?>
-            <div id="toggleEstadoRecepcion" class="btn_toggle-estado estado-rojo">Anuladas</div>
+            <div id="toggleEstadodesincorporacion" class="btn_toggle-estado estado-rojo">Anuladas</div>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- Información de recepción -->    
-<dialog data-modal="info_recepcion" class="modal_new-recepcion">
+<!-- Información de Desincorporación -->    
+<dialog data-modal="info_desincorporacion" class="modal_new-desincorporacion">
     <div class="proceso_container">
         <div class="modal_header-info">
             <form method="dialog">
                 <button class="modal__close">X</button>
             </form>
-            <h2 class="modal_title modal_title-info">Información de la Recepción</h2>
+            <h2 class="modal_title modal_title-info">Información de la Desincorporación</h2>
         </div>
         <div class="info_container">
             <ul class="info_lista">
-                <li><strong class="info_subtitle">ID:</strong> <span class="info_data" id="info_recepcion_id"></span></li>
-                <li><strong class="info_subtitle">Fecha:</strong> <span class="info_data" id="info_recepcion_fecha"></span></li>
-                <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_recepcion_descripcion"></span></li>
+                <li><strong class="info_subtitle">ID:</strong> <span class="info_data" id="info_desincorporacion_id"></span></li>
+                <li><strong class="info_subtitle">Fecha:</strong> <span class="info_data" id="info_desincorporacion_fecha"></span></li>
+                <li><strong class="info_subtitle">Descripción:</strong> <span class="info_data" id="info_desincorporacion_descripcion"></span></li>
             </ul>
         </div>
         <div class="resumen_container">
-            <div class="container_table_box-recepcion">
-                <table id="recepcionResumenTabla" class="display">
+            <div class="container_table_box-desincorporacion">
+                <table id="desincorporacionResumenTabla" class="display">
                     <thead>
                         <tr>
-                            <th colspan="4" class="title">Resumen de la Recepción</th>
+                            <th colspan="4" class="title">Resumen de la Desincorporación</th>
                         </tr>
                         <tr>
                             <th class="header">Código</th>
@@ -66,51 +66,51 @@
 </dialog>
 
 <!-- Confirmación de anular -->
-<dialog data-modal="anular_recepcion" class="modal modal_confirmar">
+<dialog data-modal="anular_desincorporacion" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de anular esta recepción?</h2>
+        <h2 class="modal_title">¿Estás seguro de anular esta Desincorporación?</h2>
     </div>
     <div class="delete_container">
-        <span class="delete_data-title" id="anular_recepcion_id"></span>
-        <span class="delete_data" id="anular_recepcion_descripcion"></span>
+        <span class="delete_data-title" id="anular_desincorporacion_id"></span>
+        <span class="delete_data" id="anular_desincorporacion_descripcion"></span>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog">
             <button class="modal__close modal__close-confirm">Cancelar</button>
         </form>
-        <form id="form_anular_recepcion" method="POST">
-            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_anular_recepcion">
+        <form id="form_anular_desincorporacion" method="POST">
+            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_anular_desincorporacion">
         </form>
     </div>
 </dialog>
 
 <!-- Confirmación de recuperar -->
-<dialog data-modal="recuperar_recepcion" class="modal modal_confirmar">
+<dialog data-modal="recuperar_desincorporacion" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Estás seguro de recuperar esta recepción?</h2>
+        <h2 class="modal_title">¿Estás seguro de recuperar esta Desincorporación?</h2>
     </div>
     <div class="delete_container">
-        <span class="delete_data-title" id="recuperar_recepcion_id"></span>
-        <span class="delete_data" id="recuperar_recepcion_descripcion"></span>
+        <span class="delete_data-title" id="recuperar_desincorporacion_id"></span>
+        <span class="delete_data" id="recuperar_desincorporacion_descripcion"></span>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog">
             <button class="modal__close modal__close-confirm">Cancelar</button>
         </form>
-        <form id="form_recuperar_recepcion" method="POST">
-            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_recuperar_recepcion">
+        <form id="form_recuperar_desincorporacion" method="POST">
+            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_recuperar_desincorporacion">
         </form>
     </div>
 </dialog>
 
 
-<!-- Tabla de recepciones -->
+<!-- Tabla de desincorporaciones -->
 <div class="container_table_box">
     <div class="top"></div>
     <table id="recepcionTabla" class="display" style="width:100%">
         <thead>
             <tr>
-                <th colspan="4" class="title">Recepciones</th>
+                <th colspan="4" class="title">desincorporaciones</th>
             </tr>
             <tr>
                 <th class="header">ID</th>
