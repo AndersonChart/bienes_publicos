@@ -145,14 +145,6 @@ switch ($accion) {
         }
     break;
 
-    default:
-        http_response_code(400);
-        echo json_encode([
-            'error'   => true,
-            'mensaje' => 'Acción no reconocida en el proceso de desincorporación'
-        ]);
-    break;
-
     // Listar artículos disponibles para desincorporación
     case 'listar_articulos_desincorporacion':
         try {
@@ -161,36 +153,37 @@ switch ($accion) {
 
             $registros = $desincorporacion->leer_articulos_disponibles(1, $categoriaId, $clasificacionId);
 
-            $data = array_map(function ($row) use ($desincorporacion) {
-                
-                // Tus funciones ya devuelven un (int), así que las asignamos directamente
-                $stockDisponible       = $desincorporacion->obtener_stock_articulo($row['articulo_id']);
-                $stockDisponibleSerial = $desincorporacion->obtener_stock_articulo_seriales($row['articulo_id']);
+            // Si no hay registros, enviar array vacío pero con estructura DataTables
+            if (!$registros) {
+                echo json_encode(['data' => []]);
+                exit;
+            }
 
+            $data = array_map(function ($row) use ($desincorporacion) {
                 return [
                     'articulo_id'               => $row['articulo_id'],
                     'articulo_codigo'           => $row['articulo_codigo'],
                     'articulo_nombre'           => $row['articulo_nombre'],
                     'articulo_modelo'           => $row['articulo_modelo'] ?? '',
-                    'marca_nombre'              => $row['marca_nombre'] ?? '',
-                    'articulo_descripcion'      => $row['articulo_descripcion'] ?? '',
-                    'articulo_imagen'           => $row['articulo_imagen'],
+                    'articulo_imagen'           => $row['articulo_imagen'] ?? '',
                     'clasificacion_nombre'      => $row['clasificacion_nombre'],
                     'categoria_nombre'          => $row['categoria_nombre'],
-                    'stock_disponible'          => $stockDisponible, 
-                    'stock_disponible_seriales' => $stockDisponibleSerial
+                    'stock_disponible'          => (int)$desincorporacion->obtener_stock_articulo($row['articulo_id']), 
+                    'stock_disponible_seriales' => (int)$desincorporacion->obtener_stock_articulo_seriales($row['articulo_id'])
                 ];
             }, $registros);
 
             echo json_encode(['data' => $data]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'data'    => [],
-                'error'   => true,
-                'mensaje' => 'Error al listar los artículos',
-                'detalle' => $e->getMessage()
-            ]);
+            echo json_encode(['data' => [], 'error' => true, 'detalle' => $e->getMessage()]);
         }
+    break;
+
+    default:
+        http_response_code(400);
+        echo json_encode([
+            'error'   => true,
+            'mensaje' => 'Acción no reconocida en el proceso de desincorporación'
+        ]);
     break;
 }

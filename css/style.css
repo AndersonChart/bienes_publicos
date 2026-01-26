@@ -1026,6 +1026,19 @@ a {
     object-fit: cover;
 }
 
+#procesoDesincorporacionArticuloTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#procesoDesincorporacionArticuloTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#procesoDesincorporacionArticuloTabla td img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+}
+
 .imagen_celda_wrapper {
     display: flex;
     justify-content: center;
@@ -2001,6 +2014,7 @@ a {
     color: #fff;
 }
 .stock-badge.activos { background-color: #28a745; }       /* verde */
+.stock-badge.serial { background-color: #272; }       /* verde */
 .stock-badge.asignados { background-color: #007bff; }     /* azul */
 .stock-badge.mantenimiento { background-color: #dd9800; } /* amarillo */
 .stock-badge.total { background-color: #888; }         /* gris */

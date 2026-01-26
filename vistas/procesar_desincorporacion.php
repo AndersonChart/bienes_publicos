@@ -18,54 +18,25 @@
     </div>
 </div>
 
-<!-- Modal: Finalizar Proceso de Asignación -->
+<!-- Modal: Finalizar Proceso de Desincorporación -->
 <dialog data-modal="modal_proceso_desincorporacion" class="modal_new-recepcion">
     <button type="button" class="modal__close" onclick="this.closest('dialog').close()">X</button>
-    <h2 class="modal_title">Realizar Asignación</h2>
+    <h2 class="modal_title">Realizar Desincorporación</h2>
 
     <div class="proceso_container">
         <!-- Columna izquierda: formulario -->
         <form id="form_proceso_desincorporacion" method="POST" autocomplete="off" class="user_container" novalidate>
-            <input type="hidden" id="proceso_desincorporacion_id" name="desincorporacion_id" value="<?php echo $_GET['id'] ?? ''; ?>">
             <div class="input_block_content">
-                <label class="input_label">Plazo</label>
-                <span>
-                    De: 
-                    <input type="number" id="proceso_desincorporacion_plazo" class="input_plazo" min="1">
-                    días
-                </span>
-            </div>
-            <div class="input_block_content">
-            </div>
-            <div class="input_block_content">
-                <label for="proceso_desincorporacion_fecha" class="input_label">Fecha Inicio</label>
-                <input type="date" name="desincorporacion_fecha" id="proceso_desincorporacion_fecha" class="input_text input_date">
-            </div>
-
-            <div class="input_block_content">
-                <label for="proceso_desincorporacion_fecha_fin" class="input_label">Fecha Final</label>
-                <input type="date" name="desincorporacion_fecha_fin" id="proceso_desincorporacion_fecha_fin" class="input_text input_date">
-            </div>
-
-            <div class="input_block_content">
-                <label for="proceso_desincorporacion_cargo" class="input_label">Cargo*</label>
-                <select name="cargo_id" id="proceso_desincorporacion_cargo" class="input_text input_select cargo_form"></select>
-            </div>
-
-            <div class="input_block_content">
-                <label for="proceso_desincorporacion_persona" class="input_label">Persona*</label>
-                <select name="persona_id" id="proceso_desincorporacion_persona" class="input_text input_select persona_form"></select>
-            </div>
-
-            <div class="input_block_content">
-                <label for="proceso_desincorporacion_area" class="input_label">Área*</label>
-                <select name="area_id" id="proceso_desincorporacion_area" class="input_text input_select area_form"></select>
+                <label for="proceso_desincorporacion_fecha" class="input_label">Fecha*</label>
+                <input type="date" name="ajuste_fecha" id="proceso_desincorporacion_fecha" class="input_text input_date">
             </div>
 
             <div class="input_block_content">
                 <label for="proceso_desincorporacion_descripcion" class="input_label">Descripción</label>
-                <input type="text" id="proceso_desincorporacion_descripcion" name="desincorporacion_descripcion" class="input_text">
+                <input type="text" id="proceso_desincorporacion_descripcion" name="ajuste_descripcion" class="input_text">
             </div>
+
+            <input type="hidden" name="ajuste_tipo" value="1"> <!-- 1 = Entrada -->
 
             <!-- Contenedor de errores -->
             <div id="error-container-proceso-desincorporacion" class="error-container"></div>
@@ -76,11 +47,11 @@
 
         <!-- Columna derecha: tabla resumen -->
         <div class="resumen_container">
-            <div class="container_table_box-asignacion">
-                <table id="procesoDesincorporacionResumenTabla" class="display">
+            <div class="container_table_box-recepcion">
+                <table id="procesodesincorporacionResumenTabla" class="display">
                     <thead>
                         <tr>
-                            <th colspan="4" class="title">Resumen de la Asignación</th>
+                            <th colspan="4" class="title">Resumen de la Desincorporación</th>
                         </tr>
                         <tr>
                             <th class="header">Código</th>
@@ -98,7 +69,7 @@
 <!-- Confirmación de descartar recepción -->
 <dialog data-modal="confirmar_regresar-desincorporacion" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Desea cancelar la asignación?</h2>
+        <h2 class="modal_title">¿Desea cancelar la desincorporación?</h2>
     </div>
     <div class="modal_delete-buttons">
         <form method="dialog">
@@ -181,7 +152,7 @@
 <!-- Modal: Éxito -->
 <dialog data-modal="success" class="modal modal_success">
     <form method="dialog">
-        <h2 class="modal_title">Asignación procesada con éxito</h2>
+        <h2 class="modal_title">Desincorporación procesada con éxito</h2>
         <p id="success-message"></p>
         <button class="modal__close-success" id="close-success-proceso-desincorporacion">Aceptar</button>
     </form>
@@ -210,4 +181,4 @@
 </div>
 
 <!-- Un solo archivo JS para manejar todo -->
-<script src="js/proceso_asignacion_datatable.js"></script>
+<script src="js/proceso_desincorporacion_datatable.js"></script>
