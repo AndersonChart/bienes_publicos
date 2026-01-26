@@ -107,7 +107,7 @@
 <!-- Tabla de desincorporaciones -->
 <div class="container_table_box">
     <div class="top"></div>
-    <table id="recepcionTabla" class="display" style="width:100%">
+    <table id="desincorporacionTabla" class="display" style="width:100%">
         <thead>
             <tr>
                 <th colspan="4" class="title">Desincorporaciones</th>

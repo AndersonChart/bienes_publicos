@@ -1,133 +1,155 @@
 <?php
 require_once 'desincorporacion.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: application/json');
 
-$accion = $_POST['accion'] ?? $_GET['accion'] ?? '';
-$resp = ['success' => false, 'message' => 'Acción no encontrada', 'data' => null];
+$desincorporacion = new desincorporacion();
+$accion    = $_POST['accion'] ?? '';
+/*
+function validardesincorporacion($datos, $modo = 'crear', $id = null) {
+    $camposObligatorios = ['ajuste_fecha'];
 
-try {
-    $model = new desincorporacion();
-
-    switch ($accion) {
-        case 'crear':
-            $fecha = $_POST['fecha'] ?? null;
-            $descripcion = $_POST['descripcion'] ?? null;
-            $actaNombre = null;
-
-            // Manejo de archivo 'acta' (opcional, si viene por upload)
-            if (isset($_FILES['acta']) && $_FILES['acta']['error'] !== UPLOAD_ERR_NO_FILE) {
-                $file = $_FILES['acta'];
-                if ($file['error'] !== UPLOAD_ERR_OK) {
-                    throw new Exception('Error al subir el acta (code ' . $file['error'] . ').');
-                }
-
-                $maxSize = 5 * 1024 * 1024; // 5 MB
-                if ($file['size'] > $maxSize) {
-                    throw new Exception('El archivo excede el tamaño máximo de 5 MB.');
-                }
-
-                $allowedExt = ['pdf','jpg','jpeg','png'];
-                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                if (!in_array($ext, $allowedExt, true)) {
-                    throw new Exception('Tipo de archivo no permitido. Extensiones permitidas: ' . implode(',', $allowedExt));
-                }
-
-                $uploadDir = __DIR__ . '/uploads/actas/';
-                if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
-                    throw new Exception('No se pudo crear el directorio de destino.');
-                }
-
-                $safeName = time() . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
-                $dest = $uploadDir . $safeName;
-                if (!move_uploaded_file($file['tmp_name'], $dest)) {
-                    throw new Exception('No se pudo mover el archivo subido.');
-                }
-
-                $actaNombre = $safeName;
-            } else {
-                // Puede venir como nombre ya existente en formulario
-                $actaNombre = $_POST['acta'] ?? null;
-            }
-
-            $articulos = [];
-            if (isset($_POST['articulos'])) {
-                $decoded = json_decode($_POST['articulos'], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $articulos = $decoded;
-                } else {
-                    throw new Exception('JSON de articulos inválido.');
-                }
-            }
-
-            $ajusteId = $model->crear($fecha, $descripcion, $actaNombre, $articulos);
-            $resp = ['success' => true, 'message' => 'Desincorporación creada', 'data' => ['ajuste_id' => $ajusteId]];
-            break;
-
-        case 'anular':
-            $id = isset($_POST['id']) ? (int)$_POST['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
-            if ($id <= 0) throw new Exception('ID inválido.');
-            $model->anular($id);
-            $resp = ['success' => true, 'message' => 'Desincorporación anulada', 'data' => null];
-            break;
-
-        case 'recuperar':
-            $id = isset($_POST['id']) ? (int)$_POST['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
-            if ($id <= 0) throw new Exception('ID inválido.');
-            $model->recuperar($id);
-            $resp = ['success' => true, 'message' => 'Desincorporación recuperada', 'data' => null];
-            break;
-
-        case 'leer_por_estado':
-            $estado = isset($_POST['estado']) ? (int)$_POST['estado'] : (isset($_GET['estado']) ? (int)$_GET['estado'] : 1);
-            $rows = $model->leer_por_estado($estado);
-            $resp = ['success' => true, 'message' => '', 'data' => $rows];
-            break;
-
-        case 'leer_por_id':
-            $id = isset($_POST['id']) ? (int)$_POST['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
-            if ($id <= 0) throw new Exception('ID inválido.');
-            $row = $model->leer_por_id($id);
-            $resp = ['success' => true, 'message' => '', 'data' => $row];
-            break;
-
-        case 'leer_seriales_articulo':
-            $articuloId = isset($_POST['articulo_id']) ? (int)$_POST['articulo_id'] : (isset($_GET['articulo_id']) ? (int)$_GET['articulo_id'] : 0);
-            if ($articuloId <= 0) throw new Exception('ID de artículo inválido.');
-            $rows = $model->leer_seriales_articulo($articuloId);
-            $resp = ['success' => true, 'message' => '', 'data' => $rows];
-            break;
-
-        case 'obtener_stock_articulo':
-            $articuloId = isset($_POST['articulo_id']) ? (int)$_POST['articulo_id'] : (isset($_GET['articulo_id']) ? (int)$_GET['articulo_id'] : 0);
-            if ($articuloId <= 0) throw new Exception('ID de artículo inválido.');
-            $stock = $model->obtener_stock_articulo($articuloId);
-            $resp = ['success' => true, 'message' => '', 'data' => ['total' => $stock]];
-            break;
-
-        case 'obtener_stock_seriales':
-            $articuloId = isset($_POST['articulo_id']) ? (int)$_POST['articulo_id'] : (isset($_GET['articulo_id']) ? (int)$_GET['articulo_id'] : 0);
-            if ($articuloId <= 0) throw new Exception('ID de artículo inválido.');
-            $stock = $model->obtener_stock_seriales($articuloId);
-            $resp = ['success' => true, 'message' => '', 'data' => ['activos' => $stock]];
-            break;
-
-        case 'leer_articulos_por_desincorporacion':
-            $ajusteId = isset($_POST['ajuste_id']) ? (int)$_POST['ajuste_id'] : (isset($_GET['ajuste_id']) ? (int)$_GET['ajuste_id'] : 0);
-            if ($ajusteId <= 0) throw new Exception('ID inválido.');
-            $rows = $model->leer_articulos_por_desincorporacion($ajusteId);
-            $resp = ['success' => true, 'message' => '', 'data' => $rows];
-            break;
-
-        default:
-            break;
+    // Verificar campos obligatorios
+    $camposFaltantes = [];
+    foreach ($camposObligatorios as $campo) {
+        if (!isset($datos[$campo]) || trim($datos[$campo]) === '') {
+            $camposFaltantes[] = $campo;
+        }
     }
-} catch (Exception $e) {
-    error_log('desincorporacion_ajax error: ' . $e->getMessage());
-    $resp = ['success' => false, 'message' => $e->getMessage(), 'data' => null];
-}
+    if (!empty($camposFaltantes)) {
+        return [
+            'error'   => true,
+            'mensaje' => 'Debe indicar la fecha de la recepción',
+            'campos'  => $camposFaltantes
+        ];
+    }
 
-echo json_encode($resp);
+    // Validación de formato de fecha (YYYY-MM-DD)
+    $fecha = trim($datos['ajuste_fecha']);
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+        return [
+            'error'   => true,
+            'mensaje' => 'La fecha de la recepción debe tener formato YYYY-MM-DD',
+            'campos'  => ['ajuste_fecha']
+        ];
+    } else {
+        // Validación de que la fecha no sea futura
+        $hoy = date('Y-m-d');
+        if ($fecha > $hoy) {
+            return [
+                'error'   => true,
+                'mensaje' => 'La fecha de la recepción no puede ser posterior al día de hoy',
+                'campos'  => ['ajuste_fecha']
+            ];
+        }
+    }
+
+    // Validación de artículos vacíos
+    if (!is_array($datos['articulos']) || count($datos['articulos']) === 0) {
+        return [
+            'error'   => true,
+            'mensaje' => 'Debe ingresar al menos un artículo con cantidad para la recepción',
+            'campos'  => ['articulos']
+        ];
+    }
+
+    // Validación de seriales únicos
+    $todosSeriales = [];
+    foreach ($datos['articulos'] as $idx => $art) {
+        if (!isset($art['articulo_id'])) {
+            return [
+                'error'   => true,
+                'mensaje' => "Falta el identificador del artículo en la recepción",
+                'campos'  => ["articulos[$idx][articulo_id]"]
+            ];
+        }
+
+        $seriales = isset($art['seriales']) && is_array($art['seriales']) ? $art['seriales'] : [];
+        $seriales = array_map(fn($s) => is_string($s) ? trim($s) : '', $seriales);
+
+        // Duplicados dentro del mismo artículo
+        $noVacios = array_values(array_filter($seriales, fn($s) => $s !== ''));
+        if (count($noVacios) !== count(array_unique($noVacios))) {
+            return [
+                'error'   => true,
+                'mensaje' => "Hay seriales repetidos dentro del mismo artículo",
+                'campos'  => ["articulos[$idx][seriales]"]
+            ];
+        }
+
+        $todosSeriales = array_merge($todosSeriales, $noVacios);
+    }
+
+    // Duplicados entre artículos
+    if (count($todosSeriales) !== count(array_unique($todosSeriales))) {
+        return [
+            'error'   => true,
+            'mensaje' => 'Hay seriales repetidos entre distintos artículos de la recepción',
+            'campos'  => ['articulos']
+        ];
+    }
+
+    // Validación contra BD (ignora estado 4)
+    if (!empty($todosSeriales)) {
+        global $desincorporacion;
+        $repetidosBD = $desincorporacion->validar_seriales($todosSeriales);
+        if (!empty($repetidosBD)) {
+            return [
+                'error'   => true,
+                'mensaje' => 'Los siguientes seriales ya existen en el inventario: ' . implode(', ', $repetidosBD),
+                'campos'  => ['articulos']
+            ];
+        }
+    }
+
+    // Normalizar datos
+    foreach ($datos as $clave => $valor) {
+        if (is_string($valor)) {
+            $datos[$clave] = trim($valor);
+        }
+    }
+
+    return ['valido' => true];
+}
+*/
+// Router de acciones
+switch ($accion) {
+    //Leer desincorporaciones
+    case 'leer_todos':
+        try {
+            $estado    = isset($_POST['estado']) ? intval($_POST['estado']) : 1;
+            $registros = $desincorporacion->leer_por_estado($estado);
+
+            $data = array_map(function ($row) {
+                return [
+                    'desincorporacion_id'          => $row['ajuste_id'],
+                    'desincorporacion_fecha'       => $row['ajuste_fecha'],
+                    'desincorporacion_descripcion' => $row['ajuste_descripcion'],
+                    'desincorporacion_estado'      => $row['ajuste_estado']
+                ];
+            }, $registros);
+
+            echo json_encode(['data' => $data]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'data'    => [],
+                'error'   => true,
+                'mensaje' => 'Error al leer las desincorporaciones registradas',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+    break;
+
+    default:
+        http_response_code(400);
+        echo json_encode([
+            'error'   => true,
+            'mensaje' => 'Acción no reconocida en el proceso de desincorporación'
+        ]);
+    break;
+}

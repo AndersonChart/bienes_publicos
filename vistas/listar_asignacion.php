@@ -19,7 +19,7 @@
     <div class="basics-container">
         <a href="index.php?vista=procesar_asignacion"><div class="new_user new_user-usuario">+ Nueva</div></a>
         <?php if ($_SESSION["rol"] == 3): ?>
-            <div id="toggleEstadoAsignacion" class="btn_toggle-estado estado-rojo">Deshabilitados</div>
+            <div id="toggleEstadoAsignacion" class="btn_toggle-estado estado-rojo">Devoluciones</div>
         <?php endif; ?>
     </div>
 </div>

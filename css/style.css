@@ -219,15 +219,12 @@ a {
 }
 
 .main-container {
-    flex: 0 1 20%;
-    min-width: 150px;
-    height: 90%;
-    width: 20%;
-    max-width: 250px;
+    flex: 0 0 auto; /* No crece ni se encoge solo */
+    height: 90vh;
     display: flex;
     flex-flow: row nowrap;
-    justify-content: start;
     overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 
@@ -457,18 +454,34 @@ a {
     background: rgb(23, 138, 245);
 }
 
+/* El submenú es el que se encoge */
 .sub-main {
-    flex: 0 1 100%;
-    flex-flow: column wrap;
-    align-items: center;
-    justify-content: start;
-    gap: 20px;
+    /* Quitamos el flex fijo y usamos width */
+    flex: 0 0 auto; 
+    width: 200px;
+    min-width: 200px; /* Base abierta */
     background: #024;
+    
+    /* Especificamos qué vamos a animar */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s ease;
+    
+    overflow: hidden;
+    will-change: width, min-width, opacity; 
+}
+
+/* ESTADO COLAPSADO */
+.main-container.collapsed .sub-main {
+    width: 0px;
+    min-width: 0px; /* Obligatorio para que flex no lo mantenga abierto */
+    opacity: 0;
 }
 
 .menu-content {
     max-height: 0;
     opacity: 0;
+    min-width: 200px;
     transform: scaleY(0.95);
     overflow: hidden;
     transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
@@ -895,6 +908,18 @@ a {
 }
 
 #recepcionTabla td {
+    width: 40px;
+    height: 40px;
+}
+
+#desincorporacionTabla tr:nth-child(even) {
+    background-color: #ddd;
+}
+#desincorporacionTabla tr:nth-child(odd) {
+    background-color: #ccc;
+}
+
+#desincorporacionTabla td {
     width: 40px;
     height: 40px;
 }

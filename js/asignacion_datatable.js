@@ -12,18 +12,18 @@ window.addEventListener('load', function () {
     const toggleBtn = document.getElementById('toggleEstadoAsignacion');
 
     if (toggleBtn) {
-        toggleBtn.textContent = 'Deshabilitadas';
+        toggleBtn.textContent = 'Devoluciones';
         toggleBtn.classList.add('estado-rojo');
 
         toggleBtn.addEventListener('click', () => {
             estadoAsignacion = estadoAsignacion === 0 ? 1 : 0;
 
             if (estadoAsignacion === 0) {
-                toggleBtn.textContent = 'Habilitadas';
+                toggleBtn.textContent = 'Activas';
                 toggleBtn.classList.remove('estado-rojo');
                 toggleBtn.classList.add('estado-verde');
             } else {
-                toggleBtn.textContent = 'Deshabilitadas';
+                toggleBtn.textContent = 'Devoluciones';
                 toggleBtn.classList.remove('estado-verde');
                 toggleBtn.classList.add('estado-rojo');
             }
@@ -97,7 +97,7 @@ window.addEventListener('load', function () {
                 className: 'dt-center',
                 render: function (row) {
                     if (parseInt(row.asignacion_estado) === 0) {
-                        return '<span class="estado-badge anulado">Anulado</span>';
+                        return '<span class="estado-badge anulado">Devuelto</span>';
                     }
 
                     const fin = toDateOnly(row.asignacion_fecha_fin);

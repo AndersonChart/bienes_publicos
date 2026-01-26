@@ -960,17 +960,55 @@ document.addEventListener("click", function (e) {
 document.addEventListener('DOMContentLoaded', () => {
     const icons = document.querySelectorAll('.icon');
     const menus = document.querySelectorAll('.menu-content');
+    const sidebar = document.querySelector('.main-container');
+    
+    // Variable para controlar el retraso del ajuste de tabla
+    let resizeTimer;
+
+    // Iniciar colapsado
+    sidebar.classList.add('collapsed');
 
     icons.forEach(icon => {
         icon.addEventListener('click', () => {
             const target = icon.getAttribute('data-menu');
-            icons.forEach(i => i.classList.remove('active'));
-            menus.forEach(menu => menu.classList.remove('active'));
-            icon.classList.add('active');
-            const targetMenu = document.getElementById(target);
-            if (targetMenu) {
-                targetMenu.classList.add('active');
+            
+            // 1. Manejo para INICIO
+            if (!target) {
+                sidebar.classList.add('collapsed');
+                icons.forEach(i => i.classList.remove('active'));
+                menus.forEach(m => m.classList.remove('active'));
+                return;
             }
+
+            const targetMenu = document.getElementById(target);
+            const isAlreadyActive = icon.classList.contains('active');
+
+            // 2. Lógica de Toggle
+            if (isAlreadyActive) {
+                sidebar.classList.add('collapsed');
+                icon.classList.remove('active');
+                if (targetMenu) targetMenu.classList.remove('active');
+            } else {
+                sidebar.classList.remove('collapsed');
+                icons.forEach(i => i.classList.remove('active'));
+                menus.forEach(m => m.classList.remove('active'));
+                icon.classList.add('active');
+                if (targetMenu) targetMenu.classList.add('active');
+            }
+
+            // --- 3. AJUSTE DE TABLA OPTIMIZADO (ANTI-LAG) ---
+            
+            // Cancelamos cualquier redimensionamiento que esté en cola
+            clearTimeout(resizeTimer);
+
+            // Ejecutamos el ajuste solo después de que la transición CSS (0.3s) termine
+            resizeTimer = setTimeout(() => {
+                if (window.jQuery && $.fn.DataTable) {
+                    // En lugar de resize total, solo ajustamos columnas de tablas visibles
+                    // Esto es 10 veces más rápido que trigger('resize')
+                    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                }
+            }, 310); // 310ms para asegurar que la animación de 0.3s terminó
         });
     });
 
@@ -3413,144 +3451,6 @@ document.getElementById('form_recuperar_recepcion')?.addEventListener('submit', 
     .catch(() => {
         const modal = document.querySelector('dialog[data-modal="recuperar_recepcion"]');
         if (modal?.open) modal.close();       //  cerrar confirmación también en error de conexión
-        mostrarModalError('Error de conexión con el servidor');
-    });
-});
-
-/* MODULO: DESINCORPORACION */
-
-// Mostrar información de desincorporación + resumen de artículos
-function mostrarInfoDesincorporacion(data) {
-    const ajusteId = data.ajuste_id || data.desincorporacion_id || data.id || '';
-    document.getElementById('info_desincorporacion_id').textContent = ajusteId;
-    document.getElementById('info_desincorporacion_fecha').textContent = data.ajuste_fecha || data.desincorporacion_fecha || data.fecha || '';
-    document.getElementById('info_desincorporacion_descripcion').textContent = data.ajuste_descripcion || data.desincorporacion_descripcion || data.descripcion || '';
-
-    // Si hay nombre de acta, mostrar enlace (asume carpeta /php/uploads/actas/)
-    const actaContainer = document.getElementById('info_desincorporacion_acta');
-    const actaNombre = data.ajuste_acta || data.acta || '';
-    if (actaContainer) {
-        if (actaNombre) {
-            actaContainer.innerHTML = `<a href="php/uploads/actas/${encodeURIComponent(actaNombre)}" target="_blank">Ver acta</a>`;
-        } else {
-            actaContainer.textContent = '';
-        }
-    }
-
-    // Poblar tabla resumen con artículos asociados
-    if (!ajusteId) {
-        mostrarModalError('ID de desincorporación no disponible');
-        return;
-    }
-
-    fetch('php/desincorporacion_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'leer_articulos_por_desincorporacion', ajuste_id: ajusteId })
-    })
-    .then(res => res.json())
-    .then(resp => {
-        if (resp.success && resp.data) {
-            const tabla = $('#desincorporacionResumenTabla').DataTable();
-            tabla.clear().rows.add(resp.data).draw();
-        } else {
-            mostrarModalError(resp.message || 'No se pudieron cargar los artículos');
-        }
-    })
-    .catch(() => {
-        mostrarModalError('Error al cargar artículos de la desincorporación');
-    });
-
-    const modal = document.querySelector('dialog[data-modal="info_desincorporacion"]');
-    if (modal && typeof modal.showModal === 'function') modal.showModal();
-}
-
-// Mostrar datos en confirmación de desincorporación (anular/recuperar)
-function mostrarConfirmacionDesincorporacion(data, modo = 'anular') {
-    const ajusteId = data.ajuste_id || data.desincorporacion_id || data.id || '';
-
-    if (modo === 'anular') {
-        document.getElementById('anular_desincorporacion_id').textContent = ajusteId;
-        document.getElementById('anular_desincorporacion_descripcion').textContent = data.ajuste_descripcion || data.descripcion || '';
-
-        const form = document.getElementById('form_anular_desincorporacion');
-        if (form) {
-            form.dataset.ajusteId = ajusteId;
-            form.dataset.modo = modo;
-        }
-
-        const modal = document.querySelector('dialog[data-modal="anular_desincorporacion"]');
-        if (modal?.showModal) modal.showModal();
-    } else if (modo === 'recuperar') {
-        document.getElementById('recuperar_desincorporacion_id').textContent = ajusteId;
-        document.getElementById('recuperar_desincorporacion_descripcion').textContent = data.ajuste_descripcion || data.descripcion || '';
-
-        const form = document.getElementById('form_recuperar_desincorporacion');
-        if (form) {
-            form.dataset.ajusteId = ajusteId;
-            form.dataset.modo = modo;
-        }
-
-        const modal = document.querySelector('dialog[data-modal="recuperar_desincorporacion"]');
-        if (modal?.showModal) modal.showModal();
-    }
-}
-
-// Anular desincorporación
-document.getElementById('form_anular_desincorporacion')?.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const id = this.dataset.ajusteId;
-    if (!id) return;
-
-    fetch('php/desincorporacion_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'anular', id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        const modal = document.querySelector('dialog[data-modal="anular_desincorporacion"]');
-        if (data.success) {
-            if (modal?.open) modal.close();
-            mostrarModalExito(data.message || 'Desincorporación anulada');
-            $('#desincorporacionTabla').DataTable().ajax.reload(null, false);
-        } else {
-            if (modal?.open) modal.close();
-            mostrarModalError(data.message || 'No se pudo anular la desincorporación');
-        }
-    })
-    .catch(() => {
-        const modal = document.querySelector('dialog[data-modal="anular_desincorporacion"]');
-        if (modal?.open) modal.close();
-        mostrarModalError('Error de conexión con el servidor');
-    });
-});
-
-// Recuperar desincorporación
-document.getElementById('form_recuperar_desincorporacion')?.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const id = this.dataset.ajusteId;
-    if (!id) return;
-
-    fetch('php/desincorporacion_ajax.php', {
-        method: 'POST',
-        body: new URLSearchParams({ accion: 'recuperar', id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        const modal = document.querySelector('dialog[data-modal="recuperar_desincorporacion"]');
-        if (data.success) {
-            if (modal?.open) modal.close();
-            mostrarModalExito(data.message || 'Desincorporación recuperada');
-            // actualizar estado local si aplica
-            window.estadoDesincorporacion = 1;
-            $('#desincorporacionTabla').DataTable().ajax.reload(null, false);
-        } else {
-            if (modal?.open) modal.close();
-            mostrarModalError(data.message || 'No se pudo recuperar la desincorporación');
-        }
-    })
-    .catch(() => {
-        const modal = document.querySelector('dialog[data-modal="recuperar_desincorporacion"]');
-        if (modal?.open) modal.close();
         mostrarModalError('Error de conexión con el servidor');
     });
 });
