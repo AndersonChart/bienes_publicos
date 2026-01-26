@@ -184,4 +184,234 @@ window.addEventListener('load', function () {
         tabla.ajax.reload(null, false);
     });
 
+    
+    // Acción: Ver info + cargar resumen
+    $('#asignacionTabla tbody').on('click', '.btn_ver_info', function () {
+        const id = $(this).data('id');
+        if (!id) return;
+
+        fetch('php/asignacion_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_asignacion', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.asignacion) {
+                document.getElementById('info_id').textContent = data.asignacion.asignacion_id;
+                document.getElementById('info_area').textContent = data.asignacion.area_nombre;
+                document.getElementById('info_persona').textContent = data.asignacion.persona_nombre + ' ' + (data.asignacion.persona_apellido || '');
+                document.getElementById('info_cargo').textContent = data.asignacion.cargo_nombre;
+
+                function formatFecha(fechaStr) {
+                    if (!fechaStr) return '—';
+                    const fecha = toDateOnly(fechaStr) || new Date(fechaStr);
+                    return fecha.toLocaleDateString('es-VE');
+                }
+
+                document.getElementById('info_fecha').textContent = formatFecha(data.asignacion.asignacion_fecha);
+                document.getElementById('info_fecha_fin').textContent = formatFecha(data.asignacion.asignacion_fecha_fin);
+                document.getElementById('info_descripcion').textContent = data.asignacion.asignacion_descripcion || '';
+
+                const modal = document.querySelector('dialog[data-modal="info_asignacion"]');
+                if (modal?.showModal) modal.showModal();
+
+                fetch('php/asignacion_ajax.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'listar_articulos_por_asignacion', id })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if (resp.data) {
+                        const resumenTabla = $('#asignacionResumenTabla').DataTable();
+                        resumenTabla.clear().rows.add(resp.data).draw();
+                    }
+                });
+            }
+        });
+    });
+
+    // ------------------------------
+    // Tabla resumen de artículos asociados (child rows)
+    // ------------------------------
+    const resumenTabla = $('#asignacionResumenTabla').DataTable({
+        data: [],
+        columns: [
+            { data: 'articulo_codigo', title: 'Código' },
+            { data: 'articulo_nombre', title: 'Nombre' },
+            { data: 'cantidad', title: 'Cantidad' },
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<span class="toggle-details">▶</span>',
+                title: 'Seriales'
+            }
+        ],
+        ordering: true,
+        scrollY: '300px',
+        scrollCollapse: true,
+        responsive: true,
+        paging: false,
+        searching: false,
+        info: false,
+        language: { emptyTable: 'No se encuentran registros' }
+    });
+
+    function formatSeriales(rowData) {
+        if (!rowData.seriales) return '<div>No se ingresaron seriales</div>';
+        const lista = rowData.seriales.split(',').map(s => s.trim());
+        let html = '<ul>';
+        lista.forEach((s, i) => {
+            html += `<li><strong>${i + 1}:</strong> ${s}</li>`;
+        });
+        html += '</ul>';
+        return html;
+    }
+
+    $('#asignacionResumenTabla tbody').on('click', 'td.dt-control', function () {
+        const tr = $(this).closest('tr');
+        const row = resumenTabla.row(tr);
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('.toggle-details').text('▶');
+        } else {
+            row.child(formatSeriales(row.data())).show();
+            tr.addClass('shown');
+            $(this).find('.toggle-details').text('▼');
+        }
+    });
+
+    // ------------------------------
+    // Anular: abrir confirmación con datos
+    // ------------------------------
+    $('#asignacionTabla tbody').on('click', '.btn_anular', function () {
+        const id = $(this).data('id');
+        if (!id) return;
+
+        fetch('php/asignacion_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_asignacion', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.asignacion) {
+                document.getElementById('anular_asignacion_id').textContent = data.asignacion.asignacion_id;
+                document.getElementById('anular_personal_nombre').textContent = data.asignacion.persona_nombre + ' ' + (data.asignacion.persona_apellido || '');
+                document.getElementById('anular_area_nombre').textContent = data.asignacion.area_nombre;
+
+                const modal = document.querySelector('dialog[data-modal="anular_asignacion"]');
+                if (modal?.showModal) modal.showModal();
+            }
+        });
+    });
+
+    // Confirmar anulación
+    document.getElementById('form_anular_asignacion')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const id = document.getElementById('anular_asignacion_id').textContent;
+        if (!id) return;
+
+        fetch('php/asignacion_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'anular', id })
+        })
+        .then(res => res.json())
+        .then(resp => {
+            const modal = document.querySelector('dialog[data-modal="anular_asignacion"]');
+            if (modal?.open) modal.close();
+
+            if (resp.exito) {
+                document.getElementById('success-message').textContent = resp.mensaje || 'La asignación fue anulada correctamente';
+                const successModal = document.querySelector('dialog[data-modal="success"]');
+                if (successModal?.showModal) successModal.showModal();
+                tabla.ajax.reload(null, false);
+            } else {
+                document.getElementById('error-message').textContent = resp.mensaje || 'No se puede anular la asignación';
+                const errorModal = document.querySelector('dialog[data-modal="error"]');
+                if (errorModal?.showModal) errorModal.showModal();
+            }
+        })
+        .catch(() => {
+            const modal = document.querySelector('dialog[data-modal="anular_asignacion"]');
+            if (modal?.open) modal.close();
+            document.getElementById('error-message').textContent = 'Error de conexión con el servidor';
+            const errorModal = document.querySelector('dialog[data-modal="error"]');
+            if (errorModal?.showModal) errorModal.showModal();
+        });
+    });
+
+    // ------------------------------
+    // Recuperar: abrir confirmación con datos
+    // ------------------------------
+    $('#asignacionTabla tbody').on('click', '.btn_recuperar', function () {
+        const id = $(this).data('id');
+        if (!id) return;
+
+        fetch('php/asignacion_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'obtener_asignacion', id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito && data.asignacion) {
+                document.getElementById('recuperar_asignacion_id').textContent = data.asignacion.asignacion_id;
+                document.getElementById('recuperar_personal_nombre').textContent = data.asignacion.persona_nombre + ' ' + (data.asignacion.persona_apellido || '');
+                document.getElementById('recuperar_area_nombre').textContent = data.asignacion.area_nombre;
+
+                const modal = document.querySelector('dialog[data-modal="recuperar_asignacion"]');
+                if (modal?.showModal) modal.showModal();
+            }
+        });
+    });
+
+    // Confirmar recuperación
+    document.getElementById('form_recuperar_asignacion')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const id = document.getElementById('recuperar_asignacion_id').textContent;
+        if (!id) return;
+
+        fetch('php/asignacion_ajax.php', {
+            method: 'POST',
+            body: new URLSearchParams({ accion: 'recuperar', id })
+        })
+        .then(res => res.json())
+        .then(resp => {
+            const modal = document.querySelector('dialog[data-modal="recuperar_asignacion"]');
+            if (modal?.open) modal.close();
+
+            if (resp.exito) {
+                document.getElementById('success-message').textContent = resp.mensaje || 'La asignación fue recuperada correctamente';
+                const successModal = document.querySelector('dialog[data-modal="success"]');
+                if (successModal?.showModal) successModal.showModal();
+                tabla.ajax.reload(null, false);
+            } else {
+                document.getElementById('error-message').textContent = resp.mensaje || 'No se pudo recuperar la asignación: seriales comprometidos';
+                const errorModal = document.querySelector('dialog[data-modal="error"]');
+                if (errorModal?.showModal) errorModal.showModal();
+            }
+        })
+        .catch(() => {
+            const modal = document.querySelector('dialog[data-modal="recuperar_asignacion"]');
+            if (modal?.open) modal.close();
+            document.getElementById('error-message').textContent = 'Error de conexión con el servidor';
+            const errorModal = document.querySelector('dialog[data-modal="error"]');
+            if (errorModal?.showModal) errorModal.showModal();
+        });
+    });
+
+    // ------------------------------
+    // Cierre de modales de éxito/error
+    // ------------------------------
+    document.getElementById('close-success-asignacion')?.addEventListener('click', function () {
+        const modal = document.querySelector('dialog[data-modal="success"]');
+        if (modal?.open) modal.close();
+    });
+
+    document.getElementById('close-error-asignacion')?.addEventListener('click', function () {
+        const modal = document.querySelector('dialog[data-modal="error"]');
+        if (modal?.open) modal.close();
+    });
 });
+
