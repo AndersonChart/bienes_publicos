@@ -1,4 +1,4 @@
-<div class="main-container">
+<div class="main-container collapsed">
         <div class="main">
             <a href="index.php?vista=inicio">
             <div class="icon ">

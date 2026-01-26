@@ -361,7 +361,7 @@ public function leer_por_estado($estado = 1, $cargoId = '', $personaId = '', $ar
         }
     }
 
-    // Listar artículos asociados a una recepción
+    // Listar artículos asociados a una asignación
     public function leer_articulos_por_asignacion($asignacion_id) {
         $sql = "SELECT 
                     a.articulo_codigo,

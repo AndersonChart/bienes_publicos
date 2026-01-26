@@ -13,6 +13,10 @@
     <title>UNES - Bienes Públicos</title>
 </head>
 <body>
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+        <p>Cargando...</p>
+    </div>
 <?php
 if ($vista !== 'login') {
     echo '<div class="inicio-background">';

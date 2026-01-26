@@ -962,19 +962,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const menus = document.querySelectorAll('.menu-content');
     const sidebar = document.querySelector('.main-container');
     
-    // Variable para controlar el retraso del ajuste de tabla
     let resizeTimer;
 
-    // Iniciar colapsado
+    // 1. Asegurar que inicie colapsado
     sidebar.classList.add('collapsed');
 
     icons.forEach(icon => {
         icon.addEventListener('click', () => {
             const target = icon.getAttribute('data-menu');
             
-            // 1. Manejo para INICIO
+            // --- MANEJO PARA INICIO (Cierra todo) ---
             if (!target) {
-                sidebar.classList.add('collapsed');
+                sidebar.classList.add('collapsed'); // Agregamos para cerrar
                 icons.forEach(i => i.classList.remove('active'));
                 menus.forEach(m => m.classList.remove('active'));
                 return;
@@ -983,32 +982,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetMenu = document.getElementById(target);
             const isAlreadyActive = icon.classList.contains('active');
 
-            // 2. Lógica de Toggle
+            // --- LÓGICA DE TOGGLE ---
             if (isAlreadyActive) {
+                // Si ya está abierto, lo cerramos
                 sidebar.classList.add('collapsed');
                 icon.classList.remove('active');
                 if (targetMenu) targetMenu.classList.remove('active');
             } else {
-                sidebar.classList.remove('collapsed');
+                // Si está cerrado o es otro menú, lo abrimos
+                sidebar.classList.remove('collapsed'); // QUITAMOS para abrir suavemente
+                
+                // Limpiar estados previos
                 icons.forEach(i => i.classList.remove('active'));
                 menus.forEach(m => m.classList.remove('active'));
+
+                // Activar nuevo
                 icon.classList.add('active');
                 if (targetMenu) targetMenu.classList.add('active');
             }
 
-            // --- 3. AJUSTE DE TABLA OPTIMIZADO (ANTI-LAG) ---
-            
-            // Cancelamos cualquier redimensionamiento que esté en cola
+            // --- AJUSTE DE TABLA (Anti-Lag) ---
             clearTimeout(resizeTimer);
-
-            // Ejecutamos el ajuste solo después de que la transición CSS (0.3s) termine
             resizeTimer = setTimeout(() => {
                 if (window.jQuery && $.fn.DataTable) {
-                    // En lugar de resize total, solo ajustamos columnas de tablas visibles
-                    // Esto es 10 veces más rápido que trigger('resize')
                     $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
                 }
-            }, 310); // 310ms para asegurar que la animación de 0.3s terminó
+            }, 310); 
         });
     });
 
