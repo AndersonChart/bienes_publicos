@@ -494,7 +494,6 @@ a {
     justify-content: start;
     gap: 20px;
     background: rgb(23, 138, 245);
-    z-index: 10;
 }
 
 /* ESTADO BASE (Cerrado) */
