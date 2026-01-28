@@ -21,10 +21,14 @@ a {
 }
 
 .text-muted {
-    color: #777;
+    color: #fff;
     text-align: center;
     font-size: 12px;
     font-weight: 900;
+    border-radius: 10px;
+    border: transparent;
+    padding: 4px 10px;
+    background-color: #777;
 }
 
 /*LOGIN*/
