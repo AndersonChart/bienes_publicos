@@ -179,6 +179,45 @@ switch ($accion) {
         }
     break;
 
+    case 'leer_seriales_articulo':
+        try {
+            $articuloId   = $_POST['id'] ?? '';
+
+            if (!$articuloId) {
+                echo json_encode(['data' => [], 'error' => true, 'mensaje' => 'No se proporcionó el identificador del artículo']);
+                exit;
+            }
+
+            // Si llega asignacion_id, incluir activos (estado 1)
+            $registros = $desincorporacion->leer_seriales_articulo($articuloId);
+            echo json_encode(['data' => $registros]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'data'    => [],
+                'error'   => true,
+                'mensaje' => 'Error al listar los seriales del artículo',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+    break;
+
+    // Obtener detalle de un artículo
+    case 'obtener_articulo':
+        try {
+            $id = $_POST['id'] ?? '';
+            if (!$id) {
+                echo json_encode(['error' => true, 'mensaje' => 'No se proporcionó el identificador del artículo']);
+                exit;
+            }
+            $articulo = $desincorporacion->leer_articulo_por_id($id);
+            echo json_encode($articulo ? ['exito' => true, 'articulo' => $articulo] : ['error' => true, 'mensaje' => 'No se encontró el artículo solicitado']);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => true, 'mensaje' => 'Error al obtener el artículo', 'detalle' => $e->getMessage()]);
+        }
+    break;
+
     default:
         http_response_code(400);
         echo json_encode([

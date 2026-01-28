@@ -27,6 +27,7 @@ window.addEventListener('load', function () {
 
     const estado = {
         buffer: {},
+        bufferMeta: {},
         articuloActivo: null
     };
 
@@ -144,6 +145,9 @@ window.addEventListener('load', function () {
             orderable: false
         }
     ],
+        createdRow: function(row, data, dataIndex) {
+            $(row).attr('data-id', data.articulo_id);
+        },
         paging: true,
         info: true,
         dom: '<"top"Bf>rt<"bottom"lpi><"clear">',
@@ -208,16 +212,23 @@ window.addEventListener('load', function () {
             return;
         }
 
-        // Inicializar o actualizar el buffer
+        // Inicializar o actualizar el buffer básico
         if (!estado.buffer[id]) {
             estado.buffer[id] = { articulo_id: id, codigo, nombre, cantidad: 0, seriales: [] };
         }
 
         estado.buffer[id].cantidad = cantidad;
         
-        // Ajustar arreglo de seriales sin perder los ya escritos
-        const serialesPrevios = estado.buffer[id].seriales || [];
-        estado.buffer[id].seriales = new Array(cantidad).fill('').map((_, i) => serialesPrevios[i] ?? '');
+        // Solo inicializamos el array si está vacío (primera vez que se escribe)
+        // Si ya tiene datos (porque el usuario entró al modal y seleccionó), 
+        // no lo tocamos para no borrar los IDs de los seriales reales.
+        if (estado.buffer[id].seriales.length === 0) {
+            estado.buffer[id].seriales = new Array(cantidad).fill({ 
+                id: null, 
+                serial: 'SIN SERIAL', 
+                observacion: '' 
+            });
+        }
 
         // Activar botón de la fila actual
         const $btn = input.closest('tr').find('.btn_agregar_seriales');
@@ -225,5 +236,143 @@ window.addEventListener('load', function () {
 
         // Si tienes la función de resumen, llámala aquí
         if (typeof actualizarResumenDesincorporacion === 'function') actualizarResumenDesincorporacion();
+    });
+
+    //Tabla de seriales dentro del modal TABLA DE SERIALES ESTRUCTURA BASICA
+    const tablaSeriales = $('#procesoDesincorporacionSerialTabla').DataTable({
+    scrollY: '300px',
+    scrollCollapse: true,
+    paging: false,
+    searching: false,
+    info: false,
+    ordering: true,
+    columns: [
+        { 
+            data: null, 
+            title: 'No.',
+            orderable: true,
+            // Agregamos una clase extra 'con-numero' para controlar el estilo por CSS
+            className: 'select-checkbox con-numero', 
+            render: function (data, type, row, meta) {
+                // Retornamos el número. 
+                // El checkbox aparecerá encima o al lado dependiendo del CSS.
+                return meta.row + 1;
+            }
+        },
+        { data: 'serial', title: 'Serial' },
+        { 
+            data: 'observacion', 
+            title: 'Observación',
+            render: function (data, type, row) {
+                // Implementando los inputs que querías antes
+                const esSoloGenerico = row.serial === 'SIN SERIAL';
+                return `<input type="text" class="input_serial" 
+                        value="${data || ''}" ${esSoloGenerico ? 'disabled' : ''}>`;
+            }
+        }
+    ],
+    select: {
+        style: 'multi',
+        selector: 'td:first-child' // O selecciona por el checkbox
+    },
+    language: { emptyTable: 'No hay seriales disponibles' }
+});
+
+    // Evento adaptado para DESINCORPORACIÓN
+    $('#procesoDesincorporacionArticuloTabla tbody').on('click', '.btn_agregar_seriales', function () {
+        if ($(this).prop('disabled') || $(this).hasClass('is-disabled')) return;
+
+        const articuloId = $(this).data('id');
+        estado.articuloActivo = articuloId;
+
+        // Petición 1: Cargar los seriales disponibles
+        $.post('php/desincorporacion_ajax.php', { 
+            accion: 'leer_seriales_articulo', 
+            id: articuloId 
+        }, function (resp) {
+            if (resp && Array.isArray(resp.data)) {
+                tablaSeriales.clear();
+                tablaSeriales.rows.add(resp.data).draw();
+
+                // --- LÓGICA DE AUTO-SELECCIÓN ---
+                
+                // 1. Obtener cantidad ingresada desde el input de la tabla principal
+                const filaPrincipal = $(`#procesoDesincorporacionArticuloTabla tr[data-id="${articuloId}"]`);
+                const cantidadSolicitada = parseInt(filaPrincipal.find('.input_cantidad').val()) || 0;
+
+                // 2. Verificar si tenemos seriales REALES (con ID) en el buffer
+                const serialesEnBuffer = estado.buffer[articuloId]?.seriales || [];
+                const tieneSerialesReales = serialesEnBuffer.length > 0 && serialesEnBuffer[0].id !== null;
+
+                if (tieneSerialesReales) {
+                    const seleccionadosPrevios = serialesEnBuffer.map(s => s.id);
+                    tablaSeriales.rows().every(function () {
+                        if (seleccionadosPrevios.includes(this.data().id)) {
+                            this.select();
+                        }
+                    });
+                } else if (cantidadSolicitada > 0) {
+                    let contador = 0;
+                    tablaSeriales.rows({ order: 'current' }).every(function () {
+                        if (contador < cantidadSolicitada) {
+                            this.select();
+                            contador++;
+                        }
+                    });
+                }
+            }
+        }, 'json');
+
+        // Petición 2: Cargar datos visuales (Nombre/Imagen) del artículo en el modal
+        $.post('php/desincorporacion_ajax.php', { accion: 'obtener_articulo', id: articuloId }, function (resp) {
+            if (resp && resp.exito && resp.articulo) {
+                $('#serial_codigo_articulo').text(resp.articulo.articulo_codigo || '');
+                $('#serial_nombre_articulo').text(resp.articulo.articulo_nombre || '');
+                const imgEl = document.getElementById('serial_imagen_articulo');
+                if (imgEl) {
+                    imgEl.src = resp.articulo.articulo_imagen ? resp.articulo.articulo_imagen + '?t=' + Date.now() : 'img/icons/articulo.png';
+                    imgEl.alt = 'Imagen del artículo';
+                }
+                estado.bufferMeta[articuloId] = {
+                    codigo: resp.articulo.articulo_codigo || String(articuloId),
+                    nombre: resp.articulo.articulo_nombre || ''
+                };
+            }
+        }, 'json');
+
+        showDialog('dialog[data-modal="seriales_articulo"]');
+    });
+
+    //GUARDAR SERIALES SELECCIONADOS
+    $('#btnConfirmarSeriales').on('click', function() {
+        const filasSeleccionadas = tablaSeriales.rows({ selected: true });
+        const cantidadSeleccionada = filasSeleccionadas.count();
+        const datosSeriales = [];
+
+        // Recolectar datos y observaciones de los inputs
+        filasSeleccionadas.nodes().each(function(node, index) {
+            const data = tablaSeriales.row(node).data();
+            const observacionInput = $(node).find('.input_serial').val(); // Captura el valor del input
+
+            datosSeriales.push({
+                id: data.id,
+                serial: data.serial,
+                observacion: observacionInput
+            });
+        });
+
+        // 1. Guardar en el buffer
+        estado.buffer[estado.articuloActivo] = {
+            seriales: datosSeriales
+        };
+
+        // 2. ACTUALIZAR CANTIDAD EN LA TABLA DE AFUERA
+        const inputPrincipal = $(`#procesoDesincorporacionArticuloTabla tr[data-id="${estado.articuloActivo}"] .input_cantidad`);
+        inputPrincipal.val(cantidadSeleccionada);
+
+        // Opcional: Disparar el evento change por si tienes cálculos de totales generales
+        inputPrincipal.trigger('change');
+
+        closeDialog('dialog[data-modal="seriales_articulo"]');
     });
 });

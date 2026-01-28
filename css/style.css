@@ -20,7 +20,12 @@ a {
     color: #600;
 }
 
-
+.text-muted {
+    color: #777;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 900;
+}
 
 /*LOGIN*/
 

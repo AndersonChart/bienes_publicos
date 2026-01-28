@@ -66,7 +66,7 @@
     </div>
 </dialog>
 
-<!-- Confirmación de descartar recepción -->
+<!-- Confirmación de descartar Desincorporación -->
 <dialog data-modal="confirmar_regresar-desincorporacion" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
         <h2 class="modal_title">¿Desea cancelar la desincorporación?</h2>

@@ -70,6 +70,37 @@ class desincorporacion {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Mostrar seriales de un artículo: activos (estado 1)
+    public function leer_seriales_articulo($articuloId) {
+        try {
+            $sql = "SELECT s.articulo_serial_id AS id,
+                            -- Si el serial es nulo o vacío, mostramos un texto descriptivo
+                            COALESCE(NULLIF(TRIM(s.articulo_serial), ''), 'SIN SERIAL') AS serial,
+                            s.articulo_serial_observacion AS observacion,
+                            s.estado_id AS estado
+                    FROM articulo_serial s
+                    WHERE s.articulo_id = ?
+                    AND s.estado_id = 1"; // Solo activos
+
+            $params = [(int)$articuloId];
+
+            // EXPLICACIÓN DEL ORDEN:
+            // 1. Usamos una expresión lógica: si el serial está vacío o es nulo, le damos prioridad.
+            // 2. Luego ordenamos por el ID.
+            $sql .= " ORDER BY 
+                        CASE 
+                            WHEN s.articulo_serial IS NULL OR TRIM(s.articulo_serial) = '' THEN 0 
+                            ELSE 1 
+                        END ASC, 
+                        s.articulo_serial_id ASC";
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
 
     // Leer detalle completo de un artículo
     public function leer_articulo_por_id($id) {
@@ -82,42 +113,6 @@ class desincorporacion {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([(int)$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    // Mostrar seriales de un artículo: activos (estado 1) + los asignados a la misma asignación (estado 2)
-    public function leer_seriales_articulo($articuloId, $asignacionId = null) {
-        try {
-            $sql = "SELECT s.articulo_serial_id AS id,
-                        s.articulo_serial AS serial,
-                        s.articulo_serial_observacion AS observacion,
-                        s.estado_id AS estado
-                    FROM articulo_serial s
-                    WHERE s.articulo_id = ?
-                    AND s.articulo_serial IS NOT NULL
-                    AND TRIM(s.articulo_serial) <> ''";
-
-            $params = [(int)$articuloId];
-
-            if ($asignacionId) {
-                // incluir activos o vinculados a esta asignación
-                $sql .= " AND (s.estado_id = 1 OR s.articulo_serial_id IN (
-                                SELECT aa.articulo_serial_id
-                                FROM asignacion_articulo aa
-                                WHERE aa.asignacion_id = ?
-                            ))";
-                $params[] = (int)$asignacionId;
-            } else {
-                $sql .= " AND s.estado_id = 1";
-            }
-
-            $sql .= " ORDER BY s.articulo_serial_id ASC";
-
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            throw $e;
-        }
     }
 
     // Stock disponible por artículo (solo activos)
