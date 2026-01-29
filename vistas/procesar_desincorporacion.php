@@ -18,7 +18,7 @@
     </div>
 </div>
 
-<!-- Confirmación de descartar recepción -->
+<!-- Confirmación de descartar desincorporación -->
 <dialog data-modal="confirmar_regresar_desincorporacion" class="modal modal_confirmar">
     <div class="modal_header-confirmar">
         <h2 class="modal_title">¿Desea cancelar la Desincorporación?</h2>
@@ -54,23 +54,20 @@
             <div class="input_block_content">
                 <label for="acta_desincorporacion" class="input_label">Acta de Desincorporación*</label>
                 <div class="document_container">
-                    <input type="file" id="acta_desincorporacion" name="acta_desincorporacion" class="input_file" 
-                        accept=".pdf,.xls,.xlsx">
+                    <input type="file" id="acta_desincorporacion" name="acta_archivo" class="input_file" accept=".pdf,.xls,.xlsx">
                     
-                    <div class="document_wrapper" onclick="document.getElementById('acta_desincorporacion').click()">
-                        <img id="preview_acta" src="img/icons/pdf.png" class="document_imagen" alt="Documento">
-                        <span id="file_name_display">Click para subir Acta (PDF o Excel)</span>
+                    <div id="wrapper_acta" class="document_wrapper" onclick="document.getElementById('acta_desincorporacion').click()">
+                        <img id="preview_acta" src="img/icons/upload.png" class="document_imagen" alt="Documento">
+                        <span id="file_name_display">Click para subir Acta</span>
                     </div>
                 </div>
             </div>
 
-            <input type="hidden" name="ajuste_tipo" value="1"> <!-- 1 = Entrada -->
+            <input type="hidden" name="ajuste_tipo" value="0"> 
 
-            <!-- Contenedor de errores -->
             <div id="error-container-proceso-desincorporacion" class="error-container"></div>
 
-            <!-- Botón de envío -->
-            <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_proceso_desincorporacion">
+            <input type="submit" value="Guardar Desincorporación" class="register_submit" id="btn_guardar_proceso_desincorporacion">
         </form>
 
         <!-- Columna derecha: tabla resumen -->

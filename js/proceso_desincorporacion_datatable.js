@@ -541,5 +541,83 @@ window.addEventListener('load', function () {
         }
     });
 
+    // ------------------------------
+    // Guardar Desincorporación (Envío al Servidor)
+    // ------------------------------
+    $('#form_proceso_desincorporacion').on('submit', function (e) {
+        e.preventDefault();
+        
+        // Limpiar errores previos
+        clearError('error-container-proceso-desincorporacion');
+        $('.input_text, .document_wrapper').removeClass('error_border');
+
+        // 1. Crear el FormData (Necesario para enviar el archivo del acta)
+        const formData = new FormData(this);
+        
+        // 2. Agregar la acción y los artículos del buffer
+        formData.append('accion', 'crear');
+        
+        // Convertimos el buffer a un formato que PHP entienda fácilmente
+        const articulosParaEnvio = Object.values(estado.buffer)
+            .filter(item => item.cantidad > 0)
+            .map(item => ({
+                articulo_id: item.articulo_id,
+                cantidad: item.cantidad,
+                seriales: item.seriales // Enviamos el array de objetos {id, serial, observacion}
+            }));
+
+        if (articulosParaEnvio.length === 0) {
+            setError('error-container-proceso-desincorporacion', 'Debe seleccionar al menos un artículo con sus seriales.');
+            return;
+        }
+
+        formData.append('articulos', JSON.stringify(articulosParaEnvio));
+
+        // 3. Petición AJAX
+        $.ajax({
+            url: 'php/desincorporacion_ajax.php',
+            type: 'POST',
+            data: formData,
+            processData: false, // Importante para FormData
+            contentType: false, // Importante para FormData
+            dataType: 'json',
+            success: function (resp) {
+                if (resp.error) {
+                    // Mostrar mensaje de error general
+                    setError('error-container-proceso-desincorporacion', resp.mensaje);
+
+                    // Resaltar campos específicos si el backend los mandó
+                    if (Array.isArray(resp.campos)) {
+                        resp.campos.forEach(idHtml => {
+                            const el = document.getElementById(idHtml);
+                            if (el) el.classList.add('error_border');
+                        });
+                    }
+                } else if (resp.valido || resp.exito) {
+                    // ÉXITO
+                    document.getElementById('success-message').textContent = resp.mensaje || 'Desincorporación registrada correctamente';
+                    showDialog('dialog[data-modal="success"]');
+
+                    // Limpiar todo
+                    estado.buffer = {};
+                    actualizarResumenDesincorporacion();
+                    
+                    // Redirigir después de 1.5 segundos
+                    setTimeout(() => {
+                        window.location.href = "index.php?vista=listar_desincorporacion";
+                    }, 1500);
+                }
+            },
+            error: function (xhr) {
+                setError('error-container-proceso-desincorporacion', 'Error crítico en el servidor.');
+                console.error(xhr.responseText);
+            }
+        });
+    });
+
+    // Listener para cerrar el modal de éxito (opcional)
+    $('#close-success-proceso-desincorporacion').on('click', function () {
+        closeDialog('dialog[data-modal="success"]');
+    });
 
 });

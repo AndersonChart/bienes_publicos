@@ -1010,16 +1010,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 310); 
         });
     });
+    // Coloca esto dentro de tu window.addEventListener('load', ...) o $(document).ready(...)
+    const inputActa = document.getElementById('acta_desincorporacion');
 
-    document.getElementById('acta_desincorporacion').addEventListener('change', function(e) {
-        const fileName = e.target.files[0]?.name || "Click para subir Acta (PDF o Excel)";
-        document.getElementById('file_name_display').textContent = fileName;
-        
-        // Opcional: Cambiar el color del borde si ya hay un archivo
-        if (e.target.files.length > 0) {
-            document.querySelector('.document_wrapper').style.borderColor = '#28a745'; // Verde éxito
-        }
-    });
+    if (inputActa) { // Solo se ejecuta si el elemento existe en el HTML de la página actual
+        inputActa.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || "Click para subir Acta";
+            const display = document.getElementById('file_name_display');
+            const wrapper = document.querySelector('.document_wrapper');
+
+            if (display) display.textContent = fileName;
+            
+            if (e.target.files.length > 0 && wrapper) {
+                wrapper.style.borderColor = '#28a745'; // Verde éxito
+                
+                // Opcional: Cambiar el icono visual si es PDF o Excel
+                const ext = fileName.split('.').pop().toLowerCase();
+                const preview = document.getElementById('preview_acta');
+                if(preview) {
+                    if(ext === 'pdf') preview.src = 'img/icons/pdf.png';
+                    else if(ext === 'xls' || ext === 'xlsx') preview.src = 'img/icons/excel.png';
+                }
+            }
+        });
+    }
 
     document.querySelectorAll('.modal__close').forEach(btn => {
         btn.addEventListener('click', () => {

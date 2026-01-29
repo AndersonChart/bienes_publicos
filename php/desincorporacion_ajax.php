@@ -9,113 +9,85 @@ header('Content-Type: application/json');
 
 $desincorporacion = new desincorporacion();
 $accion    = $_POST['accion'] ?? '';
-/*
-function validardesincorporacion($datos, $modo = 'crear', $id = null) {
-    $camposObligatorios = ['ajuste_fecha'];
 
-    // Verificar campos obligatorios
+function validarDesincorporacion($datos, $modo = 'crear', $id = null) {
+    // 1. Campos obligatorios
+    $camposObligatorios = [
+        'ajuste_fecha' => 'proceso_desincorporacion_fecha', 
+        'ajuste_nombre_original' => 'acta_desincorporacion'
+    ];
+    
     $camposFaltantes = [];
-    foreach ($camposObligatorios as $campo) {
-        if (!isset($datos[$campo]) || trim($datos[$campo]) === '') {
-            $camposFaltantes[] = $campo;
+    foreach ($camposObligatorios as $claveData => $idHtml) {
+        // Validamos usando la CLAVE (lo que viene de la petición)
+        if (!isset($datos[$claveData]) || trim($datos[$claveData]) === '') {
+            $camposFaltantes[] = $idHtml; // Guardamos el ID HTML para el borde rojo
         }
     }
+
     if (!empty($camposFaltantes)) {
         return [
             'error'   => true,
-            'mensaje' => 'Debe indicar la fecha de la recepción',
+            'mensaje' => 'Faltan datos obligatorios',
             'campos'  => $camposFaltantes
         ];
     }
 
-    // Validación de formato de fecha (YYYY-MM-DD)
+    // 2. VALIDACIÓN DEL ARCHIVO (Mantenemos tu lógica, está muy bien)
+    $nombreArchivo = $datos['ajuste_nombre_original'];
+    $extensionesPermitidas = ['pdf', 'xls', 'xlsx'];
+    $extension = strtolower(pathinfo($nombreArchivo, PATHINFO_EXTENSION));
+
+    if (!in_array($extension, $extensionesPermitidas)) {
+        return [
+            'error'   => true,
+            'mensaje' => 'El formato del acta no es válido. Solo se permite PDF o Excel.',
+            'campos'  => ['acta_desincorporacion'] 
+        ];
+    }
+
+    // 3. Validación de Fecha (Sincronizada con el ID del HTML)
     $fecha = trim($datos['ajuste_fecha']);
-    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) || $fecha > date('Y-m-d')) {
         return [
             'error'   => true,
-            'mensaje' => 'La fecha de la recepción debe tener formato YYYY-MM-DD',
-            'campos'  => ['ajuste_fecha']
-        ];
-    } else {
-        // Validación de que la fecha no sea futura
-        $hoy = date('Y-m-d');
-        if ($fecha > $hoy) {
-            return [
-                'error'   => true,
-                'mensaje' => 'La fecha de la recepción no puede ser posterior al día de hoy',
-                'campos'  => ['ajuste_fecha']
-            ];
-        }
-    }
-
-    // Validación de artículos vacíos
-    if (!is_array($datos['articulos']) || count($datos['articulos']) === 0) {
-        return [
-            'error'   => true,
-            'mensaje' => 'Debe ingresar al menos un artículo con cantidad para la recepción',
-            'campos'  => ['articulos']
+            'mensaje' => 'Fecha inválida o futura.',
+            'campos'  => ['proceso_desincorporacion_fecha'] // ID corregido aquí
         ];
     }
 
-    // Validación de seriales únicos
-    $todosSeriales = [];
-    foreach ($datos['articulos'] as $idx => $art) {
-        if (!isset($art['articulo_id'])) {
-            return [
-                'error'   => true,
-                'mensaje' => "Falta el identificador del artículo en la recepción",
-                'campos'  => ["articulos[$idx][articulo_id]"]
-            ];
-        }
-
-        $seriales = isset($art['seriales']) && is_array($art['seriales']) ? $art['seriales'] : [];
-        $seriales = array_map(fn($s) => is_string($s) ? trim($s) : '', $seriales);
-
-        // Duplicados dentro del mismo artículo
-        $noVacios = array_values(array_filter($seriales, fn($s) => $s !== ''));
-        if (count($noVacios) !== count(array_unique($noVacios))) {
-            return [
-                'error'   => true,
-                'mensaje' => "Hay seriales repetidos dentro del mismo artículo",
-                'campos'  => ["articulos[$idx][seriales]"]
-            ];
-        }
-
-        $todosSeriales = array_merge($todosSeriales, $noVacios);
-    }
-
-    // Duplicados entre artículos
-    if (count($todosSeriales) !== count(array_unique($todosSeriales))) {
+    // 4. Validación de Artículos y Cantidades
+    if (!isset($datos['articulos']) || !is_array($datos['articulos']) || empty($datos['articulos'])) {
         return [
             'error'   => true,
-            'mensaje' => 'Hay seriales repetidos entre distintos artículos de la recepción',
-            'campos'  => ['articulos']
+            'mensaje' => 'Debe seleccionar al menos un artículo.',
+            'campos'  => ['tabla_articulos']
         ];
     }
 
-    // Validación contra BD (ignora estado 4)
-    if (!empty($todosSeriales)) {
-        global $desincorporacion;
-        $repetidosBD = $desincorporacion->validar_seriales($todosSeriales);
-        if (!empty($repetidosBD)) {
+    foreach ($datos['articulos'] as $index => $art) {
+        $cantidad = isset($art['cantidad']) ? (int)$art['cantidad'] : 0;
+        if ($cantidad <= 0) {
             return [
                 'error'   => true,
-                'mensaje' => 'Los siguientes seriales ya existen en el inventario: ' . implode(', ', $repetidosBD),
-                'campos'  => ['articulos']
+                'mensaje' => "Cantidad inválida en la fila " . ($index + 1),
+                'campos'  => ["articulos[$index][cantidad]"]
             ];
         }
-    }
-
-    // Normalizar datos
-    foreach ($datos as $clave => $valor) {
-        if (is_string($valor)) {
-            $datos[$clave] = trim($valor);
+        
+        if (!isset($art['seriales']) || !is_array($art['seriales'])) {
+            return [
+                'error'   => true,
+                'mensaje' => "Faltan datos de seriales en la fila " . ($index + 1),
+                'campos'  => ["articulos[$index][seriales]"]
+            ];
         }
     }
 
     return ['valido' => true];
 }
-*/
+
+
 // Router de acciones
 switch ($accion) {
     //Leer desincorporaciones
