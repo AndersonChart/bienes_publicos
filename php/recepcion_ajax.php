@@ -189,7 +189,7 @@ switch ($accion) {
                 'detalle' => $e->getMessage()
             ]);
         }
-        break;
+    break;
 
     case 'listar_articulos_recepcion':
         try {

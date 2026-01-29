@@ -1372,114 +1372,117 @@ document.addEventListener('DOMContentLoaded', function () {
     const errorContainer = document.getElementById('error-container-usuario');
 
     // Previsualizar imagen
-    inputFoto.addEventListener('change', function () {
-        const archivo = this.files[0];
-        if (archivo) {
-            const lector = new FileReader();
-            lector.onload = function (e) {
-                previewFoto.src = e.target.result;
-                previewFoto.style.display = 'block';
-                icono.style.opacity = '0';
-            };
-            lector.readAsDataURL(archivo);
-        }
-    });
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const tipo = document.getElementById('tipo_cedula').value;
-        const numeroInput = document.getElementById('numero_cedula');
-        const numero = numeroInput.value.trim();
-        const usuarioId = document.getElementById('usuario_id').value;
-
-        const cedulaCompleta = tipo + '-' + numero;
-        const formData = new FormData(form);
-        formData.set('usuario_cedula', cedulaCompleta);
-
-        // Solo asignar rol si estás creando y el select está vacío
-        if (!usuarioId && !formData.get('rol_id')) {
-            formData.append('rol_id', '1'); // valor por defecto solo si no eligió nada
-        }
-
-        // Acción condicional
-        const accion = usuarioId ? 'actualizar' : 'crear';
-        formData.append('accion', accion);
-
-        if (usuarioId) formData.append('usuario_id', usuarioId);
-
-        fetch('php/usuario_ajax.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            errorContainer.innerHTML = '';
-            errorContainer.style.display = 'none';
-
-            if (data.error) {
-                errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
-                errorContainer.style.display = 'block';
-
-                if (data.campos && Array.isArray(data.campos)) {
-                    data.campos.forEach((campo, index) => {
-                        let input = form.querySelector(`[name="${campo}"]`);
-                        if (campo === 'usuario_cedula') input = document.getElementById('numero_cedula');
-                        if (campo === 'usuario_foto') input = inputFoto;
-                        if (input) {
-                            const contenedor = input.closest('.input_text');
-                            if (contenedor) {
-                                contenedor.classList.add('input-error');
-                            } else {
-                                input.classList.add('input-error');
-                            }
-                            if (index === 0) input.focus();
-                        }
-                    });
-                }
-            } else if (data.exito) {
-                const esActualizacion = !!usuarioId;
-                const mensaje = esActualizacion ? "Usuario actualizado con éxito" : "Usuario registrado con éxito";
-
-                // Solo cerrar el modal si fue una actualización
-                if (esActualizacion) {
-                    const modalFormulario = document.querySelector('dialog[data-modal="new_user"]');
-                    if (modalFormulario && modalFormulario.open) {
-                        modalFormulario.close();
-                    }
-                }
-
-                mostrarModalExito(mensaje);
-
-                // Si el usuario actualizado es el que está en sesión, refrescar su foto en el header
-                if (usuarioId && usuarioId === String(idUsuarioSesion)) {
-                    fetch('php/usuario_ajax.php', {
-                        method: 'POST',
-                        body: new URLSearchParams({ accion: 'obtener_usuario', id: usuarioId })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.exito && data.usuario) {
-                            const nuevaFoto = data.usuario.usuario_foto || 'img/icons/perfil.png';
-                            const avatarHeader = document.getElementById('foto_usuario_header');
-                            if (avatarHeader) {
-                                avatarHeader.src = nuevaFoto + '?t=' + new Date().getTime();
-                            }
-                        }
-                    });
-                }
-
-                // Limpiar formulario para siguiente registro
-                limpiarFormulario(form);
-                // Recarga la tabla
-                $('#usuarioTabla').DataTable().ajax.reload(null, false);
+    if (inputFoto) {
+        inputFoto.addEventListener('change', function () {
+            const archivo = this.files[0];
+            if (archivo && previewFoto) { // Verificamos también que exista el lugar de la previsualización
+                const lector = new FileReader();
+                lector.onload = function (e) {
+                    previewFoto.src = e.target.result;
+                    previewFoto.style.display = 'block';
+                    if (icono) icono.style.opacity = '0';
+                };
+                lector.readAsDataURL(archivo);
             }
-        })
-        .catch(() => {
-            errorContainer.innerHTML = 'Hubo un error con el servidor';
-            errorContainer.style.display = 'block';
         });
-    });
+    }
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const tipo = document.getElementById('tipo_cedula').value;
+            const numeroInput = document.getElementById('numero_cedula');
+            const numero = numeroInput.value.trim();
+            const usuarioId = document.getElementById('usuario_id').value;
+
+            const cedulaCompleta = tipo + '-' + numero;
+            const formData = new FormData(form);
+            formData.set('usuario_cedula', cedulaCompleta);
+
+            // Solo asignar rol si estás creando y el select está vacío
+            if (!usuarioId && !formData.get('rol_id')) {
+                formData.append('rol_id', '1'); // valor por defecto solo si no eligió nada
+            }
+
+            // Acción condicional
+            const accion = usuarioId ? 'actualizar' : 'crear';
+            formData.append('accion', accion);
+
+            if (usuarioId) formData.append('usuario_id', usuarioId);
+
+            fetch('php/usuario_ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+
+                if (data.error) {
+                    errorContainer.innerHTML = `<p>${data.mensaje}</p>`;
+                    errorContainer.style.display = 'block';
+
+                    if (data.campos && Array.isArray(data.campos)) {
+                        data.campos.forEach((campo, index) => {
+                            let input = form.querySelector(`[name="${campo}"]`);
+                            if (campo === 'usuario_cedula') input = document.getElementById('numero_cedula');
+                            if (campo === 'usuario_foto') input = inputFoto;
+                            if (input) {
+                                const contenedor = input.closest('.input_text');
+                                if (contenedor) {
+                                    contenedor.classList.add('input-error');
+                                } else {
+                                    input.classList.add('input-error');
+                                }
+                                if (index === 0) input.focus();
+                            }
+                        });
+                    }
+                } else if (data.exito) {
+                    const esActualizacion = !!usuarioId;
+                    const mensaje = esActualizacion ? "Usuario actualizado con éxito" : "Usuario registrado con éxito";
+
+                    // Solo cerrar el modal si fue una actualización
+                    if (esActualizacion) {
+                        const modalFormulario = document.querySelector('dialog[data-modal="new_user"]');
+                        if (modalFormulario && modalFormulario.open) {
+                            modalFormulario.close();
+                        }
+                    }
+
+                    mostrarModalExito(mensaje);
+
+                    // Si el usuario actualizado es el que está en sesión, refrescar su foto en el header
+                    if (usuarioId && usuarioId === String(idUsuarioSesion)) {
+                        fetch('php/usuario_ajax.php', {
+                            method: 'POST',
+                            body: new URLSearchParams({ accion: 'obtener_usuario', id: usuarioId })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.exito && data.usuario) {
+                                const nuevaFoto = data.usuario.usuario_foto || 'img/icons/perfil.png';
+                                const avatarHeader = document.getElementById('foto_usuario_header');
+                                if (avatarHeader) {
+                                    avatarHeader.src = nuevaFoto + '?t=' + new Date().getTime();
+                                }
+                            }
+                        });
+                    }
+
+                    // Limpiar formulario para siguiente registro
+                    limpiarFormulario(form);
+                    // Recarga la tabla
+                    $('#usuarioTabla').DataTable().ajax.reload(null, false);
+                }
+            })
+            .catch(() => {
+                errorContainer.innerHTML = 'Hubo un error con el servidor';
+                errorContainer.style.display = 'block';
+            });
+        });
+    }
 });
 
 

@@ -93,21 +93,6 @@
 
 </dialog>
 
-<!-- Confirmación de descartar Desincorporación -->
-<dialog data-modal="confirmar_regresar-desincorporacion" class="modal modal_confirmar">
-    <div class="modal_header-confirmar">
-        <h2 class="modal_title">¿Desea cancelar la desincorporación?</h2>
-    </div>
-    <div class="modal_delete-buttons">
-        <form method="dialog">
-            <button class="modal__close modal__close-confirm">Cancelar</button>
-        </form>
-        <form id="form_confirmar_regresar" method="POST">
-            <input type="submit" value="Aceptar" class="register_submit-confirm" id="btn_confirmar_regresar">
-        </form>
-    </div>
-</dialog>
-
 <!-- Modal: Información del artículo -->
 <dialog data-modal="info_articulo" class="modal modal_info">
     <div class="modal_header-info">

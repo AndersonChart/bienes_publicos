@@ -32,6 +32,57 @@ class desincorporacion {
         $stmt->execute([(int)$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    
+
+    // Crear nueva desincorporación
+    public function crear($fecha, $descripcion, $nombreOrig, $nombreSist, $articulos = []) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. Insertar cabecera (Tipo 0 = Salida/Desincorporación)
+            // Se incluyen ajuste_nombre_original y ajuste_nombre_sistema
+            $stmtCab = $this->pdo->prepare(
+                "INSERT INTO ajuste (ajuste_fecha, ajuste_descripcion, ajuste_nombre_original, ajuste_nombre_sistema, ajuste_tipo, ajuste_estado)
+                VALUES (?, ?, ?, ?, 0, 1)"
+            );
+            $stmtCab->execute([$fecha, $descripcion, $nombreOrig, $nombreSist]);
+            $ajuste_id = $this->pdo->lastInsertId();
+
+            // 2. Procesar artículos vinculados
+            if (!empty($articulos)) {
+                $stmtDetalle = $this->pdo->prepare(
+                    "INSERT INTO ajuste_articulo (articulo_serial_id, ajuste_id) VALUES (?, ?)"
+                );
+                $stmtUpdateSerial = $this->pdo->prepare(
+                    "UPDATE articulo_serial SET estado_id = 4 WHERE articulo_serial_id = ?"
+                );
+
+                foreach ($articulos as $art) {
+                    if (isset($art['seriales']) && is_array($art['seriales'])) {
+                        foreach ($art['seriales'] as $serial) {
+                            // Extraemos el ID del serial (funciona si es objeto {id:X} o valor directo X)
+                            $serialId = is_array($serial) ? $serial['id'] : $serial;
+
+                            // Insertar vínculo en la tabla intermedia
+                            $stmtDetalle->execute([$serialId, $ajuste_id]);
+                            
+                            // Actualizar estado del serial a 'Desincorporado' (ID 4)
+                            $stmtUpdateSerial->execute([$serialId]);
+                        }
+                    }
+                }
+            }
+
+            $this->pdo->commit();
+            return $ajuste_id;
+
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
 
     
     // Listar artículos disponibles

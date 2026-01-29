@@ -14,7 +14,7 @@ function validarDesincorporacion($datos, $modo = 'crear', $id = null) {
     // 1. Campos obligatorios
     $camposObligatorios = [
         'ajuste_fecha' => 'proceso_desincorporacion_fecha', 
-        'ajuste_nombre_original' => 'acta_desincorporacion'
+        'ajuste_nombre_original' => 'acta_desincorporacion' 
     ];
     
     $camposFaltantes = [];
@@ -112,6 +112,83 @@ switch ($accion) {
                 'data'    => [],
                 'error'   => true,
                 'mensaje' => 'Error al leer las desincorporaciones registradas',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+    break;
+
+    case 'crear':
+        try {
+            header('Content-Type: application/json');
+
+            // 1. Decodificar artículos
+            $articulos = [];
+            if (isset($_POST['articulos'])) {
+                $decoded = json_decode($_POST['articulos'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $articulos = $decoded;
+                }
+            }
+
+            // 2. Preparar datos base
+            $datos = [
+                'ajuste_fecha'           => $_POST['ajuste_fecha'] ?? '',
+                'ajuste_descripcion'     => $_POST['ajuste_descripcion'] ?? '',
+                'ajuste_tipo'            => 0, // 0 = Desincorporación
+                'ajuste_nombre_original' => $_FILES['acta_archivo']['name'] ?? '', // Nombre real del archivo
+                'ajuste_nombre_sistema'  => '', // Se llenará si el archivo es válido
+                'articulos'              => $articulos
+            ];
+
+            // 3. Validación integral (Pasamos $_FILES si es necesario)
+            $validacion = validarDesincorporacion($datos, 'crear');
+            if (isset($validacion['error'])) {
+                echo json_encode($validacion);
+                exit;
+            }
+
+            // 4. Procesar el Archivo (PDF/Excel)
+            if (isset($_FILES['acta_archivo']) && $_FILES['acta_archivo']['error'] === UPLOAD_ERR_OK) {
+                $extension = pathinfo($_FILES['acta_archivo']['name'], PATHINFO_EXTENSION);
+                
+                // Creamos un nombre único para el sistema (ej: acta_65b2_12345.pdf)
+                $nombreSistema = 'acta_' . date('Ymd_His') . '_' . uniqid() . '.' . $extension;
+                $directorio = '../documentos/desincorporaciones/';
+                
+                if (!is_dir($directorio)) mkdir($directorio, 0755, true);
+                
+                if (move_uploaded_file($_FILES['acta_archivo']['tmp_name'], $directorio . $nombreSistema)) {
+                    $datos['ajuste_nombre_sistema'] = $nombreSistema;
+                } else {
+                    throw new Exception("No se pudo mover el archivo al servidor.");
+                }
+            } else {
+                // Si el archivo es obligatorio y no llegó
+                echo json_encode(['error' => true, 'mensaje' => 'El acta es obligatoria', 'campos' => ['acta_desincorporacion']]);
+                exit;
+            }
+
+            // 5. Crear Desincorporación en DB
+            // Nota: Asegúrate que tu método crear() acepte: ($fecha, $desc, $nombreOrig, $nombreSist, $articulos)
+            $recepcionId = $recepcion->crear(
+                $datos['ajuste_fecha'],
+                $datos['ajuste_descripcion'],
+                $datos['ajuste_nombre_original'],
+                $datos['ajuste_nombre_sistema'],
+                $datos['articulos']
+            );
+
+            echo json_encode([
+                'exito'   => true,
+                'mensaje' => 'La Desincorporación fue registrada correctamente',
+                'id'      => $recepcionId
+            ]);
+
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'error'   => true,
+                'mensaje' => 'Error al registrar la Desincorporación',
                 'detalle' => $e->getMessage()
             ]);
         }
