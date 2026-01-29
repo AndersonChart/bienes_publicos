@@ -1841,6 +1841,63 @@ a {
     outline: none;
 }
 
+.document_container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.document_wrapper {
+    /* Cambiado a rectángulo horizontal */
+    width: 100%;
+    max-width: 350px; 
+    height: 40px;
+    
+    /* Efecto Tijeras: Borde segmentado */
+    border: 3px dashed #999; 
+    border-radius: 12px; /* Bordes redondeados suaves */
+    
+    background-color: #f8f9fa;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column; /* Icono arriba, texto abajo */
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    padding: 10px;
+}
+
+.document_wrapper:hover {
+    /* Cambio de color al pasar el mouse */
+    border: 3px dashed #0056b3; 
+    background-color: #e9ecef;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.document_imagen {
+    width: 35px; /* Tamaño del icono */
+    height: auto;
+    margin-bottom: 5px;
+}
+
+#file_name_display {
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 90%;
+}
+
+/* Ocultar el input original pero mantenerlo funcional */
+.input_file {
+    display: none;
+}
+
 .foto_perfil_icon {
     font-size: 32px;
     color: #039;

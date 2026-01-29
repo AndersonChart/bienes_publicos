@@ -51,6 +51,19 @@
                 <input type="text" id="proceso_desincorporacion_descripcion" name="ajuste_descripcion" class="input_text">
             </div>
 
+            <div class="input_block_content">
+                <label for="acta_desincorporacion" class="input_label">Acta de Desincorporación*</label>
+                <div class="document_container">
+                    <input type="file" id="acta_desincorporacion" name="acta_desincorporacion" class="input_file" 
+                        accept=".pdf,.xls,.xlsx">
+                    
+                    <div class="document_wrapper" onclick="document.getElementById('acta_desincorporacion').click()">
+                        <img id="preview_acta" src="img/icons/pdf.png" class="document_imagen" alt="Documento">
+                        <span id="file_name_display">Click para subir Acta (PDF o Excel)</span>
+                    </div>
+                </div>
+            </div>
+
             <input type="hidden" name="ajuste_tipo" value="1"> <!-- 1 = Entrada -->
 
             <!-- Contenedor de errores -->
@@ -62,8 +75,8 @@
 
         <!-- Columna derecha: tabla resumen -->
         <div class="resumen_container">
-            <div class="container_table_box-recepcion">
-                <table id="procesodesincorporacionResumenTabla" class="display">
+            <div class="container_table_box-asignacion">
+                <table id="procesoDesincorporacionResumenTabla" class="display">
                     <thead>
                         <tr>
                             <th colspan="4" class="title">Resumen de la Desincorporación</th>
@@ -79,6 +92,8 @@
             </div>
         </div>
     </div>
+
+
 </dialog>
 
 <!-- Confirmación de descartar Desincorporación -->

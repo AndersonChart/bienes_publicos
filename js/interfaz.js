@@ -1011,6 +1011,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.getElementById('acta_desincorporacion').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || "Click para subir Acta (PDF o Excel)";
+        document.getElementById('file_name_display').textContent = fileName;
+        
+        // Opcional: Cambiar el color del borde si ya hay un archivo
+        if (e.target.files.length > 0) {
+            document.querySelector('.document_wrapper').style.borderColor = '#28a745'; // Verde éxito
+        }
+    });
+
     document.querySelectorAll('.modal__close').forEach(btn => {
         btn.addEventListener('click', () => {
             const modal = btn.closest('dialog');

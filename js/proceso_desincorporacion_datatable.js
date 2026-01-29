@@ -438,12 +438,6 @@ window.addEventListener('load', function () {
             return;
         }
 
-        // Validación B: La selección no coincide con lo ingresado afuera
-        if (cantidadSeleccionada !== cantidadRequerida) {
-            setErrorSerial(`La cantidad seleccionada (${cantidadSeleccionada}) no coincide con la cantidad solicitada (${cantidadRequerida}).`);
-            return;
-        }
-
         const datosSeriales = [];
 
         // Recolectar datos y observaciones de los inputs
@@ -477,4 +471,75 @@ window.addEventListener('load', function () {
         resetErrorSerial();
         closeDialog('dialog[data-modal="seriales_articulo"]');
     });
+
+    // ------------------------------
+    // Resumen de Desincorporación con child rows
+    // ------------------------------
+    const tablaResumen = $('#procesoDesincorporacionResumenTabla').DataTable({
+        data: [],
+        columns: [
+            { data: 'codigo', title: 'Código' },
+            { data: 'nombre', title: 'Nombre' },
+            { data: 'cantidad', title: 'Cantidad' },
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<span class="toggle-details">▶</span>',
+                title: 'Seriales'
+            }
+        ],
+        ordering: true,
+        scrollY: '300px',
+        scrollCollapse: true,
+        paging: false,
+        searching: false,
+        info: false,
+        language: { emptyTable: 'No se encuentran registros' }
+    });
+
+    function actualizarResumenDesincorporacion() {
+        const resumen = Object.values(estado.buffer)
+            .filter(item => Array.isArray(item.seriales) && item.seriales.length > 0)
+            .map(item => ({
+                articulo_id: item.articulo_id,
+                codigo: item.codigo,
+                nombre: item.nombre,
+                cantidad: item.seriales.length
+            }));
+
+        tablaResumen.clear();
+        tablaResumen.rows.add(resumen);
+        tablaResumen.draw();
+    }
+    
+    function formatSerialesDesincorporacion(rowData) {
+        const bufferItem = estado.buffer[rowData.articulo_id];
+        if (!bufferItem || !Array.isArray(bufferItem.seriales) || bufferItem.seriales.length === 0) {
+            return '<div class="seriales-empty">No se seleccionaron seriales</div>';
+        }
+        let html = '<div class="seriales-list"><ul>';
+        bufferItem.seriales.forEach((s, i) => {
+            html += `<li><strong>${i + 1}:</strong> ${s.serial}</li>`;
+        });
+        html += '</ul></div>';
+        return html;
+    }
+
+    $('#procesoDesincorporacionResumenTabla tbody').on('click', 'td.dt-control', function () {
+        const tr = $(this).closest('tr');
+        const row = tablaResumen.row(tr);   
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('.toggle-details').text('▶');
+        } else {
+            row.child(formatSerialesDesincorporacion(row.data())).show();
+            tr.addClass('shown');
+            $(this).find('.toggle-details').text('▼');
+        }
+    });
+
+
 });
