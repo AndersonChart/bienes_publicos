@@ -181,6 +181,12 @@ window.addEventListener('load', function () {
         lengthMenu: [[5, 10, 15, 20, 30], [5, 10, 15, 20, 30]],
         pageLength: 15
     });
+
+    //RECARGAR TABLA POR FILTROS
+    $('#categoria_filtro, #clasificacion_filtro').on('change', function () {
+        tablaArticulos.ajax.reload(null, false);
+    });
+
     // 1. Manejar el dibujado (Persistencia al cambiar de página)
     tablaArticulos.on('draw', function () {
         $('#procesoDesincorporacionArticuloTabla tbody .input_cantidad').each(function () {
@@ -252,6 +258,42 @@ window.addEventListener('load', function () {
 
         // Si tienes la función de resumen, llámala aquí
         if (typeof actualizarResumenDesincorporacion === 'function') actualizarResumenDesincorporacion();
+    });
+
+    //INFO DE ARTICULOS
+    $('#procesoDesincorporacionArticuloTabla tbody').on('click', '.btn_ver_info', function () {
+        const id = $(this).data('id');
+
+        $.post('php/desincorporacion_ajax.php', { accion: 'obtener_articulo', id }, function (resp) {
+            if (resp && resp.exito && resp.articulo) {
+                const a = resp.articulo;
+                $('#info_codigo').text(a.articulo_codigo ?? '');
+                $('#info_nombre').text(a.articulo_nombre ?? '');
+                $('#info_categoria').text(a.categoria_nombre ?? '');
+                $('#info_clasificacion').text(a.clasificacion_nombre ?? '');
+                $('#info_marca').text(a.marca_nombre ?? '');
+                $('#info_modelo').text(a.articulo_modelo ?? '');
+                $('#info_descripcion').text(a.articulo_descripcion ?? '');
+
+                const imgEl = document.getElementById('info_imagen');
+                if (imgEl) {
+                    const src = (a.articulo_imagen && String(a.articulo_imagen).trim() !== '')
+                        ? `${a.articulo_imagen}?t=${Date.now()}` : '';
+                    imgEl.src = src;
+                    imgEl.alt = 'Imagen del artículo';
+                }
+
+                if (Number(a.categoria_tipo) === 0) {
+                    $('#li_info_marca').hide();
+                    $('#li_info_modelo').hide();
+                } else {
+                    $('#li_info_marca').show();
+                    $('#li_info_modelo').show();
+                }
+
+                showDialog('dialog[data-modal="info_articulo"]');
+            }
+        }, 'json');
     });
 
     //Tabla de seriales dentro del modal TABLA DE SERIALES ESTRUCTURA BASICA
