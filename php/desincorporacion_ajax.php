@@ -130,65 +130,70 @@ switch ($accion) {
                 }
             }
 
-            // 2. Preparar datos base
+            // --- CORRECCIÓN AQUÍ: Capturar nombre del archivo para la validación ---
+            $nombreOriginalArchivo = '';
+            if (isset($_FILES['acta_archivo']) && $_FILES['acta_archivo']['error'] === UPLOAD_ERR_OK) {
+                $nombreOriginalArchivo = $_FILES['acta_archivo']['name'];
+            }
+
+            // 2. Preparar datos para validación
             $datos = [
                 'ajuste_fecha'           => $_POST['ajuste_fecha'] ?? '',
                 'ajuste_descripcion'     => $_POST['ajuste_descripcion'] ?? '',
-                'ajuste_tipo'            => 0, // 0 = Desincorporación
-                'ajuste_nombre_original' => $_FILES['acta_archivo']['name'] ?? '', // Nombre real del archivo
-                'ajuste_nombre_sistema'  => '', // Se llenará si el archivo es válido
+                'ajuste_nombre_original' => $nombreOriginalArchivo, // <--- AHORA SÍ EXISTE
+                'ajuste_tipo'            => 0,
                 'articulos'              => $articulos
             ];
 
-            // 3. Validación integral (Pasamos $_FILES si es necesario)
+            // 3. Validación integral
             $validacion = validarDesincorporacion($datos, 'crear');
             if (isset($validacion['error'])) {
                 echo json_encode($validacion);
                 exit;
             }
 
-            // 4. Procesar el Archivo (PDF/Excel)
-            if (isset($_FILES['acta_archivo']) && $_FILES['acta_archivo']['error'] === UPLOAD_ERR_OK) {
-                $extension = pathinfo($_FILES['acta_archivo']['name'], PATHINFO_EXTENSION);
-                
-                // Creamos un nombre único para el sistema (ej: acta_65b2_12345.pdf)
-                $nombreSistema = 'acta_' . date('Ymd_His') . '_' . uniqid() . '.' . $extension;
-                $directorio = '../documentos/desincorporaciones/';
-                
-                if (!is_dir($directorio)) mkdir($directorio, 0755, true);
-                
-                if (move_uploaded_file($_FILES['acta_archivo']['tmp_name'], $directorio . $nombreSistema)) {
-                    $datos['ajuste_nombre_sistema'] = $nombreSistema;
-                } else {
-                    throw new Exception("No se pudo mover el archivo al servidor.");
-                }
-            } else {
-                // Si el archivo es obligatorio y no llegó
-                echo json_encode(['error' => true, 'mensaje' => 'El acta es obligatoria', 'campos' => ['acta_desincorporacion']]);
-                exit;
+            // 4. Procesar el Archivo (Ya validado por la función anterior)
+            $nombreSistema  = '';
+            // Re-confirmamos la existencia para el proceso de subida
+            $fileTmpPath = $_FILES['acta_archivo']['tmp_name'];
+            $extension   = strtolower(pathinfo($nombreOriginalArchivo, PATHINFO_EXTENSION));
+            
+            $nombreSistema  = 'acta_' . date('Ymd_His') . '_' . uniqid() . '.' . $extension;
+            $directorio     = '../documentos/desincorporaciones/';
+
+            if (!is_dir($directorio)) {
+                mkdir($directorio, 0755, true);
             }
 
-            // 5. Crear Desincorporación en DB
-            // Nota: Asegúrate que tu método crear() acepte: ($fecha, $desc, $nombreOrig, $nombreSist, $articulos)
-            $recepcionId = $recepcion->crear(
+            if (!move_uploaded_file($fileTmpPath, $directorio . $nombreSistema)) {
+                throw new Exception("Error al mover el archivo al directorio de destino.");
+            }
+
+            // 5. Registro en Base de Datos
+            $desincorporacionId = $desincorporacion->crear(
                 $datos['ajuste_fecha'],
                 $datos['ajuste_descripcion'],
-                $datos['ajuste_nombre_original'],
-                $datos['ajuste_nombre_sistema'],
+                $nombreOriginalArchivo,
+                $nombreSistema,
                 $datos['articulos']
             );
 
             echo json_encode([
                 'exito'   => true,
-                'mensaje' => 'La Desincorporación fue registrada correctamente',
-                'id'      => $recepcionId
+                'mensaje' => 'La desincorporación #'. $desincorporacionId .' fue registrada correctamente.',
+                'id'      => $desincorporacionId
             ]);
 
         } catch (Exception $e) {
+            // En caso de error crítico, intentamos borrar el archivo si se subió
+            if (isset($directorio) && isset($nombreSistema) && file_exists($directorio . $nombreSistema)) {
+                unlink($directorio . $nombreSistema);
+            }
+
             http_response_code(500);
             echo json_encode([
                 'error'   => true,
-                'mensaje' => 'Error al registrar la Desincorporación',
+                'mensaje' => 'Error al registrar el proceso',
                 'detalle' => $e->getMessage()
             ]);
         }

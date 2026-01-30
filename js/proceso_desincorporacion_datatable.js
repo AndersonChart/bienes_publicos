@@ -25,22 +25,32 @@ window.addEventListener('load', function () {
         return;
     }
 
-    function resetErrorSerial() {
-        const el = document.getElementById('error-container-proceso-desincorporacion-serial');
-        if (el) {
-            el.textContent = '';
-            el.style.display = 'none';
-        }
-    }
-
-    function setErrorSerial(message) {
-        const el = document.getElementById('error-container-proceso-desincorporacion-serial');
+    // --- 1. UTILIDADES DE ERRORES (Declaradas una sola vez) ---
+    function setError(containerId, message) {
+        const el = document.getElementById(containerId);
         if (el) {
             el.textContent = message || '';
-            el.style.display = message ? 'block' : 'none';
+            // Aseguramos que si hay mensaje, el contenedor sea visible
+            el.style.display = message ? 'block' : 'none'; 
+            
+            // Si usas clases de CSS para colores (ej. .error-message), asegúrate de que existan
+            if (message) {
+                el.classList.add('active'); 
+            } else {
+                el.classList.remove('active');
+            }
         }
     }
 
+    function clearError(containerId) {
+        setError(containerId, '');
+    }
+
+    // Funciones específicas para el modal de seriales
+    function resetErrorSerial() { clearError('error-container-proceso-desincorporacion-serial'); }
+    function setErrorSerial(msg) { setError('error-container-proceso-desincorporacion-serial', msg); }
+
+    // --- 2. ESTADO Y CONFIGURACIÓN ---
     const estado = {
         buffer: {},
         bufferMeta: {},
@@ -54,13 +64,6 @@ window.addEventListener('load', function () {
     function closeDialog(selector) {
         const dlg = document.querySelector(selector);
         if (dlg && typeof dlg.close === 'function') dlg.close();
-    }
-    function setError(containerId, message) {
-        const el = document.getElementById(containerId);
-        if (el) el.textContent = message || '';
-    }
-    function clearError(containerId) {
-        setError(containerId, '');
     }
 
     // ------------------------------
@@ -187,78 +190,64 @@ window.addEventListener('load', function () {
         tablaArticulos.ajax.reload(null, false);
     });
 
-    // 1. Manejar el dibujado (Persistencia al cambiar de página)
-    tablaArticulos.on('draw', function () {
-        $('#procesoDesincorporacionArticuloTabla tbody .input_cantidad').each(function () {
-            const id = $(this).data('id');
-            if (estado.buffer[id]) {
-                $(this).val(estado.buffer[id].cantidad);
-            }
-        });
-
-        $('#procesoDesincorporacionArticuloTabla tbody .btn_agregar_seriales').each(function () {
-            const id = $(this).data('id');
-            const cant = estado.buffer[id]?.cantidad ?? 0;
-            const activo = Number.isFinite(cant) && cant > 0;
-            $(this).toggleClass('is-disabled', !activo).prop('disabled', !activo);
-        });
-    });
-
     // 2. Manejar la entrada de datos (Lógica de activación)
-    $('#procesoDesincorporacionArticuloTabla tbody').on('input', '.input_cantidad', function () {
-        const id = $(this).data('id');
-        const codigo = $(this).data('codigo');
-        const nombre = $(this).data('nombre');
-        const input = $(this);
-        const val = input.val();
-        const maxStock = parseInt(input.attr('max')) || 0;
-        let cantidad = Number.parseInt(val, 10);
+$('#procesoDesincorporacionArticuloTabla tbody').on('input', '.input_cantidad', function () {
+    // 1. PRIMERO declaramos las variables extrayendo los datos del input
+    const input = $(this);
+    const id = input.data('id');
+    const codigo = input.data('codigo');
+    const nombre = input.data('nombre');
+    const val = input.val();
+    const maxStock = parseInt(input.attr('max')) || 0;
+    let cantidad = Number.parseInt(val, 10);
 
-        // Validación: No permitir más del stock disponible
-        if (cantidad > maxStock) {
-            cantidad = maxStock;
-            input.val(maxStock);
+    // 2. SEGUNDO validamos el stock
+    if (cantidad > maxStock) {
+        cantidad = maxStock;
+        input.val(maxStock);
+    }
+
+    // 3. TERCERO manejamos si la cantidad es 0 o inválida
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+        if (estado.buffer[id]) {
+            estado.buffer[id].cantidad = 0;
+            estado.buffer[id].seriales = [];
         }
-
-        // Si la cantidad es inválida o 0, limpiar buffer y desactivar botón
-        if (!Number.isFinite(cantidad) || cantidad <= 0) {
-            if (estado.buffer[id]) {
-                estado.buffer[id].cantidad = 0;
-                estado.buffer[id].seriales = [];
-            }
-            const $btn = input.closest('tr').find('.btn_agregar_seriales');
-            $btn.addClass('is-disabled').prop('disabled', true);
-            
-            // Si tienes la función de resumen, llámala aquí
-            if (typeof actualizarResumenDesincorporacion === 'function') actualizarResumenDesincorporacion();
-            return;
-        }
-
-        // Inicializar o actualizar el buffer básico
-        if (!estado.buffer[id]) {
-            estado.buffer[id] = { articulo_id: id, codigo, nombre, cantidad: 0, seriales: [] };
-        }
-
-        estado.buffer[id].cantidad = cantidad;
-        
-        // Solo inicializamos el array si está vacío (primera vez que se escribe)
-        // Si ya tiene datos (porque el usuario entró al modal y seleccionó), 
-        // no lo tocamos para no borrar los IDs de los seriales reales.
-        if (estado.buffer[id].seriales.length === 0) {
-            estado.buffer[id].seriales = new Array(cantidad).fill({ 
-                id: null, 
-                serial: 'SIN SERIAL', 
-                observacion: '' 
-            });
-        }
-
-        // Activar botón de la fila actual
         const $btn = input.closest('tr').find('.btn_agregar_seriales');
-        $btn.removeClass('is-disabled').prop('disabled', false);
-
-        // Si tienes la función de resumen, llámala aquí
+        $btn.addClass('is-disabled').prop('disabled', true);
+        
         if (typeof actualizarResumenDesincorporacion === 'function') actualizarResumenDesincorporacion();
-    });
+        return;
+    }
+
+    // 4. CUARTO: Ahora sí, inicializamos el buffer (las variables id, codigo y nombre ya existen)
+    if (!estado.buffer[id]) {
+        estado.buffer[id] = { 
+            articulo_id: id, 
+            codigo: codigo, 
+            nombre: nombre, 
+            cantidad: 0, 
+            seriales: [] 
+        };
+    }
+
+    estado.buffer[id].cantidad = cantidad;
+    
+    // Si no hay seriales, crear genéricos
+    if (estado.buffer[id].seriales.length === 0) {
+        estado.buffer[id].seriales = new Array(cantidad).fill(null).map(() => ({ 
+            id: null, 
+            serial: 'SIN SERIAL', 
+            observacion: '' 
+        }));
+    }
+
+    // Activar botón
+    const $btn = input.closest('tr').find('.btn_agregar_seriales');
+    $btn.removeClass('is-disabled').prop('disabled', false);
+
+    if (typeof actualizarResumenDesincorporacion === 'function') actualizarResumenDesincorporacion();
+});
 
     //INFO DE ARTICULOS
     $('#procesoDesincorporacionArticuloTabla tbody').on('click', '.btn_ver_info', function () {
@@ -423,52 +412,50 @@ window.addEventListener('load', function () {
     });
 
     //GUARDAR SERIALES SELECCIONADOS
-    // Usamos el ID exacto de tu input submit
-    $('#btn_guardar_proceso_desincorporacion_seriales').on('click', function(e) {
-        e.preventDefault(); // IMPORTANTE: Evita que el formulario recargue la página
-
+    $('#form_proceso_desincorporacion_seriales').on('submit', function(e) {
+        e.preventDefault(); 
         resetErrorSerial();
 
         const filasSeleccionadas = tablaSeriales.rows({ selected: true });
-        const cantidadSeleccionada = filasSeleccionadas.count();
         
-        // Validación A: No seleccionó nada
-        if (cantidadSeleccionada === 0) {
+        if (filasSeleccionadas.count() === 0) {
             setErrorSerial("Debe seleccionar al menos un serial para confirmar.");
             return;
         }
 
         const datosSeriales = [];
-
-        // Recolectar datos y observaciones de los inputs
         filasSeleccionadas.nodes().each(function(node) {
             const data = tablaSeriales.row(node).data();
             const observacionInput = $(node).find('.input_serial').val(); 
 
+            // IMPORTANTE: Verifica el nombre del campo ID aquí
             datosSeriales.push({
+                articulo_serial_id: data.id || data.articulo_serial_id, 
                 id: data.id,
                 serial: data.serial,
                 observacion: observacionInput
             });
         });
 
-        // 1. Guardar en el buffer (mantenemos los metadatos anteriores si existían)
-        if (!estado.buffer[estado.articuloActivo]) {
-            estado.buffer[estado.articuloActivo] = {};
-        }
-        
-        estado.buffer[estado.articuloActivo].cantidad = cantidadSeleccionada;
-        estado.buffer[estado.articuloActivo].seriales = datosSeriales;
+        // 1. Obtener metadatos que guardamos al abrir el modal
+        const meta = estado.bufferMeta[estado.articuloActivo] || {};
 
-        // 2. ACTUALIZAR CANTIDAD EN LA TABLA DE AFUERA
+        // 2. Guardar en buffer con TODO lo necesario para la tabla resumen
+        estado.buffer[estado.articuloActivo] = {
+            articulo_id: estado.articuloActivo,
+            codigo: meta.codigo || 'S/C', // IMPORTANTE: Ahora el resumen tendrá de donde leer
+            nombre: meta.nombre || 'S/N', // IMPORTANTE
+            cantidad: filasSeleccionadas.count(),
+            seriales: datosSeriales
+        };
+
+        // Actualizar input visual
         const inputPrincipal = $(`#procesoDesincorporacionArticuloTabla tr[data-id="${estado.articuloActivo}"] .input_cantidad`);
-        
         if (inputPrincipal.length > 0) {
-            inputPrincipal.val(cantidadSeleccionada);
-            // Disparar input para que se ejecute la lógica de habilitar/deshabilitar botones
-            inputPrincipal.trigger('input'); 
+            inputPrincipal.val(filasSeleccionadas.count()).trigger('input'); 
         }
-        resetErrorSerial();
+
+        actualizarResumenDesincorporacion();
         closeDialog('dialog[data-modal="seriales_articulo"]');
     });
 
@@ -541,83 +528,117 @@ window.addEventListener('load', function () {
         }
     });
 
-    // ------------------------------
-    // Guardar Desincorporación (Envío al Servidor)
-    // ------------------------------
+// ------------------------------
+// Guardar Desincorporación Final
+// ------------------------------
+    // --- 3. EVENTO SUBMIT CORREGIDO ---
     $('#form_proceso_desincorporacion').on('submit', function (e) {
         e.preventDefault();
         
-        // Limpiar errores previos
+        // Limpiar errores previos antes de validar
         clearError('error-container-proceso-desincorporacion');
-        $('.input_text, .document_wrapper').removeClass('error_border');
+        $('.input_text, .document_wrapper, .input_date').removeClass('error_border');
 
-        // 1. Crear el FormData (Necesario para enviar el archivo del acta)
-        const formData = new FormData(this);
-        
-        // 2. Agregar la acción y los artículos del buffer
-        formData.append('accion', 'crear');
-        
-        // Convertimos el buffer a un formato que PHP entienda fácilmente
-        const articulosParaEnvio = Object.values(estado.buffer)
-            .filter(item => item.cantidad > 0)
+        const fecha = String($('#proceso_desincorporacion_fecha').val() || '').trim();
+        const actaInput = document.getElementById('acta_desincorporacion');
+
+        // Validaciones Manuales
+        if (!fecha) {
+            setError('error-container-proceso-desincorporacion', 'Debe ingresar la fecha de la desincorporación');
+            $('#proceso_desincorporacion_fecha').addClass('error_border').focus();
+            return;
+        }
+
+        const hoy = new Date().toISOString().split('T')[0];
+        if (fecha > hoy) {
+            setError('error-container-proceso-desincorporacion', 'La fecha no puede ser posterior al día de hoy');
+            $('#proceso_desincorporacion_fecha').addClass('error_border').focus();
+            return;
+        }
+
+        if (!actaInput || !actaInput.files || actaInput.files.length === 0) {
+            setError('error-container-proceso-desincorporacion', 'Debe subir el Acta de Desincorporación (PDF o Excel)');
+            $('#wrapper_acta').addClass('error_border');
+            return;
+        }
+
+        const articulos = Object.values(estado.buffer)
+            .filter(item => item.cantidad > 0 && Array.isArray(item.seriales) && item.seriales.length > 0)
             .map(item => ({
                 articulo_id: item.articulo_id,
                 cantidad: item.cantidad,
-                seriales: item.seriales // Enviamos el array de objetos {id, serial, observacion}
+                seriales: item.seriales.map(s => ({
+                    id: s.id,
+                    observacion: s.observacion
+                }))
             }));
 
-        if (articulosParaEnvio.length === 0) {
+        if (articulos.length === 0) {
             setError('error-container-proceso-desincorporacion', 'Debe seleccionar al menos un artículo con sus seriales.');
             return;
         }
 
-        formData.append('articulos', JSON.stringify(articulosParaEnvio));
+        // Preparar FormData
+        const formData = new FormData(this); 
+        formData.append('accion', 'crear');
+        formData.append('ajuste_tipo', 0); 
+        formData.append('articulos', JSON.stringify(articulos));
 
-        // 3. Petición AJAX
         $.ajax({
             url: 'php/desincorporacion_ajax.php',
             type: 'POST',
             data: formData,
-            processData: false, // Importante para FormData
-            contentType: false, // Importante para FormData
+            processData: false,
+            contentType: false,
             dataType: 'json',
+            beforeSend: function() {
+                $('#form_proceso_desincorporacion button[type="submit"]').prop('disabled', true).text('Procesando...');
+            },
             success: function (resp) {
-                if (resp.error) {
-                    // Mostrar mensaje de error general
+                if (resp && resp.error) {
+                    // AQUÍ ES DONDE SE MUESTRA EL ERROR DEL BACKEND
                     setError('error-container-proceso-desincorporacion', resp.mensaje);
 
-                    // Resaltar campos específicos si el backend los mandó
                     if (Array.isArray(resp.campos)) {
                         resp.campos.forEach(idHtml => {
                             const el = document.getElementById(idHtml);
                             if (el) el.classList.add('error_border');
+                            if (idHtml === 'acta_desincorporacion') $('#wrapper_acta').addClass('error_border');
                         });
                     }
-                } else if (resp.valido || resp.exito) {
-                    // ÉXITO
-                    document.getElementById('success-message').textContent = resp.mensaje || 'Desincorporación registrada correctamente';
-                    showDialog('dialog[data-modal="success"]');
-
-                    // Limpiar todo
+                    $('#form_proceso_desincorporacion button[type="submit"]').prop('disabled', false).text('Guardar Desincorporación');
+                } else if (resp && (resp.exito || resp.valido)) {
+                    // Éxito...
                     estado.buffer = {};
-                    actualizarResumenDesincorporacion();
-                    
-                    // Redirigir después de 1.5 segundos
-                    setTimeout(() => {
-                        window.location.href = "index.php?vista=listar_desincorporacion";
-                    }, 1500);
+                    showDialog('dialog[data-modal="success"]');
+                    setTimeout(() => window.location.href = "index.php?vista=listar_desincorporacion", 1500);
                 }
             },
             error: function (xhr) {
-                setError('error-container-proceso-desincorporacion', 'Error crítico en el servidor.');
-                console.error(xhr.responseText);
+                setError('error-container-proceso-desincorporacion', 'Error crítico de comunicación con el servidor.');
+                $('#form_proceso_desincorporacion button[type="submit"]').prop('disabled', false).text('Guardar Desincorporación');
             }
         });
     });
-
     // Listener para cerrar el modal de éxito (opcional)
     $('#close-success-proceso-desincorporacion').on('click', function () {
         closeDialog('dialog[data-modal="success"]');
     });
 
+    // Manejar el dibujado para persistencia al cambiar de página en la DataTable
+    tablaArticulos.on('draw', function () {
+        $('#procesoDesincorporacionArticuloTabla tbody .input_cantidad').each(function () {
+            const id = $(this).data('id');
+            if (estado.buffer[id]) {
+                $(this).val(estado.buffer[id].cantidad);
+            }
+        });
+
+        $('#procesoDesincorporacionArticuloTabla tbody .btn_agregar_seriales').each(function () {
+            const id = $(this).data('id');
+            const cant = estado.buffer[id]?.cantidad ?? 0;
+            const activo = Number.isFinite(cant) && cant > 0;
+            $(this).toggleClass('is-disabled', !activo).prop('disabled', !activo);
+        });
+    });
 });

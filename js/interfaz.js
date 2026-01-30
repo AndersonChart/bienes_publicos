@@ -1023,14 +1023,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (e.target.files.length > 0 && wrapper) {
                 wrapper.style.borderColor = '#28a745'; // Verde éxito
-                
-                // Opcional: Cambiar el icono visual si es PDF o Excel
-                const ext = fileName.split('.').pop().toLowerCase();
-                const preview = document.getElementById('preview_acta');
-                if(preview) {
-                    if(ext === 'pdf') preview.src = 'img/icons/pdf.png';
-                    else if(ext === 'xls' || ext === 'xlsx') preview.src = 'img/icons/excel.png';
-                }
             }
         });
     }

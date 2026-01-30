@@ -67,7 +67,7 @@
 
             <div id="error-container-proceso-desincorporacion" class="error-container"></div>
 
-            <input type="submit" value="Guardar Desincorporación" class="register_submit" id="btn_guardar_proceso_desincorporacion">
+            <input type="submit" value="Guardar" class="register_submit" id="btn_guardar_proceso_desincorporacion">
         </form>
 
         <!-- Columna derecha: tabla resumen -->
